@@ -30,6 +30,7 @@ public class ZkFunctionEncoder extends FunctionEncoder {
     private static final int FIELD_SIZE = 32;
     
     @Override
+    @SuppressWarnings("rawtypes")
     public String encodeFunction(final Function function) {
         final List<Type> parameters = function.getInputParameters();
 
@@ -43,6 +44,7 @@ public class ZkFunctionEncoder extends FunctionEncoder {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public String encodeParameters(final List<Type> parameters) {
         return encodeParameters(parameters, new StringBuilder());
     }
@@ -85,6 +87,7 @@ public class ZkFunctionEncoder extends FunctionEncoder {
 
     }
 
+    @SuppressWarnings("rawtypes")
     private static String encodeParameters(
             final List<Type> parameters, final StringBuilder result) {
 
@@ -109,7 +112,7 @@ public class ZkFunctionEncoder extends FunctionEncoder {
         return result.toString();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static int getLength(final List<Type> parameters) {
         int count = 0;
         for (final Type type : parameters) {
@@ -136,6 +139,7 @@ public class ZkFunctionEncoder extends FunctionEncoder {
         return count;
     }
 
+    @SuppressWarnings("rawtypes")
     static boolean isDynamic(Type parameter) {
         return parameter instanceof DynamicBytes
                 || parameter instanceof Utf8String
