@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.Test;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Hash;
+import org.web3j.tx.ChainIdLong;
 import org.junit.Before;
 
 import io.zksync.protocol.core.ZkSyncNetwork;
-import io.zksync.crypto.signer.PrivateKeyEthSigner;
 import io.zksync.crypto.eip712.Eip712Domain;
 
 import io.zksync.helper.eip712.Mail;
@@ -25,7 +25,7 @@ public class PrivateKeyEthSignerTest {
         final String privateKey = Hash.sha3String("cow");
 
         this.credentials = Credentials.create(privateKey);
-        this.key = new PrivateKeyEthSigner(credentials, ZkSyncNetwork.Mainnnet);
+        this.key = new PrivateKeyEthSigner(credentials, ChainIdLong.MAINNET);
 
         Eip712Domain domain = new Eip712Domain(
             "Ether Mail",
