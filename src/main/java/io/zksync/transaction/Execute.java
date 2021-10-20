@@ -49,12 +49,12 @@ public class Execute extends Transaction {
     }
 
     @JsonGetter("contractAddress")
-    public String contractAddress() {
+    public String getContractAddressString() {
         return contractAddress.getValue();
     }
 
     @JsonSetter("contractAddress")
-    public void contractAddress(String contractAddress) {
+    public void setContractAddress(String contractAddress) {
         this.contractAddress = new Address(contractAddress);
     }
 
