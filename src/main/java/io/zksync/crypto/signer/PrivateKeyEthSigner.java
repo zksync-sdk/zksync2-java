@@ -18,7 +18,6 @@ import org.web3j.utils.Numeric;
 import io.zksync.crypto.eip712.Eip712Domain;
 import io.zksync.crypto.eip712.Eip712Encoder;
 import io.zksync.crypto.eip712.Structurable;
-import io.zksync.protocol.core.ZkSyncNetwork;
 import io.zksync.transaction.Transaction;
 
 import lombok.AllArgsConstructor;
@@ -27,7 +26,7 @@ import lombok.AllArgsConstructor;
 public class PrivateKeyEthSigner implements EthSigner {
 
     private Credentials credentials;
-    private ZkSyncNetwork network;
+    private Long chainId;
 
     @Override
     public String getAddress() {
@@ -35,9 +34,14 @@ public class PrivateKeyEthSigner implements EthSigner {
     }
 
     @Override
+    public CompletableFuture<Eip712Domain> getDomain() {
+        Eip712Domain domain = Eip712Domain.defaultDomain(chainId);
+        return CompletableFuture.completedFuture(domain);
+    }
+
+    @Override
     public <T extends Transaction> CompletableFuture<String> signTransaction(T transaction) {
-        Eip712Domain domain = Eip712Domain.defaultDomain(network);
-        return this.signTypedData(domain, transaction);
+        return getDomain().thenCompose((domain) -> this.signTypedData(domain, transaction));
     }
 
     @Override

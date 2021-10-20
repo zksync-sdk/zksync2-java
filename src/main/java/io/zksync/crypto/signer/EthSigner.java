@@ -22,6 +22,8 @@ public interface EthSigner {
      */
     String getAddress();
 
+    CompletableFuture<Eip712Domain> getDomain();
+
     /**
      * Sign `ZkSync` type operation message
      * 
