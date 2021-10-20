@@ -24,8 +24,16 @@ public class Eip712Domain implements Structurable {
         return new Eip712Domain(new Utf8String(NAME), new Utf8String(VERSION), new Uint256(chainId.getChainId()), Address.DEFAULT);
     }
 
+    public static Eip712Domain defaultDomain(Long chainId) {
+        return new Eip712Domain(new Utf8String(NAME), new Utf8String(VERSION), new Uint256(chainId), Address.DEFAULT);
+    }
+
     public Eip712Domain(String name, String version, ZkSyncNetwork chainId, String address) {
         this(new Utf8String(name), new Utf8String(version), new Uint256(chainId.getChainId()), new Address(address));
+    }
+
+    public Eip712Domain(String name, String version, Long chainId, String address) {
+        this(new Utf8String(name), new Utf8String(version), new Uint256(chainId), new Address(address));
     }
     
     private Utf8String name;
