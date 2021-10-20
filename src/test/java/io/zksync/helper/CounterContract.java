@@ -9,10 +9,13 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.crypto.Credentials;
 import org.web3j.protocol.core.RemoteCall;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.TransactionManager;
+import org.web3j.utils.Numeric;
 
+import io.zksync.crypto.signer.EthSigner;
 import io.zksync.protocol.ZkSync;
 import io.zksync.transaction.ZkContract;
 import io.zksync.transaction.fee.ZkTransactionFeeProvider;
@@ -20,13 +23,13 @@ import io.zksync.transaction.fee.ZkTransactionFeeProvider;
 public class CounterContract extends ZkContract {
 
     protected CounterContract(String contractBinary, String contractAddress, ZkSync zksync,
-            TransactionManager transactionManager, ZkTransactionFeeProvider feeProvider) {
-        super(contractBinary, contractAddress, zksync, transactionManager, feeProvider);
+            TransactionManager transactionManager, ZkTransactionFeeProvider feeProvider, EthSigner signer) {
+        super(contractBinary, contractAddress, zksync, transactionManager, feeProvider, signer);
     }
 
     protected CounterContract(String contractAddress, ZkSync zksync,
-            TransactionManager transactionManager, ZkTransactionFeeProvider feeProvider) {
-        super(contractAddress, zksync, transactionManager, feeProvider);
+            TransactionManager transactionManager, ZkTransactionFeeProvider feeProvider, EthSigner signer) {
+        super(contractAddress, zksync, transactionManager, feeProvider, signer);
     }
 
     public static final String FUNC_INCREMENT = "increment";
@@ -38,8 +41,12 @@ public class CounterContract extends ZkContract {
         return Base64.getDecoder().decode(CODE);
     }
 
-    public static CounterContract load(String contractAddress, ZkSync zksync, TransactionManager transactionManager, ZkTransactionFeeProvider feeProvider) {
-        return new CounterContract(contractAddress, zksync, transactionManager, feeProvider);
+    public static CounterContract load(String contractAddress, ZkSync zksync, TransactionManager transactionManager, ZkTransactionFeeProvider feeProvider, EthSigner signer) {
+        return new CounterContract(contractAddress, zksync, transactionManager, feeProvider, signer);
+    }
+
+    public static RemoteCall<CounterContract> deploy(ZkSync web3j, Credentials credentials, ZkTransactionFeeProvider feeProvider) {
+        return deployRemoteCall(CounterContract.class, web3j, credentials, feeProvider, Numeric.toHexString(getCode()), "");
     }
 
     public RemoteCall<TransactionReceipt> increment(BigInteger _value) {

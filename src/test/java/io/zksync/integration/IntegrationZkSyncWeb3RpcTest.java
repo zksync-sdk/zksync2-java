@@ -65,7 +65,7 @@ public class IntegrationZkSyncWeb3RpcTest {
         this.zksync = ZkSync.build(new HttpService("http://127.0.0.1:3050"));
         this.credentials = Credentials.create(ECKeyPair.create(BigInteger.ONE));
 
-        this.signer = new PrivateKeyEthSigner(credentials, ZkSyncNetwork.Localhost);
+        this.signer = new PrivateKeyEthSigner(credentials, (long) ZkSyncNetwork.Localhost.getChainId());
 
         this.processor = new PollingTransactionReceiptProcessor(this.zksync, 200, 10);
     }
@@ -100,12 +100,12 @@ public class IntegrationZkSyncWeb3RpcTest {
     public void testGetBalanceOfToken() throws IOException {
         EthGetBalance getBalance = this.zksync.ethGetBalance(this.credentials.getAddress(), DefaultBlockParameterName.LATEST, ETH.getAddress()).send();
         
-        System.out.println(getBalance.getResult());
+        System.out.printf("%s: %d", this.credentials.getAddress(), Numeric.toBigInt(getBalance.getResult()));
     }
 
     @Test
     public void testGetTransactionReceipt() throws IOException {
-        TransactionReceipt receipt = this.zksync.ethGetTransactionReceipt("0x6974f1e3583d382d1abf1df3d7021aebd9dc31f88312f6a4a9b7572586fdbe31").send()
+        TransactionReceipt receipt = this.zksync.ethGetTransactionReceipt("0xf9e709fb5c7fc79d576e04eb29a0e85a20c7b234c670185cdb19263cd8a3bebf").send()
             .getResult();
 
         System.out.println(receipt);
@@ -184,15 +184,34 @@ public class IntegrationZkSyncWeb3RpcTest {
         TransactionReceipt receipt = this.processor.waitForTransactionReceipt(sent.getResult());
 
         assertTrue(receipt::isStatusOK);
+        assertNotNull(receipt.getContractAddress());
+        System.out.println(receipt);
     }
 
     @Test
-    public void testReadContract() throws Exception {
-        CounterContract zkCounterContract = CounterContract.load("0x93c92ed7faeb8f307563124daa1c64b9a010fb03", zksync, new RawTransactionManager(this.zksync, this.credentials), new DefaultTransactionFeeProvider(this.zksync, ETH));
+    public void testDeployWeb3jContract() throws Exception {
+        CounterContract contract = CounterContract.deploy(zksync, credentials, new DefaultTransactionFeeProvider(this.zksync, ETH)).send();
+
+        assertNotNull(contract.getContractAddress());
+        System.out.println(contract.getContractAddress());
+    }
+
+    @Test
+    public void testReadWeb3jContract() throws Exception {
+        CounterContract zkCounterContract = CounterContract.load("0x4c8f791a50d9dc9ac0c42706a297d76f4c585864", zksync, new RawTransactionManager(this.zksync, this.credentials), new DefaultTransactionFeeProvider(this.zksync, ETH), this.signer);
 
         BigInteger result = zkCounterContract.get().send();
 
         System.out.println(result);
+    }
+
+    @Test
+    public void testWriteWeb3jContract() throws Exception {
+        CounterContract zkCounterContract = CounterContract.load("0x4c8f791a50d9dc9ac0c42706a297d76f4c585864", zksync, new RawTransactionManager(this.zksync, this.credentials), new DefaultTransactionFeeProvider(this.zksync, ETH), this.signer);
+
+        TransactionReceipt receipt = zkCounterContract.increment(BigInteger.TEN).send();
+
+        assertTrue(receipt::isStatusOK);
     }
 
     @Test

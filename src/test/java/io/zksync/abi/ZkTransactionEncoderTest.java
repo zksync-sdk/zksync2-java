@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.utils.Convert;
-import org.web3j.utils.Numeric;
 import org.web3j.utils.Convert.Unit;
 
 import io.zksync.protocol.core.TimeRange;
