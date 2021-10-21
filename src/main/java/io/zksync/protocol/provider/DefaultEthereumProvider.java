@@ -12,8 +12,7 @@ import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.utils.Convert.Unit;
 
-
-import io.zksync.protocol.core.domain.token.Token;
+import io.zksync.protocol.core.Token;
 import io.zksync.wrappers.ERC20;
 import io.zksync.wrappers.ZkSyncContract;
 import lombok.RequiredArgsConstructor;

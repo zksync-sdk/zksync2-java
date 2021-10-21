@@ -7,7 +7,7 @@ import io.zksync.methods.request.ZksEstimateFeeRequest;
 import io.zksync.methods.response.ZksEstimateFee;
 import io.zksync.methods.response.ZksFee;
 import io.zksync.protocol.ZkSync;
-import io.zksync.protocol.core.domain.token.Token;
+import io.zksync.protocol.core.Token;
 import io.zksync.transaction.Transaction;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;

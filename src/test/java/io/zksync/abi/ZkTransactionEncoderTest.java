@@ -17,7 +17,7 @@ import org.web3j.utils.Convert.Unit;
 import io.zksync.helper.CounterContract;
 import io.zksync.protocol.core.AccountType;
 import io.zksync.protocol.core.TimeRange;
-import io.zksync.protocol.core.domain.token.Token;
+import io.zksync.protocol.core.Token;
 import io.zksync.transaction.DeployContract;
 import io.zksync.transaction.Execute;
 import io.zksync.transaction.MigrateToPorter;

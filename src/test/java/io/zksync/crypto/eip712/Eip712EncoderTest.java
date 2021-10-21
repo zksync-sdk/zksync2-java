@@ -15,8 +15,8 @@ import org.web3j.utils.Numeric;
 import org.web3j.utils.Convert.Unit;
 
 import io.zksync.protocol.core.TimeRange;
+import io.zksync.protocol.core.Token;
 import io.zksync.protocol.core.ZkSyncNetwork;
-import io.zksync.protocol.core.domain.token.Token;
 import io.zksync.transaction.Transfer;
 import io.zksync.helper.eip712.Mail;
 

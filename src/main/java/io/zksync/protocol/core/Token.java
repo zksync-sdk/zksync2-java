@@ -1,4 +1,4 @@
-package io.zksync.protocol.core.domain.token;
+package io.zksync.protocol.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

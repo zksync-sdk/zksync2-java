@@ -11,7 +11,7 @@ import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.StaticGasProvider;
 
 import io.zksync.protocol.ZkSync;
-import io.zksync.protocol.core.domain.token.Token;
+import io.zksync.protocol.core.Token;
 import io.zksync.wrappers.ZkSyncContract;
 
 
