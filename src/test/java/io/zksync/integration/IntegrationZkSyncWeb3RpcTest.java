@@ -197,6 +197,14 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
+    public void testDeployWeb3jContractWithNewMethod() throws Exception {
+        CounterContract contract = CounterContract.deploy(zksync, new RawTransactionManager(this.zksync, this.credentials), new DefaultTransactionFeeProvider(this.zksync, ETH), this.signer).send();
+
+        assertNotNull(contract.getContractAddress());
+        System.out.println(contract.getContractAddress());
+    }
+
+    @Test
     public void testReadWeb3jContract() throws Exception {
         CounterContract zkCounterContract = CounterContract.load("0x4c8f791a50d9dc9ac0c42706a297d76f4c585864", zksync, new RawTransactionManager(this.zksync, this.credentials), new DefaultTransactionFeeProvider(this.zksync, ETH), this.signer);
 

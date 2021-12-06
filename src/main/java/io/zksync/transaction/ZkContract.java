@@ -93,6 +93,36 @@ public class ZkContract extends Contract {
     protected static <T extends ZkContract> T deploy(
             Class<T> type,
             ZkSync web3j,
+            TransactionManager transactionManager,
+            ZkTransactionFeeProvider feeProvider,
+            EthSigner signer,
+            String binary,
+            String encodedConstructor)
+            throws RuntimeException, TransactionException {
+        try {
+            Constructor<T> constructor =
+                    type.getDeclaredConstructor(
+                            String.class,
+                            ZkSync.class,
+                            TransactionManager.class,
+                            ZkTransactionFeeProvider.class,
+                            EthSigner.class);
+            constructor.setAccessible(true);
+
+            // we want to use null here to ensure that "to" parameter on message is not populated
+            T contract = constructor.newInstance(null, web3j, transactionManager, feeProvider, signer);
+
+            return create(contract, binary, encodedConstructor);
+        } catch (TransactionException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected static <T extends ZkContract> T deploy(
+            Class<T> type,
+            ZkSync web3j,
             Credentials credentials,
             ZkTransactionFeeProvider feeProvider,
             String binary,
@@ -170,6 +200,25 @@ public class ZkContract extends Contract {
             throws RuntimeException, TransactionException {
 
         throw new UnsupportedOperationException("Not supported deploying contract without signer");
+    }
+
+    public static <T extends ZkContract> RemoteCall<T> deployRemoteCall(
+            Class<T> type,
+            ZkSync web3j,
+            TransactionManager transactionManager,
+            ZkTransactionFeeProvider feeProvider,
+            EthSigner signer,
+            String binary,
+            String encodedConstructor) {
+        return new RemoteCall<>(
+                () -> deploy(
+                    type,
+                    web3j,
+                    transactionManager,
+                    feeProvider,
+                    signer,
+                    binary,
+                    encodedConstructor));
     }
 
     public static <T extends ZkContract> RemoteCall<T> deployRemoteCall(

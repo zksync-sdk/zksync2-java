@@ -41,12 +41,35 @@ public class CounterContract extends ZkContract {
         return Base64.getDecoder().decode(CODE);
     }
 
+    /**
+     * Canonical contract load method of ZkSync2 SDK
+     * 
+     * @param contractAddress - Address of the deployed contract
+     * @param zksync - ZkSync web3 client
+     * @param transactionManager - Transaction manager
+     * @param feeProvider - Fee provider
+     * @param signer - Ethereum message signer
+     * @return remote call for deploy contract into blockchain
+     */
     public static CounterContract load(String contractAddress, ZkSync zksync, TransactionManager transactionManager, ZkTransactionFeeProvider feeProvider, EthSigner signer) {
         return new CounterContract(contractAddress, zksync, transactionManager, feeProvider, signer);
     }
 
     public static RemoteCall<CounterContract> deploy(ZkSync web3j, Credentials credentials, ZkTransactionFeeProvider feeProvider) {
         return deployRemoteCall(CounterContract.class, web3j, credentials, feeProvider, Numeric.toHexString(getCode()), "");
+    }
+
+    /**
+     * Canonical contract deploy method of ZkSync2 SDK
+     * 
+     * @param zksync - ZkSync web3 client
+     * @param transactionManager - Transaction manager
+     * @param feeProvider - Fee provider
+     * @param signer - Ethereum message signer
+     * @return remote call for deploy contract into blockchain
+     */
+    public static RemoteCall<CounterContract> deploy(ZkSync zksync, TransactionManager transactionManager, ZkTransactionFeeProvider feeProvider, EthSigner signer) {
+        return deployRemoteCall(CounterContract.class, zksync, transactionManager, feeProvider, signer, Numeric.toHexString(getCode()), "");
     }
 
     public RemoteCall<TransactionReceipt> increment(BigInteger _value) {

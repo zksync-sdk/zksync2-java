@@ -22,6 +22,11 @@ public interface EthSigner {
      */
     String getAddress();
 
+    /**
+     * Get EIP712 domain
+     * 
+     * @return Eip712 domain
+     */
     CompletableFuture<Eip712Domain> getDomain();
 
     /**
@@ -37,6 +42,7 @@ public interface EthSigner {
      * Signs typed struct using ethereum private key by EIP-712 signature standard.
      * 
      * @param <S> - EIP712 structure
+     * @param domain - EIP712 domain
      * @param typedData - Object implementing EIP712 structure standard
      * @return Signature object
      */
@@ -46,8 +52,10 @@ public interface EthSigner {
      * Verify typed EIP-712 struct standard.
      * 
      * @param <S> - EIP712 structure
+     * @param domain - EIP712 domain
      * @param typedData - Object implementing EIP712 structure standard
-     * @return Signature object
+     * @param signature - Signature of the EIP-712 structures
+     * @return true on verification success
      */
     <S extends Structurable> CompletableFuture<Boolean> verifyTypedData(Eip712Domain domain, S typedData, String signature);
 
@@ -64,7 +72,7 @@ public interface EthSigner {
      * 
      * @param message - Message to sign
      * @param addPrefix - If true then add secure prefix (https://eips.ethereum.org/EIPS/eip-712)
-     * @return
+     * @return Signature object
      */
     CompletableFuture<String> signMessage(byte[] message, boolean addPrefix);
 
