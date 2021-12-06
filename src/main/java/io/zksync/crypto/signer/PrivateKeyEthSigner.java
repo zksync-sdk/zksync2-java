@@ -28,6 +28,16 @@ public class PrivateKeyEthSigner implements EthSigner {
     private Credentials credentials;
     private Long chainId;
 
+    public static PrivateKeyEthSigner fromMnemonic(String mnemonic, long chainId) {
+        Credentials credentials = generateCredentialsFromMnemonic(mnemonic, 0);
+        return new PrivateKeyEthSigner(credentials, chainId);
+    }
+
+    public static PrivateKeyEthSigner fromMnemonic(String mnemonic, int accountIndex, long chainId) {
+        Credentials credentials = generateCredentialsFromMnemonic(mnemonic, accountIndex);
+        return new PrivateKeyEthSigner(credentials, chainId);
+    }
+
     @Override
     public String getAddress() {
         return credentials.getAddress();
@@ -50,7 +60,8 @@ public class PrivateKeyEthSigner implements EthSigner {
     }
 
     @Override
-    public <S extends Structurable> CompletableFuture<Boolean> verifyTypedData(Eip712Domain domain, S typedData, String signature) {
+    public <S extends Structurable> CompletableFuture<Boolean> verifyTypedData(Eip712Domain domain, S typedData,
+            String signature) {
         return this.verifySignature(signature, Eip712Encoder.typedDataToSignedBytes(domain, typedData), false);
     }
 
@@ -62,9 +73,8 @@ public class PrivateKeyEthSigner implements EthSigner {
     @Override
     public CompletableFuture<String> signMessage(byte[] message, boolean addPrefix) {
         System.out.println(Numeric.toHexString(message));
-        Sign.SignatureData sig = addPrefix ?
-            Sign.signPrefixedMessage(message, credentials.getEcKeyPair()) :
-            Sign.signMessage(message, credentials.getEcKeyPair(), false);
+        Sign.SignatureData sig = addPrefix ? Sign.signPrefixedMessage(message, credentials.getEcKeyPair())
+                : Sign.signMessage(message, credentials.getEcKeyPair(), false);
 
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
 
@@ -97,9 +107,8 @@ public class PrivateKeyEthSigner implements EthSigner {
 
     private static String ecrecover(byte[] signature, byte[] hash) {
         ECDSASignature sig = new ECDSASignature(
-            Numeric.toBigInt(Arrays.copyOfRange(signature, 0, 32)),
-            Numeric.toBigInt(Arrays.copyOfRange(signature, 32, 64))
-        );
+                Numeric.toBigInt(Arrays.copyOfRange(signature, 0, 32)),
+                Numeric.toBigInt(Arrays.copyOfRange(signature, 32, 64)));
 
         byte v = signature[64];
 
@@ -115,18 +124,19 @@ public class PrivateKeyEthSigner implements EthSigner {
     }
 
     private static Credentials generateCredentialsFromMnemonic(String mnemonic, int accountIndex) {
-        //m/44'/60'/0'/0 derivation path
-        int[] derivationPath = {44 | Bip32ECKeyPair.HARDENED_BIT, 60 | Bip32ECKeyPair.HARDENED_BIT, 0 | Bip32ECKeyPair.HARDENED_BIT, 0, accountIndex};
+        // m/44'/60'/0'/0 derivation path
+        int[] derivationPath = { 44 | Bip32ECKeyPair.HARDENED_BIT, 60 | Bip32ECKeyPair.HARDENED_BIT,
+                0 | Bip32ECKeyPair.HARDENED_BIT, 0, accountIndex };
 
         // Generate a BIP32 master keypair from the mnemonic phrase
         Bip32ECKeyPair masterKeypair = Bip32ECKeyPair.generateKeyPair(
                 MnemonicUtils.generateSeed(mnemonic, ""));
 
         // Derive the keypair using the derivation path
-        Bip32ECKeyPair  derivedKeyPair = Bip32ECKeyPair.deriveKeyPair(masterKeypair, derivationPath);
+        Bip32ECKeyPair derivedKeyPair = Bip32ECKeyPair.deriveKeyPair(masterKeypair, derivationPath);
 
         // Load the wallet for the derived keypair
         return Credentials.create(derivedKeyPair);
     }
-    
+
 }
