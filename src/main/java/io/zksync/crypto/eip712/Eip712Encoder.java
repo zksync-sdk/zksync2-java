@@ -42,13 +42,11 @@ public class Eip712Encoder {
         } else if (value instanceof Eip712Struct) {
             Eip712Struct struct = (Eip712Struct) value;
             byte[] typeHash = typeHash(struct);
-            System.out.printf("T-> %s\n", encodeType(struct));
             List<Pair<String, Type<?>>> members = struct.getValue().eip712types();
             ByteBuffer bytes = ByteBuffer.allocate((members.size() + 1) * 32);
             bytes.put(typeHash);
             for (Pair<String, Type<?>> member : members) {
                 Bytes32 result = encodeValue(member.getValue());
-                System.out.printf("D-> %s\n", Numeric.toHexString(result.getValue()));
                 bytes.put(result.getValue());
             }
             return new Bytes32(Hash.sha3(bytes.array()));

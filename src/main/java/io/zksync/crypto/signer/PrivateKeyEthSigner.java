@@ -72,7 +72,6 @@ public class PrivateKeyEthSigner implements EthSigner {
 
     @Override
     public CompletableFuture<String> signMessage(byte[] message, boolean addPrefix) {
-        System.out.println(Numeric.toHexString(message));
         Sign.SignatureData sig = addPrefix ? Sign.signPrefixedMessage(message, credentials.getEcKeyPair())
                 : Sign.signMessage(message, credentials.getEcKeyPair(), false);
 
