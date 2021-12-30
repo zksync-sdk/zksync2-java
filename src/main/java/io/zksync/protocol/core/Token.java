@@ -34,15 +34,18 @@ public class Token implements TokenId {
 
     public BigDecimal intoDecimal(BigInteger amount) {
         return new BigDecimal(amount)
-            .setScale(decimals)
-            .divide(BigDecimal.TEN.pow(decimals), RoundingMode.DOWN);
+                .setScale(decimals)
+                .divide(BigDecimal.TEN.pow(decimals), RoundingMode.DOWN);
+    }
+
+    public BigInteger toBigInteger(BigDecimal amount) {
+        return amount.multiply(BigDecimal.TEN.pow(decimals)).toBigInteger();
     }
 
     public static Token createETH() {
         return new Token(
-            "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-            "ETH",
-            18
-        );
+                "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "ETH",
+                18);
     }
 }

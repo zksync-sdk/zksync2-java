@@ -29,3 +29,10 @@ build
 .settings
 gradle.properties
 gradle
+
+bin/main/META-INF/services/org.web3j.abi.spi.FunctionEncoderProvider
+.classpath
+.project
+gradlew
+gradlew.bat
+sec.asc
