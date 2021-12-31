@@ -12,12 +12,17 @@ import org.web3j.protocol.core.methods.response.EthSendRawTransaction;
 
 import io.zksync.methods.request.ZksEstimateFeeRequest;
 import io.zksync.methods.response.ZksAccountType;
+import io.zksync.methods.response.ZksContractDebugInfo;
 import io.zksync.methods.response.ZksEstimateFee;
 import io.zksync.methods.response.ZksIsTokenLiquid;
+import io.zksync.methods.response.ZksL1ChainId;
 import io.zksync.methods.response.ZksMainContract;
+import io.zksync.methods.response.ZksSetContractDebugInfoResult;
 import io.zksync.methods.response.ZksTokenPrice;
 import io.zksync.methods.response.ZksTokens;
+import io.zksync.methods.response.ZksTransactionTrace;
 import io.zksync.methods.response.ZksTransactions;
+import io.zksync.protocol.core.debug.ContractSourceDebugInfo;
 
 public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
 
@@ -40,10 +45,10 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     public Request<?, EthGetBalance> ethGetBalance(String address, DefaultBlockParameter defaultBlockParameter,
             String tokenAddress) {
         return new Request<>(
-            "eth_getBalance",
-            Arrays.asList(address, defaultBlockParameter.getValue(), tokenAddress),
-            web3jService,
-            EthGetBalance.class);
+                "eth_getBalance",
+                Arrays.asList(address, defaultBlockParameter.getValue(), tokenAddress),
+                web3jService,
+                EthGetBalance.class);
     }
 
     @Override
@@ -61,7 +66,8 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     @Override
     public Request<?, ZksTransactions> zksGetAccountTransactions(String address, Integer before, Short limit) {
         return new Request<>(
-                "zks_getAccountTransactions", Arrays.asList(address, before, limit), web3jService, ZksTransactions.class);
+                "zks_getAccountTransactions", Arrays.asList(address, before, limit), web3jService,
+                ZksTransactions.class);
     }
 
     @Override
@@ -81,5 +87,30 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
         return new Request<>(
                 "zks_getTokenPrice", Arrays.asList(tokenAddress), web3jService, ZksTokenPrice.class);
     }
-    
+
+    @Override
+    public Request<?, ZksL1ChainId> zksL1ChainId() {
+        return new Request<>("zks_L1ChainId", Collections.emptyList(), web3jService, ZksL1ChainId.class);
+    }
+
+    @Override
+    public Request<?, ZksSetContractDebugInfoResult> zksSetContractDebugInfo(String contractAddress,
+            ContractSourceDebugInfo contractDebugInfo) {
+        return new Request<>(
+                "zks_setContractDebugInfo", Arrays.asList(contractAddress, contractDebugInfo), web3jService,
+                ZksSetContractDebugInfoResult.class);
+    }
+
+    @Override
+    public Request<?, ZksContractDebugInfo> zksGetContractDebugInfo(String contractAddress) {
+        return new Request<>(
+                "zks_getContractDebugInfo", Arrays.asList(contractAddress), web3jService, ZksContractDebugInfo.class);
+    }
+
+    @Override
+    public Request<?, ZksTransactionTrace> zksGetTransactionTrace(String transactionHash) {
+        return new Request<>(
+                "zks_getTransactionTrace", Arrays.asList(transactionHash), web3jService, ZksTransactionTrace.class);
+    }
+
 }

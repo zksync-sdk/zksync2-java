@@ -1,13 +1,13 @@
 package io.zksync.protocol.core;
 
 public enum ZkSyncNetwork {
-    Mainnnet,
+    Mainnet,
     Localhost,
     Unknown;
 
-    public byte getChainId() {
+    public long getChainId() {
         switch (this) {
-            case Mainnnet: return 1;
+            case Mainnet: return 1;
             case Localhost: return 42;
             default: throw new IllegalArgumentException("Unknown chain ID");
         }

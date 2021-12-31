@@ -30,7 +30,7 @@ public class PrivateKeyEthSignerTest {
         Eip712Domain domain = new Eip712Domain(
             "Ether Mail",
             "1",
-            ZkSyncNetwork.Mainnnet,
+            ZkSyncNetwork.Mainnet,
             "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
         );
 
