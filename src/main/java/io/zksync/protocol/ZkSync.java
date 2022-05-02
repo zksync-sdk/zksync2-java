@@ -1,5 +1,7 @@
 package io.zksync.protocol;
 
+import io.zksync.methods.request.Transaction;
+import io.zksync.methods.response.*;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.DefaultBlockParameter;
@@ -7,18 +9,6 @@ import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthSendRawTransaction;
 
-import io.zksync.methods.request.ZksEstimateFeeRequest;
-import io.zksync.methods.response.ZksAccountType;
-import io.zksync.methods.response.ZksContractDebugInfo;
-import io.zksync.methods.response.ZksEstimateFee;
-import io.zksync.methods.response.ZksIsTokenLiquid;
-import io.zksync.methods.response.ZksL1ChainId;
-import io.zksync.methods.response.ZksMainContract;
-import io.zksync.methods.response.ZksSetContractDebugInfoResult;
-import io.zksync.methods.response.ZksTokenPrice;
-import io.zksync.methods.response.ZksTokens;
-import io.zksync.methods.response.ZksTransactionTrace;
-import io.zksync.methods.response.ZksTransactions;
 import io.zksync.protocol.core.debug.ContractSourceDebugInfo;
 
 public interface ZkSync extends Web3j {
@@ -33,7 +23,7 @@ public interface ZkSync extends Web3j {
      * @param transaction Transaction data for estimation
      * @return Prepared estimate fee request
      */
-    Request<?, ZksEstimateFee> zksEstimateFee(ZksEstimateFeeRequest transaction);
+    Request<?, ZksEstimateFee> zksEstimateFee(Transaction transaction);
 
     /**
      * Get address of main contract for current network chain.
@@ -49,14 +39,6 @@ public interface ZkSync extends Web3j {
      * @return Prepared get withdraw transaction hash request
      */
     Request<?, EthSendRawTransaction> zksGetL1WithdrawalTx(String transactionHash);
-
-    /**
-     * Get type of the account.
-     * 
-     * @param address Account address in hex format
-     * @return Prepared get account type request
-     */
-    Request<?, ZksAccountType> zksGetAccountType(String address);
 
     /**
      * Get list of the transactions for a given account.
@@ -117,5 +99,7 @@ public interface ZkSync extends Web3j {
     Request<?, ZksContractDebugInfo> zksGetContractDebugInfo(String contractAddress);
 
     Request<?, ZksTransactionTrace> zksGetTransactionTrace(String transactionHash);
+
+    Request<?, ZksAccountBalances> zksGetAllAccountBalances(String address);
 
 }

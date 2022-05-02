@@ -18,7 +18,6 @@ import org.web3j.utils.Numeric;
 import io.zksync.crypto.eip712.Eip712Domain;
 import io.zksync.crypto.eip712.Eip712Encoder;
 import io.zksync.crypto.eip712.Structurable;
-import io.zksync.transaction.Transaction;
 
 import lombok.AllArgsConstructor;
 
@@ -47,11 +46,6 @@ public class PrivateKeyEthSigner implements EthSigner {
     public CompletableFuture<Eip712Domain> getDomain() {
         Eip712Domain domain = Eip712Domain.defaultDomain(chainId);
         return CompletableFuture.completedFuture(domain);
-    }
-
-    @Override
-    public <T extends Transaction> CompletableFuture<String> signTransaction(T transaction) {
-        return getDomain().thenCompose((domain) -> this.signTypedData(domain, transaction));
     }
 
     @Override
@@ -97,7 +91,7 @@ public class PrivateKeyEthSigner implements EthSigner {
 
     @Override
     public CompletableFuture<Boolean> verifySignature(String signature, byte[] message, boolean prefixed) {
-        byte[] messageHash = prefixed ? EthSigner.getEthereumMessageHash(message) : Hash.sha3(message);
+        byte[] messageHash = prefixed ? EthSigner.getEthereumMessageHash(message) : message;
 
         String address = ecrecover(Numeric.hexStringToByteArray(signature), messageHash);
 

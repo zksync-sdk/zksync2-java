@@ -1,9 +1,11 @@
 package io.zksync.transaction;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.zksync.transaction.fee.Fee;
 import org.apache.commons.lang3.tuple.Pair;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
@@ -12,8 +14,6 @@ import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.crypto.Hash;
 import org.web3j.utils.Numeric;
 
-import io.zksync.protocol.core.AccountType;
-import io.zksync.protocol.core.TimeRange;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -21,52 +21,55 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DeployContract extends Transaction {
 
-    private AccountType accountType;
-    private byte[] bytecode;
+    public static final String DEPLOY_CONTRACT_TYPE = "DeployContract";
+
+    private byte[] mainContractHash;
     private byte[] calldata;
+    private byte[][] factoryDeps;
 
-    public DeployContract(AccountType accountType, byte[] bytecode, byte[] calldata, Address initiatorAddress, Address feeToken, Uint256 fee, Uint32 nonce, TimeRange validIn) {
-        super(initiatorAddress, feeToken, fee, nonce, validIn);
+    public DeployContract(byte[] bytecode, byte[] calldata, Address initiatorAddress, Fee fee, Uint32 nonce) {
+        super(initiatorAddress, fee, nonce);
 
-        this.accountType = accountType;
-        this.bytecode = bytecode;
+        this.mainContractHash = Hash.sha3(bytecode);
+        this.factoryDeps = new byte[][] { bytecode };
         this.calldata = calldata;
     }
 
-    public DeployContract(AccountType accountType, byte[] bytecode, Address initiatorAddress, Address feeToken, Uint256 fee, Uint32 nonce, TimeRange validIn) {
-        this(accountType, bytecode, new byte[256], initiatorAddress, feeToken, fee, nonce, validIn);
+    public DeployContract(byte[] bytecode, Address initiatorAddress, Fee fee, Uint32 nonce) {
+        this(bytecode, new byte[32], initiatorAddress, fee, nonce);
 
-        this.calldata[224] = 1;
+        this.calldata[8] = 1;
     }
 
-    public DeployContract(AccountType accountType, String bytecode, String calldata, String initiatorAddress, String feeToken, BigInteger fee, Integer nonce, TimeRange validIn) {
+    public DeployContract(String bytecode, String calldata, String initiatorAddress, Fee fee, BigInteger nonce) {
         this(
-            accountType,
             Numeric.hexStringToByteArray(bytecode),
             Numeric.hexStringToByteArray(calldata),
             new Address(initiatorAddress),
-            new Address(feeToken),
-            new Uint256(fee),
-            new Uint32(nonce),
-            validIn
+            fee,
+            new Uint32(nonce)
         );
     }
 
-    public DeployContract(AccountType accountType, String bytecode, String initiatorAddress, String feeToken, BigInteger fee, Integer nonce, TimeRange validIn) {
+    public DeployContract(String bytecode, String initiatorAddress, Fee fee, BigInteger nonce) {
         this(
-            accountType,
             Numeric.hexStringToByteArray(bytecode),
             new Address(initiatorAddress),
-            new Address(feeToken),
-            new Uint256(fee),
-            new Uint32(nonce),
-            validIn
+            fee,
+            new Uint32(nonce)
         );
     }
 
     @Override
     public String getType() {
-        return "DeployContract";
+        return DEPLOY_CONTRACT_TYPE;
+    }
+
+    public byte[] getInput() {
+        ByteBuffer input = ByteBuffer.allocate(mainContractHash.length + calldata.length);
+        input.put(mainContractHash);
+        input.put(calldata);
+        return input.array();
     }
 
     @Override
@@ -74,11 +77,9 @@ public class DeployContract extends Transaction {
         List<Pair<String, Type<?>>> base = super.eip712types();
         List<Pair<String, Type<?>>> result = new ArrayList<Pair<String, Type<?>>>(base.size() + 3);
 
-        result.add(Pair.of("accountType", accountType.getType()));
-        result.add(Pair.of("bytecodeHash", new Uint256(Numeric.toBigInt(Hash.sha3(bytecode)))));
+        result.add(Pair.of("bytecodeHash", new Uint256(Numeric.toBigInt(mainContractHash))));
         result.add(Pair.of("calldataHash", new Uint256(Numeric.toBigInt(Hash.sha3(calldata)))));
         result.addAll(base);
-        result.add(Pair.of("padding", Uint256.DEFAULT));
 
         return result;
     }

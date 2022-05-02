@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import java.math.BigInteger;
 import java.util.ArrayList;
 
+import io.zksync.transaction.fee.Fee;
 import org.apache.commons.lang3.tuple.Pair;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
@@ -25,26 +26,26 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Execute extends Transaction {
 
+    public static final String EXECUTE_TYPE = "Execute";
+
     @JsonIgnore
     private Address contractAddress;
     private byte[] calldata;
 
-    public Execute(Address contractAddress, byte[] calldata, Address initiatorAddress, Address feeToken, Uint256 fee, Uint32 nonce, TimeRange validIn) {
-        super(initiatorAddress, feeToken, fee, nonce, validIn);
+    public Execute(Address contractAddress, byte[] calldata, Address initiatorAddress, Fee fee, Uint32 nonce) {
+        super(initiatorAddress, fee, nonce);
 
         this.contractAddress = contractAddress;
         this.calldata = calldata;
     }
 
-    public Execute(String contractAddress, String calldata, String initiatorAddress, String feeToken, BigInteger fee, Integer nonce, TimeRange validIn) {
+    public Execute(String contractAddress, String calldata, String initiatorAddress, Fee fee, BigInteger nonce) {
         this(
             new Address(contractAddress),
             Numeric.hexStringToByteArray(calldata),
             new Address(initiatorAddress),
-            new Address(feeToken),
-            new Uint256(fee),
-            new Uint32(nonce),
-            validIn
+            fee,
+            new Uint32(nonce)
         );
     }
 
@@ -60,7 +61,7 @@ public class Execute extends Transaction {
 
     @Override
     public String getType() {
-        return "Execute";
+        return EXECUTE_TYPE;
     }
 
     @Override
@@ -71,7 +72,6 @@ public class Execute extends Transaction {
         result.add(Pair.of("contractAddress", contractAddress));
         result.add(Pair.of("calldataHash", new Uint256(Numeric.toBigInt(Hash.sha3(calldata)))));
         result.addAll(base);
-        result.add(Pair.of("padding", Uint256.DEFAULT));
 
         return result;
     }

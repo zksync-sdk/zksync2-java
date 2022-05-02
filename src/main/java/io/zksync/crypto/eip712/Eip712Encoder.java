@@ -3,7 +3,6 @@ package io.zksync.crypto.eip712;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -32,7 +31,8 @@ public class Eip712Encoder {
             return new Bytes32(Numeric.toBytesPadded(nt.getValue(), 32));
         } else if (value instanceof BytesType) {
             BytesType bt = (BytesType) value;
-            return new Bytes32(Arrays.copyOf(bt.getValue(), 32));
+            byte[] bytes = Hash.sha3(bt.getValue());
+            return new Bytes32(bytes);
         } else if (value instanceof Address) {
             Address address = (Address) value;
             byte[] bytes = Numeric.hexStringToByteArray(address.getValue());

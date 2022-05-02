@@ -5,7 +5,11 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import io.zksync.wrappers.PriorityOpTree;
+import io.zksync.wrappers.PriorityQueueType;
+import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Transfer;
 import org.web3j.tx.gas.ContractGasProvider;
@@ -28,6 +32,12 @@ public class DefaultEthereumProvider implements EthereumProvider {
     private final Web3j web3j;
     private final ZkSyncContract contract;
 
+    public CompletableFuture<BigInteger> getGasPrice() {
+        return web3j.ethGasPrice()
+                .sendAsync()
+                .thenApply(EthGasPrice::getGasPrice);
+    }
+
     @Override
     public CompletableFuture<TransactionReceipt> approveDeposits(Token token, Optional<BigInteger> limit) {
         ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.contract.getTransactionManager(),
@@ -47,18 +57,31 @@ public class DefaultEthereumProvider implements EthereumProvider {
         }
     }
 
-    @Override
-    public CompletableFuture<TransactionReceipt> deposit(Token token, BigInteger amount, String userAddress) {
-        if (token.isETH()) {
-            return contract.depositETH(userAddress, amount).sendAsync();
+    public CompletableFuture<BigInteger> getDepositBaseCost(@Nullable BigInteger gasPrice) {
+        if (gasPrice != null) {
+            return contract.depositBaseCost(gasPrice, PriorityQueueType.Deque.getValue(), PriorityOpTree.Full.getValue()).sendAsync();
         } else {
-            return contract.depositERC20(token.getAddress(), amount, userAddress).sendAsync();
+            return getGasPrice()
+                    .thenCompose(g -> contract.depositBaseCost(g, PriorityQueueType.Deque.getValue(), PriorityOpTree.Full.getValue()).sendAsync());
         }
     }
 
     @Override
+    public CompletableFuture<TransactionReceipt> deposit(Token token, BigInteger amount, String userAddress) {
+        return getDepositBaseCost(null)
+                .thenCompose(baseCost -> {
+                    BigInteger value = baseCost.add(amount);
+                    if (token.isETH()) {
+                        return contract.depositETH(amount, userAddress, PriorityQueueType.Deque.getValue(), PriorityOpTree.Full.getValue(), value).sendAsync();
+                    } else {
+                        return contract.depositERC20(token.getAddress(), amount, userAddress, PriorityQueueType.Deque.getValue(), PriorityOpTree.Full.getValue()).sendAsync();
+                    }
+                });
+    }
+
+    @Override
     public CompletableFuture<TransactionReceipt> withdraw(Token token, BigInteger amount, String userAddress) {
-        return contract.requestWithdraw(token.getAddress(), amount, userAddress).sendAsync();
+        return contract.requestWithdraw(token.getAddress(), amount, userAddress, PriorityQueueType.Deque.getValue(), PriorityOpTree.Full.getValue()).sendAsync();
     }
 
     @Override
@@ -66,14 +89,12 @@ public class DefaultEthereumProvider implements EthereumProvider {
         ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.contract.getTransactionManager(),
                 DEFAULT_GAS_PROVIDER);
         return tokenContract.allowance(to, this.contractAddress()).sendAsync()
-                .thenApply(allowance -> {
-                    return allowance.compareTo(threshold.orElse(DEFAULT_THRESHOLD)) >= 0;
-                });
+                .thenApply(allowance -> allowance.compareTo(threshold.orElse(DEFAULT_THRESHOLD)) >= 0);
     }
 
     @Override
     public String contractAddress() {
         return this.contract.getContractAddress();
     }
-    
+
 }

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.math.BigInteger;
 import java.util.Iterator;
 
+import io.zksync.transaction.fee.Fee;
 import org.apache.commons.lang3.tuple.Pair;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
@@ -15,13 +16,24 @@ import org.web3j.crypto.ECKeyPair;
 
 import io.zksync.protocol.core.TimeRange;
 import io.zksync.protocol.core.Token;
+import org.web3j.utils.Numeric;
 
 public class BaseTransactionTest {
     protected static final Token FEE_TOKEN = Token.createETH();
     protected static final Credentials SENDER = Credentials.create(ECKeyPair.create(BigInteger.ONE));
-    protected static final BigInteger FEE = BigInteger.valueOf(123);
+    protected static final Fee FEE;
     protected static final Integer NONCE = 42;
     protected static final TimeRange VALIDITY_TIME = new TimeRange();
+
+    static {
+        FEE = new Fee(
+                new Uint256(BigInteger.valueOf(123)),
+                new Uint256(BigInteger.valueOf(123)),
+                new Address(Token.createETH().getAddress()),
+                new Uint256(BigInteger.valueOf(123)),
+                new Uint256(BigInteger.valueOf(123))
+        );
+    }
 
     public void assertSerializeToEIP712(Iterator<Pair<String, Type<?>>> base) {
         {
@@ -34,11 +46,11 @@ public class BaseTransactionTest {
             assertEquals("feeToken", t2.getKey());
             assertEquals(new Address(FEE_TOKEN.getAddress()), t2.getValue());
         }
-        {
-            Pair<String, Type<?>> t2 = base.next();
-            assertEquals("fee", t2.getKey());
-            assertEquals(new Uint256(FEE), t2.getValue());
-        }
+//        {
+//            Pair<String, Type<?>> t2 = base.next();
+//            assertEquals("fee", t2.getKey());
+//            assertEquals(new Uint256(FEE), t2.getValue());
+//        }
         {
             Pair<String, Type<?>> t2 = base.next();
             assertEquals("nonce", t2.getKey());

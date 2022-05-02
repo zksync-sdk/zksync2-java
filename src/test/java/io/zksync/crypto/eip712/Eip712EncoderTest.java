@@ -17,7 +17,6 @@ import org.web3j.utils.Convert.Unit;
 import io.zksync.protocol.core.TimeRange;
 import io.zksync.protocol.core.Token;
 import io.zksync.protocol.core.ZkSyncNetwork;
-import io.zksync.transaction.Transfer;
 import io.zksync.helper.eip712.Mail;
 
 public class Eip712EncoderTest {
@@ -137,21 +136,21 @@ public class Eip712EncoderTest {
         }
     }
 
-    @Test
-    public void testEncodeTransfer() {
-        Transfer zkTransfer = new Transfer(
-            ETH.getAddress(),
-            this.credentials.getAddress(),
-            Convert.toWei("1", Unit.ETHER).toBigInteger(),
-            this.credentials.getAddress(),
-            ETH.getAddress(),
-            BigInteger.ZERO,
-            1,
-            new TimeRange()
-        );
-
-        byte[] result = Eip712Encoder.encodeValue(zkTransfer.intoEip712Struct()).getValue();
-
-        assertEquals("0x997cbce617f1c5aca3616ddc2122db218d726e220fa040451d893430d7382ce5", Numeric.toHexString(result));
-    }
+//    @Test
+//    public void testEncodeTransfer() {
+//        Transfer zkTransfer = new Transfer(
+//            ETH.getAddress(),
+//            this.credentials.getAddress(),
+//            Convert.toWei("1", Unit.ETHER).toBigInteger(),
+//            this.credentials.getAddress(),
+//            ETH.getAddress(),
+//            BigInteger.ZERO,
+//            1,
+//            new TimeRange()
+//        );
+//
+//        byte[] result = Eip712Encoder.encodeValue(zkTransfer.intoEip712Struct()).getValue();
+//
+//        assertEquals("0x997cbce617f1c5aca3616ddc2122db218d726e220fa040451d893430d7382ce5", Numeric.toHexString(result));
+//    }
 }

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
+import io.zksync.transaction.fee.Fee;
 import org.apache.commons.lang3.tuple.Pair;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
@@ -23,6 +24,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Withdraw extends Transaction {
 
+    public static final String WITHDRAW_TYPE = "Withdraw";
+
     @JsonIgnore
     private Address token;
 
@@ -32,24 +35,22 @@ public class Withdraw extends Transaction {
     @JsonIgnore
     private Uint256 amount;
 
-    public Withdraw(Address token, Address to, Uint256 amount, Address initiatorAddress, Address feeToken, Uint256 fee, Uint32 nonce, TimeRange validIn) {
-        super(initiatorAddress, feeToken, fee, nonce, validIn);
+    public Withdraw(Address token, Address to, Uint256 amount, Address initiatorAddress, Fee fee, Uint32 nonce) {
+        super(initiatorAddress, fee, nonce);
 
         this.token = token;
         this.to = to;
         this.amount = amount;
     }
 
-    public Withdraw(String token, String to, BigInteger amount, String initiatorAddress, String feeToken, BigInteger fee, Integer nonce, TimeRange validIn) {
+    public Withdraw(String token, String to, BigInteger amount, String initiatorAddress, Fee fee, BigInteger nonce) {
         this(
             new Address(token),
             new Address(to),
             new Uint256(amount),
             new Address(initiatorAddress),
-            new Address(feeToken),
-            new Uint256(fee),
-            new Uint32(nonce),
-            validIn
+            fee,
+            new Uint32(nonce)
         );
     }
 
@@ -85,7 +86,7 @@ public class Withdraw extends Transaction {
 
     @Override
     public String getType() {
-        return "Withdraw";
+        return WITHDRAW_TYPE;
     }
 
     @Override

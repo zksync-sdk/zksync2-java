@@ -30,15 +30,6 @@ public interface EthSigner {
     CompletableFuture<Eip712Domain> getDomain();
 
     /**
-     * Sign `ZkSync` type operation message
-     * 
-     * @param <T> - ZkSync Transaction transaction type
-     * @param transaction - Prepared transaction
-     * @return Signature object
-     */
-    <T extends Transaction> CompletableFuture<String> signTransaction(T transaction);
-
-    /**
      * Signs typed struct using ethereum private key by EIP-712 signature standard.
      * 
      * @param <S> - EIP712 structure

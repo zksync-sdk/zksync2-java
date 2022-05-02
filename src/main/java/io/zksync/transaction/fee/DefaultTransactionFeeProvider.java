@@ -1,14 +1,12 @@
 package io.zksync.transaction.fee;
 
-import org.web3j.crypto.RawTransaction;
-
-import io.zksync.abi.TransactionEncoder;
-import io.zksync.methods.request.ZksEstimateFeeRequest;
 import io.zksync.methods.response.ZksEstimateFee;
-import io.zksync.methods.response.ZksFee;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.Token;
+import io.zksync.transaction.DeployContract;
+import io.zksync.transaction.Execute;
 import io.zksync.transaction.Transaction;
+import io.zksync.transaction.Withdraw;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 
@@ -20,9 +18,15 @@ public class DefaultTransactionFeeProvider implements ZkTransactionFeeProvider {
 
     @Override
     @SneakyThrows
-    public <T extends Transaction> ZksFee getFee(T transaction) {
-        RawTransaction transactionForEstimate = TransactionEncoder.encodeToRawTransaction(transaction);
-        ZksEstimateFee estimateFee = this.zksync.zksEstimateFee(ZksEstimateFeeRequest.fromRawTransaction(transactionForEstimate)).send();
+    public <T extends Transaction> Fee getFee(T transaction) {
+        ZksEstimateFee estimateFee;
+        if (transaction instanceof DeployContract) {
+            estimateFee = this.zksync.zksEstimateFee(new io.zksync.methods.request.Transaction((DeployContract) transaction)).send();
+        } else if (transaction instanceof Execute) {
+            estimateFee = this.zksync.zksEstimateFee(new io.zksync.methods.request.Transaction((Execute) transaction)).send();
+        } else {
+            estimateFee = this.zksync.zksEstimateFee(new io.zksync.methods.request.Transaction((Withdraw) transaction)).send();
+        }
 
         return estimateFee.getResult();
     }

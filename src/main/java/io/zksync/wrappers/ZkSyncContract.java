@@ -11,15 +11,16 @@ import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Bool;
+import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.DynamicBytes;
 import org.web3j.abi.datatypes.Event;
-import org.web3j.abi.datatypes.StaticStruct;
 import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.generated.Bytes32;
+import org.web3j.abi.datatypes.generated.Uint128;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.abi.datatypes.generated.Uint64;
 import org.web3j.abi.datatypes.generated.Uint8;
+import org.web3j.abi.datatypes.generated.Uint96;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
@@ -45,71 +46,67 @@ import org.web3j.tx.gas.ContractGasProvider;
 public class ZkSyncContract extends Contract {
     public static final String BINARY = "Bin file was not provided";
 
-    public static final String FUNC__TRANSFERERC20 = "_transferERC20";
+    public static final String FUNC_ACTIVATEPRIORITYMODE = "activatePriorityMode";
 
-    public static final String FUNC_ACTIVATEEXODUSMODE = "activateExodusMode";
+    public static final String FUNC_ADDCUSTOMTOKEN = "addCustomToken";
 
     public static final String FUNC_ADDTOKEN = "addToken";
 
-    public static final String FUNC_ADDEDTOKENS = "addedTokens";
+    public static final String FUNC_ADDTOKENBASECOST = "addTokenBaseCost";
 
-    public static final String FUNC_CANCELOUTSTANDINGDEPOSITSFOREXODUSMODE = "cancelOutstandingDepositsForExodusMode";
+    public static final String FUNC_APPROVEEMERGENCYDIAMONDCUTASSECURITYCOUNCILMEMBER = "approveEmergencyDiamondCutAsSecurityCouncilMember";
 
-    public static final String FUNC_COMMITBLOCKS = "commitBlocks";
+    public static final String FUNC_CANCELDIAMONDCUTPROPOSAL = "cancelDiamondCutProposal";
+
+    public static final String FUNC_CHANGEGOVERNOR = "changeGovernor";
+
+    public static final String FUNC_DEPLOYCONTRACTBASECOST = "deployContractBaseCost";
+
+    public static final String FUNC_DEPOSITBASECOST = "depositBaseCost";
 
     public static final String FUNC_DEPOSITERC20 = "depositERC20";
 
     public static final String FUNC_DEPOSITETH = "depositETH";
 
-    public static final String FUNC_EXECUTEBLOCKS = "executeBlocks";
+    public static final String FUNC_EMERGENCYFREEZEDIAMOND = "emergencyFreezeDiamond";
 
-    public static final String FUNC_EXODUSMODE = "exodusMode";
+    public static final String FUNC_EXECUTEBASECOST = "executeBaseCost";
 
-    public static final String FUNC_FIRSTPRIORITYREQUESTID = "firstPriorityRequestId";
-
-    public static final String FUNC_GETNOTICEPERIOD = "getNoticePeriod";
+    public static final String FUNC_GETGOVERNOR = "getGovernor";
 
     public static final String FUNC_GETPENDINGBALANCE = "getPendingBalance";
 
-    public static final String FUNC_GOVERNANCE = "governance";
+    public static final String FUNC_GETTOTALBLOCKSCOMMITTED = "getTotalBlocksCommitted";
 
-    public static final String FUNC_INITIALIZE = "initialize";
+    public static final String FUNC_GETTOTALBLOCKSEXECUTED = "getTotalBlocksExecuted";
 
-    public static final String FUNC_ISREADYFORUPGRADE = "isReadyForUpgrade";
+    public static final String FUNC_GETTOTALBLOCKSVERIFIED = "getTotalBlocksVerified";
 
-    public static final String FUNC_PERFORMEXODUS = "performExodus";
+    public static final String FUNC_GETTOTALPRIORITYREQUESTS = "getTotalPriorityRequests";
 
-    public static final String FUNC_PERFORMEDEXODUS = "performedExodus";
+    public static final String FUNC_GETVERIFIER = "getVerifier";
 
-    public static final String FUNC_PROVEBLOCKS = "proveBlocks";
+    public static final String FUNC_ISVALIDATOR = "isValidator";
 
-    public static final String FUNC_REQUESTMIGRATETOPORTER = "requestMigrateToPorter";
+    public static final String FUNC_MOVEPRIORITYOPSFROMBUFFERTOMAINQUEUE = "movePriorityOpsFromBufferToMainQueue";
+
+    public static final String FUNC_PLACEBIDFORBLOCKSPROCESSINGAUCTION = "placeBidForBlocksProcessingAuction";
+
+    public static final String FUNC_REQUESTDEPLOYCONTRACT = "requestDeployContract";
+
+    public static final String FUNC_REQUESTEXECUTE = "requestExecute";
 
     public static final String FUNC_REQUESTWITHDRAW = "requestWithdraw";
 
     public static final String FUNC_REVERTBLOCKS = "revertBlocks";
 
-    public static final String FUNC_TOTALBLOCKSCOMMITTED = "totalBlocksCommitted";
+    public static final String FUNC_SETVALIDATOR = "setValidator";
 
-    public static final String FUNC_TOTALBLOCKSEXECUTED = "totalBlocksExecuted";
+    public static final String FUNC_UNFREEZEDIAMOND = "unfreezeDiamond";
 
-    public static final String FUNC_TOTALBLOCKSPROVEN = "totalBlocksProven";
+    public static final String FUNC_UPDATEPRIORITYMODESUBEPOCH = "updatePriorityModeSubEpoch";
 
-    public static final String FUNC_TOTALCOMMITTEDPRIORITYREQUESTS = "totalCommittedPriorityRequests";
-
-    public static final String FUNC_TOTALPRIORITYREQUESTS = "totalPriorityRequests";
-
-    public static final String FUNC_UPGRADE = "upgrade";
-
-    public static final String FUNC_UPGRADECANCELED = "upgradeCanceled";
-
-    public static final String FUNC_UPGRADEFINISHES = "upgradeFinishes";
-
-    public static final String FUNC_UPGRADENOTICEPERIODSTARTED = "upgradeNoticePeriodStarted";
-
-    public static final String FUNC_UPGRADEPREPARATIONSTARTED = "upgradePreparationStarted";
-
-    public static final String FUNC_VERIFIER = "verifier";
+    public static final String FUNC_WITHDRAWBASECOST = "withdrawBaseCost";
 
     public static final String FUNC_WITHDRAWPENDINGBALANCE = "withdrawPendingBalance";
 
@@ -117,7 +114,7 @@ public class ZkSyncContract extends Contract {
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>(true) {}));
     ;
 
-    public static final Event BLOCKVERIFICATION_EVENT = new Event("BlockVerification", 
+    public static final Event BLOCKEXECUTION_EVENT = new Event("BlockExecution", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>(true) {}));
     ;
 
@@ -125,31 +122,51 @@ public class ZkSyncContract extends Contract {
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>() {}, new TypeReference<Uint32>() {}));
     ;
 
-    public static final Event DEPOSIT_EVENT = new Event("Deposit", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}));
-    ;
-
-    public static final Event DEPOSITCOMMIT_EVENT = new Event("DepositCommit", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>(true) {}, new TypeReference<Uint32>(true) {}, new TypeReference<Address>() {}, new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}));
-    ;
-
-    public static final Event EXODUSMODE_EVENT = new Event("ExodusMode", 
+    public static final Event DIAMONDCUTPROPOSALCANCELATION_EVENT = new Event("DiamondCutProposalCancelation", 
             Arrays.<TypeReference<?>>asList());
     ;
 
-    public static final Event FACTAUTH_EVENT = new Event("FactAuth", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Uint32>() {}, new TypeReference<DynamicBytes>() {}));
+    public static final Event EMERGENCYDIAMONDCUTAPPROVED_EVENT = new Event("EmergencyDiamondCutApproved", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+    ;
+
+    public static final Event EMERGENCYFREEZE_EVENT = new Event("EmergencyFreeze", 
+            Arrays.<TypeReference<?>>asList());
+    ;
+
+    public static final Event MOVEPRIORITYOPERATIONSFROMBUFFERTOHEAP_EVENT = new Event("MovePriorityOperationsFromBufferToHeap", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>() {}, new TypeReference<DynamicArray<Uint64>>() {}, new TypeReference<Uint8>() {}));
+    ;
+
+    public static final Event NEWGOVERNOR_EVENT = new Event("NewGovernor", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+    ;
+
+    public static final Event NEWPRIORITYMODEAUCTIONBID_EVENT = new Event("NewPriorityModeAuctionBid", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<Uint8>() {}, new TypeReference<Address>() {}, new TypeReference<Uint96>() {}, new TypeReference<Uint256>() {}));
+    ;
+
+    public static final Event NEWPRIORITYMODESUBEPOCH_EVENT = new Event("NewPriorityModeSubEpoch", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<Uint8>() {}, new TypeReference<Uint128>() {}));
     ;
 
     public static final Event NEWPRIORITYREQUEST_EVENT = new Event("NewPriorityRequest", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Uint64>() {}, new TypeReference<Uint8>() {}, new TypeReference<DynamicBytes>() {}, new TypeReference<Uint256>() {}));
+            Arrays.<TypeReference<?>>asList(new TypeReference<Uint64>() {}, new TypeReference<DynamicBytes>() {}));
     ;
 
-    public static final Event WITHDRAWCOMMIT_EVENT = new Event("WithdrawCommit", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>(true) {}, new TypeReference<Uint32>(true) {}, new TypeReference<Address>() {}, new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}));
+    public static final Event PRIORITYMODEACTIVATED_EVENT = new Event("PriorityModeActivated", 
+            Arrays.<TypeReference<?>>asList());
     ;
 
-    public static final Event WITHDRAWAL_EVENT = new Event("Withdrawal", 
+    public static final Event UNFREEZE_EVENT = new Event("Unfreeze", 
+            Arrays.<TypeReference<?>>asList());
+    ;
+
+    public static final Event VALIDATORSTATUSUPDATE_EVENT = new Event("ValidatorStatusUpdate", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Bool>() {}));
+    ;
+
+    public static final Event WITHDRAWPENDINGBALANCE_EVENT = new Event("WithdrawPendingBalance", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}));
     ;
 
@@ -202,11 +219,11 @@ public class ZkSyncContract extends Contract {
         return blockCommitEventFlowable(filter);
     }
 
-    public List<BlockVerificationEventResponse> getBlockVerificationEvents(TransactionReceipt transactionReceipt) {
-        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(BLOCKVERIFICATION_EVENT, transactionReceipt);
-        ArrayList<BlockVerificationEventResponse> responses = new ArrayList<BlockVerificationEventResponse>(valueList.size());
+    public List<BlockExecutionEventResponse> getBlockExecutionEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(BLOCKEXECUTION_EVENT, transactionReceipt);
+        ArrayList<BlockExecutionEventResponse> responses = new ArrayList<BlockExecutionEventResponse>(valueList.size());
         for (Contract.EventValuesWithLog eventValues : valueList) {
-            BlockVerificationEventResponse typedResponse = new BlockVerificationEventResponse();
+            BlockExecutionEventResponse typedResponse = new BlockExecutionEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.blockNumber = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
             responses.add(typedResponse);
@@ -214,12 +231,12 @@ public class ZkSyncContract extends Contract {
         return responses;
     }
 
-    public Flowable<BlockVerificationEventResponse> blockVerificationEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(new Function<Log, BlockVerificationEventResponse>() {
+    public Flowable<BlockExecutionEventResponse> blockExecutionEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new Function<Log, BlockExecutionEventResponse>() {
             @Override
-            public BlockVerificationEventResponse apply(Log log) {
-                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(BLOCKVERIFICATION_EVENT, log);
-                BlockVerificationEventResponse typedResponse = new BlockVerificationEventResponse();
+            public BlockExecutionEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(BLOCKEXECUTION_EVENT, log);
+                BlockExecutionEventResponse typedResponse = new BlockExecutionEventResponse();
                 typedResponse.log = log;
                 typedResponse.blockNumber = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
                 return typedResponse;
@@ -227,10 +244,10 @@ public class ZkSyncContract extends Contract {
         });
     }
 
-    public Flowable<BlockVerificationEventResponse> blockVerificationEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Flowable<BlockExecutionEventResponse> blockExecutionEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(BLOCKVERIFICATION_EVENT));
-        return blockVerificationEventFlowable(filter);
+        filter.addSingleTopic(EventEncoder.encode(BLOCKEXECUTION_EVENT));
+        return blockExecutionEventFlowable(filter);
     }
 
     public List<BlocksRevertEventResponse> getBlocksRevertEvents(TransactionReceipt transactionReceipt) {
@@ -266,139 +283,229 @@ public class ZkSyncContract extends Contract {
         return blocksRevertEventFlowable(filter);
     }
 
-    public List<DepositEventResponse> getDepositEvents(TransactionReceipt transactionReceipt) {
-        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(DEPOSIT_EVENT, transactionReceipt);
-        ArrayList<DepositEventResponse> responses = new ArrayList<DepositEventResponse>(valueList.size());
+    public List<DiamondCutProposalCancelationEventResponse> getDiamondCutProposalCancelationEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(DIAMONDCUTPROPOSALCANCELATION_EVENT, transactionReceipt);
+        ArrayList<DiamondCutProposalCancelationEventResponse> responses = new ArrayList<DiamondCutProposalCancelationEventResponse>(valueList.size());
         for (Contract.EventValuesWithLog eventValues : valueList) {
-            DepositEventResponse typedResponse = new DepositEventResponse();
-            typedResponse.log = eventValues.getLog();
-            typedResponse.zkSyncTokenAddress = (String) eventValues.getIndexedValues().get(0).getValue();
-            typedResponse.amount = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
-            responses.add(typedResponse);
-        }
-        return responses;
-    }
-
-    public Flowable<DepositEventResponse> depositEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(new Function<Log, DepositEventResponse>() {
-            @Override
-            public DepositEventResponse apply(Log log) {
-                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(DEPOSIT_EVENT, log);
-                DepositEventResponse typedResponse = new DepositEventResponse();
-                typedResponse.log = log;
-                typedResponse.zkSyncTokenAddress = (String) eventValues.getIndexedValues().get(0).getValue();
-                typedResponse.amount = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
-                return typedResponse;
-            }
-        });
-    }
-
-    public Flowable<DepositEventResponse> depositEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
-        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(DEPOSIT_EVENT));
-        return depositEventFlowable(filter);
-    }
-
-    public List<DepositCommitEventResponse> getDepositCommitEvents(TransactionReceipt transactionReceipt) {
-        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(DEPOSITCOMMIT_EVENT, transactionReceipt);
-        ArrayList<DepositCommitEventResponse> responses = new ArrayList<DepositCommitEventResponse>(valueList.size());
-        for (Contract.EventValuesWithLog eventValues : valueList) {
-            DepositCommitEventResponse typedResponse = new DepositCommitEventResponse();
-            typedResponse.log = eventValues.getLog();
-            typedResponse.zkSyncBlockId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
-            typedResponse.accountId = (BigInteger) eventValues.getIndexedValues().get(1).getValue();
-            typedResponse.zkSyncTokenAddress = (String) eventValues.getIndexedValues().get(2).getValue();
-            typedResponse.owner = (String) eventValues.getNonIndexedValues().get(0).getValue();
-            typedResponse.amount = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
-            responses.add(typedResponse);
-        }
-        return responses;
-    }
-
-    public Flowable<DepositCommitEventResponse> depositCommitEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(new Function<Log, DepositCommitEventResponse>() {
-            @Override
-            public DepositCommitEventResponse apply(Log log) {
-                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(DEPOSITCOMMIT_EVENT, log);
-                DepositCommitEventResponse typedResponse = new DepositCommitEventResponse();
-                typedResponse.log = log;
-                typedResponse.zkSyncBlockId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
-                typedResponse.accountId = (BigInteger) eventValues.getIndexedValues().get(1).getValue();
-                typedResponse.zkSyncTokenAddress = (String) eventValues.getIndexedValues().get(2).getValue();
-                typedResponse.owner = (String) eventValues.getNonIndexedValues().get(0).getValue();
-                typedResponse.amount = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
-                return typedResponse;
-            }
-        });
-    }
-
-    public Flowable<DepositCommitEventResponse> depositCommitEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
-        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(DEPOSITCOMMIT_EVENT));
-        return depositCommitEventFlowable(filter);
-    }
-
-    public List<ExodusModeEventResponse> getExodusModeEvents(TransactionReceipt transactionReceipt) {
-        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(EXODUSMODE_EVENT, transactionReceipt);
-        ArrayList<ExodusModeEventResponse> responses = new ArrayList<ExodusModeEventResponse>(valueList.size());
-        for (Contract.EventValuesWithLog eventValues : valueList) {
-            ExodusModeEventResponse typedResponse = new ExodusModeEventResponse();
+            DiamondCutProposalCancelationEventResponse typedResponse = new DiamondCutProposalCancelationEventResponse();
             typedResponse.log = eventValues.getLog();
             responses.add(typedResponse);
         }
         return responses;
     }
 
-    public Flowable<ExodusModeEventResponse> exodusModeEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(new Function<Log, ExodusModeEventResponse>() {
+    public Flowable<DiamondCutProposalCancelationEventResponse> diamondCutProposalCancelationEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new Function<Log, DiamondCutProposalCancelationEventResponse>() {
             @Override
-            public ExodusModeEventResponse apply(Log log) {
-                ExodusModeEventResponse typedResponse = new ExodusModeEventResponse();
+            public DiamondCutProposalCancelationEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(DIAMONDCUTPROPOSALCANCELATION_EVENT, log);
+                DiamondCutProposalCancelationEventResponse typedResponse = new DiamondCutProposalCancelationEventResponse();
                 typedResponse.log = log;
                 return typedResponse;
             }
         });
     }
 
-    public Flowable<ExodusModeEventResponse> exodusModeEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Flowable<DiamondCutProposalCancelationEventResponse> diamondCutProposalCancelationEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(EXODUSMODE_EVENT));
-        return exodusModeEventFlowable(filter);
+        filter.addSingleTopic(EventEncoder.encode(DIAMONDCUTPROPOSALCANCELATION_EVENT));
+        return diamondCutProposalCancelationEventFlowable(filter);
     }
 
-    public List<FactAuthEventResponse> getFactAuthEvents(TransactionReceipt transactionReceipt) {
-        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(FACTAUTH_EVENT, transactionReceipt);
-        ArrayList<FactAuthEventResponse> responses = new ArrayList<FactAuthEventResponse>(valueList.size());
+    public List<EmergencyDiamondCutApprovedEventResponse> getEmergencyDiamondCutApprovedEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(EMERGENCYDIAMONDCUTAPPROVED_EVENT, transactionReceipt);
+        ArrayList<EmergencyDiamondCutApprovedEventResponse> responses = new ArrayList<EmergencyDiamondCutApprovedEventResponse>(valueList.size());
         for (Contract.EventValuesWithLog eventValues : valueList) {
-            FactAuthEventResponse typedResponse = new FactAuthEventResponse();
+            EmergencyDiamondCutApprovedEventResponse typedResponse = new EmergencyDiamondCutApprovedEventResponse();
             typedResponse.log = eventValues.getLog();
-            typedResponse.sender = (String) eventValues.getIndexedValues().get(0).getValue();
-            typedResponse.nonce = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
-            typedResponse.fact = (byte[]) eventValues.getNonIndexedValues().get(1).getValue();
+            typedResponse._address = (String) eventValues.getNonIndexedValues().get(0).getValue();
             responses.add(typedResponse);
         }
         return responses;
     }
 
-    public Flowable<FactAuthEventResponse> factAuthEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(new Function<Log, FactAuthEventResponse>() {
+    public Flowable<EmergencyDiamondCutApprovedEventResponse> emergencyDiamondCutApprovedEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new Function<Log, EmergencyDiamondCutApprovedEventResponse>() {
             @Override
-            public FactAuthEventResponse apply(Log log) {
-                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(FACTAUTH_EVENT, log);
-                FactAuthEventResponse typedResponse = new FactAuthEventResponse();
+            public EmergencyDiamondCutApprovedEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(EMERGENCYDIAMONDCUTAPPROVED_EVENT, log);
+                EmergencyDiamondCutApprovedEventResponse typedResponse = new EmergencyDiamondCutApprovedEventResponse();
                 typedResponse.log = log;
-                typedResponse.sender = (String) eventValues.getIndexedValues().get(0).getValue();
-                typedResponse.nonce = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
-                typedResponse.fact = (byte[]) eventValues.getNonIndexedValues().get(1).getValue();
+                typedResponse._address = (String) eventValues.getNonIndexedValues().get(0).getValue();
                 return typedResponse;
             }
         });
     }
 
-    public Flowable<FactAuthEventResponse> factAuthEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Flowable<EmergencyDiamondCutApprovedEventResponse> emergencyDiamondCutApprovedEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(FACTAUTH_EVENT));
-        return factAuthEventFlowable(filter);
+        filter.addSingleTopic(EventEncoder.encode(EMERGENCYDIAMONDCUTAPPROVED_EVENT));
+        return emergencyDiamondCutApprovedEventFlowable(filter);
+    }
+
+    public List<EmergencyFreezeEventResponse> getEmergencyFreezeEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(EMERGENCYFREEZE_EVENT, transactionReceipt);
+        ArrayList<EmergencyFreezeEventResponse> responses = new ArrayList<EmergencyFreezeEventResponse>(valueList.size());
+        for (Contract.EventValuesWithLog eventValues : valueList) {
+            EmergencyFreezeEventResponse typedResponse = new EmergencyFreezeEventResponse();
+            typedResponse.log = eventValues.getLog();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public Flowable<EmergencyFreezeEventResponse> emergencyFreezeEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new Function<Log, EmergencyFreezeEventResponse>() {
+            @Override
+            public EmergencyFreezeEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(EMERGENCYFREEZE_EVENT, log);
+                EmergencyFreezeEventResponse typedResponse = new EmergencyFreezeEventResponse();
+                typedResponse.log = log;
+                return typedResponse;
+            }
+        });
+    }
+
+    public Flowable<EmergencyFreezeEventResponse> emergencyFreezeEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(EMERGENCYFREEZE_EVENT));
+        return emergencyFreezeEventFlowable(filter);
+    }
+
+    public List<MovePriorityOperationsFromBufferToHeapEventResponse> getMovePriorityOperationsFromBufferToHeapEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(MOVEPRIORITYOPERATIONSFROMBUFFERTOHEAP_EVENT, transactionReceipt);
+        ArrayList<MovePriorityOperationsFromBufferToHeapEventResponse> responses = new ArrayList<MovePriorityOperationsFromBufferToHeapEventResponse>(valueList.size());
+        for (Contract.EventValuesWithLog eventValues : valueList) {
+            MovePriorityOperationsFromBufferToHeapEventResponse typedResponse = new MovePriorityOperationsFromBufferToHeapEventResponse();
+            typedResponse.log = eventValues.getLog();
+            typedResponse.expirationBlock = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+            typedResponse.operationIDs = (List<BigInteger>) eventValues.getNonIndexedValues().get(1).getValue();
+            typedResponse.opTree = (BigInteger) eventValues.getNonIndexedValues().get(2).getValue();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public Flowable<MovePriorityOperationsFromBufferToHeapEventResponse> movePriorityOperationsFromBufferToHeapEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new Function<Log, MovePriorityOperationsFromBufferToHeapEventResponse>() {
+            @Override
+            public MovePriorityOperationsFromBufferToHeapEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(MOVEPRIORITYOPERATIONSFROMBUFFERTOHEAP_EVENT, log);
+                MovePriorityOperationsFromBufferToHeapEventResponse typedResponse = new MovePriorityOperationsFromBufferToHeapEventResponse();
+                typedResponse.log = log;
+                typedResponse.expirationBlock = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+                typedResponse.operationIDs = (List<BigInteger>) eventValues.getNonIndexedValues().get(1).getValue();
+                typedResponse.opTree = (BigInteger) eventValues.getNonIndexedValues().get(2).getValue();
+                return typedResponse;
+            }
+        });
+    }
+
+    public Flowable<MovePriorityOperationsFromBufferToHeapEventResponse> movePriorityOperationsFromBufferToHeapEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(MOVEPRIORITYOPERATIONSFROMBUFFERTOHEAP_EVENT));
+        return movePriorityOperationsFromBufferToHeapEventFlowable(filter);
+    }
+
+    public List<NewGovernorEventResponse> getNewGovernorEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(NEWGOVERNOR_EVENT, transactionReceipt);
+        ArrayList<NewGovernorEventResponse> responses = new ArrayList<NewGovernorEventResponse>(valueList.size());
+        for (Contract.EventValuesWithLog eventValues : valueList) {
+            NewGovernorEventResponse typedResponse = new NewGovernorEventResponse();
+            typedResponse.log = eventValues.getLog();
+            typedResponse.newGovernor = (String) eventValues.getNonIndexedValues().get(0).getValue();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public Flowable<NewGovernorEventResponse> newGovernorEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new Function<Log, NewGovernorEventResponse>() {
+            @Override
+            public NewGovernorEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(NEWGOVERNOR_EVENT, log);
+                NewGovernorEventResponse typedResponse = new NewGovernorEventResponse();
+                typedResponse.log = log;
+                typedResponse.newGovernor = (String) eventValues.getNonIndexedValues().get(0).getValue();
+                return typedResponse;
+            }
+        });
+    }
+
+    public Flowable<NewGovernorEventResponse> newGovernorEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(NEWGOVERNOR_EVENT));
+        return newGovernorEventFlowable(filter);
+    }
+
+    public List<NewPriorityModeAuctionBidEventResponse> getNewPriorityModeAuctionBidEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(NEWPRIORITYMODEAUCTIONBID_EVENT, transactionReceipt);
+        ArrayList<NewPriorityModeAuctionBidEventResponse> responses = new ArrayList<NewPriorityModeAuctionBidEventResponse>(valueList.size());
+        for (Contract.EventValuesWithLog eventValues : valueList) {
+            NewPriorityModeAuctionBidEventResponse typedResponse = new NewPriorityModeAuctionBidEventResponse();
+            typedResponse.log = eventValues.getLog();
+            typedResponse.opTree = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+            typedResponse.sender = (String) eventValues.getNonIndexedValues().get(1).getValue();
+            typedResponse.bidAmount = (BigInteger) eventValues.getNonIndexedValues().get(2).getValue();
+            typedResponse.complexity = (BigInteger) eventValues.getNonIndexedValues().get(3).getValue();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public Flowable<NewPriorityModeAuctionBidEventResponse> newPriorityModeAuctionBidEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new Function<Log, NewPriorityModeAuctionBidEventResponse>() {
+            @Override
+            public NewPriorityModeAuctionBidEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(NEWPRIORITYMODEAUCTIONBID_EVENT, log);
+                NewPriorityModeAuctionBidEventResponse typedResponse = new NewPriorityModeAuctionBidEventResponse();
+                typedResponse.log = log;
+                typedResponse.opTree = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+                typedResponse.sender = (String) eventValues.getNonIndexedValues().get(1).getValue();
+                typedResponse.bidAmount = (BigInteger) eventValues.getNonIndexedValues().get(2).getValue();
+                typedResponse.complexity = (BigInteger) eventValues.getNonIndexedValues().get(3).getValue();
+                return typedResponse;
+            }
+        });
+    }
+
+    public Flowable<NewPriorityModeAuctionBidEventResponse> newPriorityModeAuctionBidEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(NEWPRIORITYMODEAUCTIONBID_EVENT));
+        return newPriorityModeAuctionBidEventFlowable(filter);
+    }
+
+    public List<NewPriorityModeSubEpochEventResponse> getNewPriorityModeSubEpochEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(NEWPRIORITYMODESUBEPOCH_EVENT, transactionReceipt);
+        ArrayList<NewPriorityModeSubEpochEventResponse> responses = new ArrayList<NewPriorityModeSubEpochEventResponse>(valueList.size());
+        for (Contract.EventValuesWithLog eventValues : valueList) {
+            NewPriorityModeSubEpochEventResponse typedResponse = new NewPriorityModeSubEpochEventResponse();
+            typedResponse.log = eventValues.getLog();
+            typedResponse.subEpoch = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+            typedResponse.subEpochEndTimestamp = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public Flowable<NewPriorityModeSubEpochEventResponse> newPriorityModeSubEpochEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new Function<Log, NewPriorityModeSubEpochEventResponse>() {
+            @Override
+            public NewPriorityModeSubEpochEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(NEWPRIORITYMODESUBEPOCH_EVENT, log);
+                NewPriorityModeSubEpochEventResponse typedResponse = new NewPriorityModeSubEpochEventResponse();
+                typedResponse.log = log;
+                typedResponse.subEpoch = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+                typedResponse.subEpochEndTimestamp = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
+                return typedResponse;
+            }
+        });
+    }
+
+    public Flowable<NewPriorityModeSubEpochEventResponse> newPriorityModeSubEpochEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(NEWPRIORITYMODESUBEPOCH_EVENT));
+        return newPriorityModeSubEpochEventFlowable(filter);
     }
 
     public List<NewPriorityRequestEventResponse> getNewPriorityRequestEvents(TransactionReceipt transactionReceipt) {
@@ -407,11 +514,8 @@ public class ZkSyncContract extends Contract {
         for (Contract.EventValuesWithLog eventValues : valueList) {
             NewPriorityRequestEventResponse typedResponse = new NewPriorityRequestEventResponse();
             typedResponse.log = eventValues.getLog();
-            typedResponse.sender = (String) eventValues.getNonIndexedValues().get(0).getValue();
-            typedResponse.serialId = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
-            typedResponse.opType = (BigInteger) eventValues.getNonIndexedValues().get(2).getValue();
-            typedResponse.pubData = (byte[]) eventValues.getNonIndexedValues().get(3).getValue();
-            typedResponse.expirationBlock = (BigInteger) eventValues.getNonIndexedValues().get(4).getValue();
+            typedResponse.serialId = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+            typedResponse.opMetadata = (byte[]) eventValues.getNonIndexedValues().get(1).getValue();
             responses.add(typedResponse);
         }
         return responses;
@@ -424,11 +528,8 @@ public class ZkSyncContract extends Contract {
                 Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(NEWPRIORITYREQUEST_EVENT, log);
                 NewPriorityRequestEventResponse typedResponse = new NewPriorityRequestEventResponse();
                 typedResponse.log = log;
-                typedResponse.sender = (String) eventValues.getNonIndexedValues().get(0).getValue();
-                typedResponse.serialId = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
-                typedResponse.opType = (BigInteger) eventValues.getNonIndexedValues().get(2).getValue();
-                typedResponse.pubData = (byte[]) eventValues.getNonIndexedValues().get(3).getValue();
-                typedResponse.expirationBlock = (BigInteger) eventValues.getNonIndexedValues().get(4).getValue();
+                typedResponse.serialId = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+                typedResponse.opMetadata = (byte[]) eventValues.getNonIndexedValues().get(1).getValue();
                 return typedResponse;
             }
         });
@@ -440,50 +541,102 @@ public class ZkSyncContract extends Contract {
         return newPriorityRequestEventFlowable(filter);
     }
 
-    public List<WithdrawCommitEventResponse> getWithdrawCommitEvents(TransactionReceipt transactionReceipt) {
-        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(WITHDRAWCOMMIT_EVENT, transactionReceipt);
-        ArrayList<WithdrawCommitEventResponse> responses = new ArrayList<WithdrawCommitEventResponse>(valueList.size());
+    public List<PriorityModeActivatedEventResponse> getPriorityModeActivatedEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(PRIORITYMODEACTIVATED_EVENT, transactionReceipt);
+        ArrayList<PriorityModeActivatedEventResponse> responses = new ArrayList<PriorityModeActivatedEventResponse>(valueList.size());
         for (Contract.EventValuesWithLog eventValues : valueList) {
-            WithdrawCommitEventResponse typedResponse = new WithdrawCommitEventResponse();
+            PriorityModeActivatedEventResponse typedResponse = new PriorityModeActivatedEventResponse();
             typedResponse.log = eventValues.getLog();
-            typedResponse.zkSyncBlockId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
-            typedResponse.accountId = (BigInteger) eventValues.getIndexedValues().get(1).getValue();
-            typedResponse.zkSyncTokenAddress = (String) eventValues.getIndexedValues().get(2).getValue();
-            typedResponse.owner = (String) eventValues.getNonIndexedValues().get(0).getValue();
-            typedResponse.amount = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
             responses.add(typedResponse);
         }
         return responses;
     }
 
-    public Flowable<WithdrawCommitEventResponse> withdrawCommitEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(new Function<Log, WithdrawCommitEventResponse>() {
+    public Flowable<PriorityModeActivatedEventResponse> priorityModeActivatedEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new Function<Log, PriorityModeActivatedEventResponse>() {
             @Override
-            public WithdrawCommitEventResponse apply(Log log) {
-                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(WITHDRAWCOMMIT_EVENT, log);
-                WithdrawCommitEventResponse typedResponse = new WithdrawCommitEventResponse();
+            public PriorityModeActivatedEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(PRIORITYMODEACTIVATED_EVENT, log);
+                PriorityModeActivatedEventResponse typedResponse = new PriorityModeActivatedEventResponse();
                 typedResponse.log = log;
-                typedResponse.zkSyncBlockId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
-                typedResponse.accountId = (BigInteger) eventValues.getIndexedValues().get(1).getValue();
-                typedResponse.zkSyncTokenAddress = (String) eventValues.getIndexedValues().get(2).getValue();
-                typedResponse.owner = (String) eventValues.getNonIndexedValues().get(0).getValue();
-                typedResponse.amount = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
                 return typedResponse;
             }
         });
     }
 
-    public Flowable<WithdrawCommitEventResponse> withdrawCommitEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Flowable<PriorityModeActivatedEventResponse> priorityModeActivatedEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(WITHDRAWCOMMIT_EVENT));
-        return withdrawCommitEventFlowable(filter);
+        filter.addSingleTopic(EventEncoder.encode(PRIORITYMODEACTIVATED_EVENT));
+        return priorityModeActivatedEventFlowable(filter);
     }
 
-    public List<WithdrawalEventResponse> getWithdrawalEvents(TransactionReceipt transactionReceipt) {
-        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(WITHDRAWAL_EVENT, transactionReceipt);
-        ArrayList<WithdrawalEventResponse> responses = new ArrayList<WithdrawalEventResponse>(valueList.size());
+    public List<UnfreezeEventResponse> getUnfreezeEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(UNFREEZE_EVENT, transactionReceipt);
+        ArrayList<UnfreezeEventResponse> responses = new ArrayList<UnfreezeEventResponse>(valueList.size());
         for (Contract.EventValuesWithLog eventValues : valueList) {
-            WithdrawalEventResponse typedResponse = new WithdrawalEventResponse();
+            UnfreezeEventResponse typedResponse = new UnfreezeEventResponse();
+            typedResponse.log = eventValues.getLog();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public Flowable<UnfreezeEventResponse> unfreezeEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new Function<Log, UnfreezeEventResponse>() {
+            @Override
+            public UnfreezeEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(UNFREEZE_EVENT, log);
+                UnfreezeEventResponse typedResponse = new UnfreezeEventResponse();
+                typedResponse.log = log;
+                return typedResponse;
+            }
+        });
+    }
+
+    public Flowable<UnfreezeEventResponse> unfreezeEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(UNFREEZE_EVENT));
+        return unfreezeEventFlowable(filter);
+    }
+
+    public List<ValidatorStatusUpdateEventResponse> getValidatorStatusUpdateEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(VALIDATORSTATUSUPDATE_EVENT, transactionReceipt);
+        ArrayList<ValidatorStatusUpdateEventResponse> responses = new ArrayList<ValidatorStatusUpdateEventResponse>(valueList.size());
+        for (Contract.EventValuesWithLog eventValues : valueList) {
+            ValidatorStatusUpdateEventResponse typedResponse = new ValidatorStatusUpdateEventResponse();
+            typedResponse.log = eventValues.getLog();
+            typedResponse.validatorAddress = (String) eventValues.getIndexedValues().get(0).getValue();
+            typedResponse.isActive = (Boolean) eventValues.getNonIndexedValues().get(0).getValue();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public Flowable<ValidatorStatusUpdateEventResponse> validatorStatusUpdateEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new Function<Log, ValidatorStatusUpdateEventResponse>() {
+            @Override
+            public ValidatorStatusUpdateEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(VALIDATORSTATUSUPDATE_EVENT, log);
+                ValidatorStatusUpdateEventResponse typedResponse = new ValidatorStatusUpdateEventResponse();
+                typedResponse.log = log;
+                typedResponse.validatorAddress = (String) eventValues.getIndexedValues().get(0).getValue();
+                typedResponse.isActive = (Boolean) eventValues.getNonIndexedValues().get(0).getValue();
+                return typedResponse;
+            }
+        });
+    }
+
+    public Flowable<ValidatorStatusUpdateEventResponse> validatorStatusUpdateEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(VALIDATORSTATUSUPDATE_EVENT));
+        return validatorStatusUpdateEventFlowable(filter);
+    }
+
+    public List<WithdrawPendingBalanceEventResponse> getWithdrawPendingBalanceEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(WITHDRAWPENDINGBALANCE_EVENT, transactionReceipt);
+        ArrayList<WithdrawPendingBalanceEventResponse> responses = new ArrayList<WithdrawPendingBalanceEventResponse>(valueList.size());
+        for (Contract.EventValuesWithLog eventValues : valueList) {
+            WithdrawPendingBalanceEventResponse typedResponse = new WithdrawPendingBalanceEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.zkSyncTokenAddress = (String) eventValues.getIndexedValues().get(0).getValue();
             typedResponse.amount = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -492,12 +645,12 @@ public class ZkSyncContract extends Contract {
         return responses;
     }
 
-    public Flowable<WithdrawalEventResponse> withdrawalEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(new Function<Log, WithdrawalEventResponse>() {
+    public Flowable<WithdrawPendingBalanceEventResponse> withdrawPendingBalanceEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new Function<Log, WithdrawPendingBalanceEventResponse>() {
             @Override
-            public WithdrawalEventResponse apply(Log log) {
-                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(WITHDRAWAL_EVENT, log);
-                WithdrawalEventResponse typedResponse = new WithdrawalEventResponse();
+            public WithdrawPendingBalanceEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(WITHDRAWPENDINGBALANCE_EVENT, log);
+                WithdrawPendingBalanceEventResponse typedResponse = new WithdrawPendingBalanceEventResponse();
                 typedResponse.log = log;
                 typedResponse.zkSyncTokenAddress = (String) eventValues.getIndexedValues().get(0).getValue();
                 typedResponse.amount = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -506,94 +659,144 @@ public class ZkSyncContract extends Contract {
         });
     }
 
-    public Flowable<WithdrawalEventResponse> withdrawalEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Flowable<WithdrawPendingBalanceEventResponse> withdrawPendingBalanceEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(WITHDRAWAL_EVENT));
-        return withdrawalEventFlowable(filter);
+        filter.addSingleTopic(EventEncoder.encode(WITHDRAWPENDINGBALANCE_EVENT));
+        return withdrawPendingBalanceEventFlowable(filter);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> _transferERC20(String _token, String _to, BigInteger _amount, BigInteger _maxAmount) {
+    public RemoteFunctionCall<TransactionReceipt> activatePriorityMode(BigInteger _ethExpirationBlock) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC__TRANSFERERC20, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _token), 
-                new org.web3j.abi.datatypes.Address(160, _to), 
-                new org.web3j.abi.datatypes.generated.Uint256(_amount), 
-                new org.web3j.abi.datatypes.generated.Uint256(_maxAmount)), 
+                FUNC_ACTIVATEPRIORITYMODE, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint32(_ethExpirationBlock)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> activateExodusMode() {
+    public RemoteFunctionCall<TransactionReceipt> addCustomToken(String _token, String _name, String _symbol, BigInteger _decimals, BigInteger _queueType, BigInteger _opTree) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_ACTIVATEEXODUSMODE, 
+                FUNC_ADDCUSTOMTOKEN, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _token), 
+                new org.web3j.abi.datatypes.Utf8String(_name), 
+                new org.web3j.abi.datatypes.Utf8String(_symbol), 
+                new org.web3j.abi.datatypes.generated.Uint8(_decimals), 
+                new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> addToken(String _token, BigInteger _queueType, BigInteger _opTree) {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+                FUNC_ADDTOKEN, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _token), 
+                new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<BigInteger> addTokenBaseCost(BigInteger _gasPrice, BigInteger _queueType, BigInteger _opTree) {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_ADDTOKENBASECOST, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_gasPrice), 
+                new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
+        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> approveEmergencyDiamondCutAsSecurityCouncilMember(byte[] _diamondCutHash) {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+                FUNC_APPROVEEMERGENCYDIAMONDCUTASSECURITYCOUNCILMEMBER, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes32(_diamondCutHash)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> cancelDiamondCutProposal() {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+                FUNC_CANCELDIAMONDCUTPROPOSAL, 
                 Arrays.<Type>asList(), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> addToken(String _token) {
+    public RemoteFunctionCall<TransactionReceipt> changeGovernor(String _newGovernor) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_ADDTOKEN, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _token)), 
+                FUNC_CHANGEGOVERNOR, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _newGovernor)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<Boolean> addedTokens(String param0) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_ADDEDTOKENS, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, param0)), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
-        return executeRemoteCallSingleValueReturn(function, Boolean.class);
+    public RemoteFunctionCall<BigInteger> deployContractBaseCost(BigInteger _gasPrice, BigInteger _ergsLimit, BigInteger _bytecodeLength, BigInteger _calldataLength, BigInteger _queueType, BigInteger _opTree) {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_DEPLOYCONTRACTBASECOST, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_gasPrice), 
+                new org.web3j.abi.datatypes.generated.Uint256(_ergsLimit), 
+                new org.web3j.abi.datatypes.generated.Uint32(_bytecodeLength), 
+                new org.web3j.abi.datatypes.generated.Uint32(_calldataLength), 
+                new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
+        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> cancelOutstandingDepositsForExodusMode(BigInteger _n, List<byte[]> _depositsPubdata) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_CANCELOUTSTANDINGDEPOSITSFOREXODUSMODE, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint64(_n), 
-                new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.DynamicBytes>(
-                        org.web3j.abi.datatypes.DynamicBytes.class,
-                        org.web3j.abi.Utils.typeMap(_depositsPubdata, org.web3j.abi.datatypes.DynamicBytes.class))), 
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
+    public RemoteFunctionCall<BigInteger> depositBaseCost(BigInteger _gasPrice, BigInteger _queueType, BigInteger _opTree) {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_DEPOSITBASECOST, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_gasPrice), 
+                new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
+        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> depositERC20(String _token, BigInteger _amount, String _zkSyncAddress) {
+    public RemoteFunctionCall<TransactionReceipt> depositERC20(String _token, BigInteger _amount, String _zkSyncAddress, BigInteger _queueType, BigInteger _opTree) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
                 FUNC_DEPOSITERC20, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _token), 
                 new org.web3j.abi.datatypes.generated.Uint256(_amount), 
-                new org.web3j.abi.datatypes.Address(160, _zkSyncAddress)), 
+                new org.web3j.abi.datatypes.Address(160, _zkSyncAddress), 
+                new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> depositETH(String _zkSyncAddress, BigInteger weiValue) {
+    public RemoteFunctionCall<TransactionReceipt> depositETH(BigInteger _amount, String _zkSyncAddress, BigInteger _queueType, BigInteger _opTree, BigInteger _value) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
                 FUNC_DEPOSITETH, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _zkSyncAddress)), 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_amount), 
+                new org.web3j.abi.datatypes.Address(160, _zkSyncAddress), 
+                new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
                 Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function, weiValue);
+        return executeRemoteCallTransaction(function, _value);
     }
 
-    public RemoteFunctionCall<Boolean> exodusMode() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_EXODUSMODE, 
+    public RemoteFunctionCall<TransactionReceipt> emergencyFreezeDiamond() {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+                FUNC_EMERGENCYFREEZEDIAMOND, 
                 Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
-        return executeRemoteCallSingleValueReturn(function, Boolean.class);
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<BigInteger> firstPriorityRequestId() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_FIRSTPRIORITYREQUESTID, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint64>() {}));
-        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-    }
-
-    public RemoteFunctionCall<BigInteger> getNoticePeriod() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETNOTICEPERIOD, 
-                Arrays.<Type>asList(), 
+    public RemoteFunctionCall<BigInteger> executeBaseCost(BigInteger _gasPrice, BigInteger _ergsLimit, BigInteger _calldataLength, BigInteger _queueType, BigInteger _opTree) {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_EXECUTEBASECOST, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_gasPrice), 
+                new org.web3j.abi.datatypes.generated.Uint256(_ergsLimit), 
+                new org.web3j.abi.datatypes.generated.Uint32(_calldataLength), 
+                new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
+    }
+
+    public RemoteFunctionCall<String> getGovernor() {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETGOVERNOR, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+        return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
     public RemoteFunctionCall<BigInteger> getPendingBalance(String _address, String _token) {
@@ -604,157 +807,142 @@ public class ZkSyncContract extends Contract {
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public RemoteFunctionCall<String> governance() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GOVERNANCE, 
+    public RemoteFunctionCall<BigInteger> getTotalBlocksCommitted() {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETTOTALBLOCKSCOMMITTED, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>() {}));
+        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
+    }
+
+    public RemoteFunctionCall<BigInteger> getTotalBlocksExecuted() {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETTOTALBLOCKSEXECUTED, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>() {}));
+        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
+    }
+
+    public RemoteFunctionCall<BigInteger> getTotalBlocksVerified() {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETTOTALBLOCKSVERIFIED, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>() {}));
+        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
+    }
+
+    public RemoteFunctionCall<BigInteger> getTotalPriorityRequests() {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETTOTALPRIORITYREQUESTS, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint64>() {}));
+        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
+    }
+
+    public RemoteFunctionCall<String> getVerifier() {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETVERIFIER, 
                 Arrays.<Type>asList(), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> initialize(byte[] initializationParameters) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_INITIALIZE, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.DynamicBytes(initializationParameters)), 
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
-    }
-
-    public RemoteFunctionCall<Boolean> isReadyForUpgrade() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_ISREADYFORUPGRADE, 
-                Arrays.<Type>asList(), 
+    public RemoteFunctionCall<Boolean> isValidator(String _address) {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_ISVALIDATOR, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _address)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> performExodus(StoredBlockInfo _storedBlockInfo, String _owner, BigInteger _accountId, String _zkSyncTokenAddress, BigInteger _amount, List<BigInteger> _proof) {
+    public RemoteFunctionCall<TransactionReceipt> movePriorityOpsFromBufferToMainQueue(BigInteger _nOpsToMove, BigInteger _opTree) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_PERFORMEXODUS, 
-                Arrays.<Type>asList(_storedBlockInfo, 
-                new org.web3j.abi.datatypes.Address(160, _owner), 
-                new org.web3j.abi.datatypes.generated.Uint32(_accountId), 
-                new org.web3j.abi.datatypes.Address(160, _zkSyncTokenAddress), 
-                new org.web3j.abi.datatypes.generated.Uint256(_amount), 
-                new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Uint256>(
-                        org.web3j.abi.datatypes.generated.Uint256.class,
-                        org.web3j.abi.Utils.typeMap(_proof, org.web3j.abi.datatypes.generated.Uint256.class))), 
+                FUNC_MOVEPRIORITYOPSFROMBUFFERTOMAINQUEUE, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_nOpsToMove), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<Boolean> performedExodus(BigInteger param0, String param1) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_PERFORMEDEXODUS, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint32(param0), 
-                new org.web3j.abi.datatypes.Address(160, param1)), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
-        return executeRemoteCallSingleValueReturn(function, Boolean.class);
-    }
-
-    public RemoteFunctionCall<TransactionReceipt> requestMigrateToPorter() {
+    public RemoteFunctionCall<TransactionReceipt> placeBidForBlocksProcessingAuction(BigInteger _complexityRoot, BigInteger _opTree) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_REQUESTMIGRATETOPORTER, 
-                Arrays.<Type>asList(), 
+                FUNC_PLACEBIDFORBLOCKSPROCESSINGAUCTION, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint112(_complexityRoot), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> requestWithdraw(String _token, BigInteger _amount, String _to) {
+    public RemoteFunctionCall<TransactionReceipt> requestDeployContract(byte[] _bytecode, byte[] _calldata, BigInteger _ergsLimit, BigInteger _queueType, BigInteger _opTree) {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+                FUNC_REQUESTDEPLOYCONTRACT, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.DynamicBytes(_bytecode), 
+                new org.web3j.abi.datatypes.DynamicBytes(_calldata), 
+                new org.web3j.abi.datatypes.generated.Uint256(_ergsLimit), 
+                new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> requestExecute(String _contractAddressL2, byte[] _calldata, BigInteger _ergsLimit, BigInteger _queueType, BigInteger _opTree) {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+                FUNC_REQUESTEXECUTE, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _contractAddressL2), 
+                new org.web3j.abi.datatypes.DynamicBytes(_calldata), 
+                new org.web3j.abi.datatypes.generated.Uint256(_ergsLimit), 
+                new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> requestWithdraw(String _token, BigInteger _amount, String _to, BigInteger _queueType, BigInteger _opTree) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
                 FUNC_REQUESTWITHDRAW, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _token), 
                 new org.web3j.abi.datatypes.generated.Uint256(_amount), 
-                new org.web3j.abi.datatypes.Address(160, _to)), 
+                new org.web3j.abi.datatypes.Address(160, _to), 
+                new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> revertBlocks(List<StoredBlockInfo> _blocksToRevert) {
+    public RemoteFunctionCall<TransactionReceipt> revertBlocks(BigInteger _blocksToRevert) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
                 FUNC_REVERTBLOCKS, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.DynamicArray<StoredBlockInfo>(StoredBlockInfo.class, _blocksToRevert)), 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint32(_blocksToRevert)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<BigInteger> totalBlocksCommitted() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_TOTALBLOCKSCOMMITTED, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>() {}));
-        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-    }
-
-    public RemoteFunctionCall<BigInteger> totalBlocksExecuted() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_TOTALBLOCKSEXECUTED, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>() {}));
-        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-    }
-
-    public RemoteFunctionCall<BigInteger> totalBlocksProven() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_TOTALBLOCKSPROVEN, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>() {}));
-        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-    }
-
-    public RemoteFunctionCall<BigInteger> totalCommittedPriorityRequests() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_TOTALCOMMITTEDPRIORITYREQUESTS, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint64>() {}));
-        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-    }
-
-    public RemoteFunctionCall<BigInteger> totalPriorityRequests() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_TOTALPRIORITYREQUESTS, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint64>() {}));
-        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-    }
-
-    public RemoteFunctionCall<TransactionReceipt> upgrade(byte[] upgradeParameters) {
+    public RemoteFunctionCall<TransactionReceipt> setValidator(String _validator, Boolean _active) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_UPGRADE, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.DynamicBytes(upgradeParameters)), 
+                FUNC_SETVALIDATOR, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _validator), 
+                new org.web3j.abi.datatypes.Bool(_active)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> upgradeCanceled() {
+    public RemoteFunctionCall<TransactionReceipt> unfreezeDiamond() {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_UPGRADECANCELED, 
+                FUNC_UNFREEZEDIAMOND, 
                 Arrays.<Type>asList(), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> upgradeFinishes() {
+    public RemoteFunctionCall<TransactionReceipt> updatePriorityModeSubEpoch() {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_UPGRADEFINISHES, 
+                FUNC_UPDATEPRIORITYMODESUBEPOCH, 
                 Arrays.<Type>asList(), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> upgradeNoticePeriodStarted() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_UPGRADENOTICEPERIODSTARTED, 
-                Arrays.<Type>asList(), 
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
-    }
-
-    public RemoteFunctionCall<TransactionReceipt> upgradePreparationStarted() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_UPGRADEPREPARATIONSTARTED, 
-                Arrays.<Type>asList(), 
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
-    }
-
-    public RemoteFunctionCall<String> verifier() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_VERIFIER, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-        return executeRemoteCallSingleValueReturn(function, String.class);
+    public RemoteFunctionCall<BigInteger> withdrawBaseCost(BigInteger _gasPrice, BigInteger _queueType, BigInteger _opTree) {
+        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_WITHDRAWBASECOST, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_gasPrice), 
+                new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
+                new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
+        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
     public RemoteFunctionCall<TransactionReceipt> withdrawPendingBalance(String _owner, String _token, BigInteger _amount) {
@@ -793,49 +981,11 @@ public class ZkSyncContract extends Contract {
         return this.gasProvider;
     }
 
-    public static class StoredBlockInfo extends StaticStruct {
-        public BigInteger blockNumber;
-
-        public BigInteger lastProcessedPriorityOp;
-
-        public byte[] pendingOnchainOperationsHash;
-
-        public BigInteger timestamp;
-
-        public byte[] stateRoot;
-
-        public byte[] zkPorterRoot;
-
-        public byte[] commitment;
-
-        public StoredBlockInfo(BigInteger blockNumber, BigInteger lastProcessedPriorityOp, byte[] pendingOnchainOperationsHash, BigInteger timestamp, byte[] stateRoot, byte[] zkPorterRoot, byte[] commitment) {
-            super(new org.web3j.abi.datatypes.generated.Uint32(blockNumber),new org.web3j.abi.datatypes.generated.Uint64(lastProcessedPriorityOp),new org.web3j.abi.datatypes.generated.Bytes32(pendingOnchainOperationsHash),new org.web3j.abi.datatypes.generated.Uint256(timestamp),new org.web3j.abi.datatypes.generated.Bytes32(stateRoot),new org.web3j.abi.datatypes.generated.Bytes32(zkPorterRoot),new org.web3j.abi.datatypes.generated.Bytes32(commitment));
-            this.blockNumber = blockNumber;
-            this.lastProcessedPriorityOp = lastProcessedPriorityOp;
-            this.pendingOnchainOperationsHash = pendingOnchainOperationsHash;
-            this.timestamp = timestamp;
-            this.stateRoot = stateRoot;
-            this.zkPorterRoot = zkPorterRoot;
-            this.commitment = commitment;
-        }
-
-        public StoredBlockInfo(Uint32 blockNumber, Uint64 lastProcessedPriorityOp, Bytes32 pendingOnchainOperationsHash, Uint256 timestamp, Bytes32 stateRoot, Bytes32 zkPorterRoot, Bytes32 commitment) {
-            super(blockNumber,lastProcessedPriorityOp,pendingOnchainOperationsHash,timestamp,stateRoot,zkPorterRoot,commitment);
-            this.blockNumber = blockNumber.getValue();
-            this.lastProcessedPriorityOp = lastProcessedPriorityOp.getValue();
-            this.pendingOnchainOperationsHash = pendingOnchainOperationsHash.getValue();
-            this.timestamp = timestamp.getValue();
-            this.stateRoot = stateRoot.getValue();
-            this.zkPorterRoot = zkPorterRoot.getValue();
-            this.commitment = commitment.getValue();
-        }
-    }
-
     public static class BlockCommitEventResponse extends BaseEventResponse {
         public BigInteger blockNumber;
     }
 
-    public static class BlockVerificationEventResponse extends BaseEventResponse {
+    public static class BlockExecutionEventResponse extends BaseEventResponse {
         public BigInteger blockNumber;
     }
 
@@ -845,60 +995,63 @@ public class ZkSyncContract extends Contract {
         public BigInteger totalBlocksCommitted;
     }
 
-    public static class DepositEventResponse extends BaseEventResponse {
-        public String zkSyncTokenAddress;
-
-        public BigInteger amount;
+    public static class DiamondCutProposalCancelationEventResponse extends BaseEventResponse {
     }
 
-    public static class DepositCommitEventResponse extends BaseEventResponse {
-        public BigInteger zkSyncBlockId;
-
-        public BigInteger accountId;
-
-        public String zkSyncTokenAddress;
-
-        public String owner;
-
-        public BigInteger amount;
+    public static class EmergencyDiamondCutApprovedEventResponse extends BaseEventResponse {
+        public String _address;
     }
 
-    public static class ExodusModeEventResponse extends BaseEventResponse {
+    public static class EmergencyFreezeEventResponse extends BaseEventResponse {
     }
 
-    public static class FactAuthEventResponse extends BaseEventResponse {
+    public static class MovePriorityOperationsFromBufferToHeapEventResponse extends BaseEventResponse {
+        public BigInteger expirationBlock;
+
+        public List<BigInteger> operationIDs;
+
+        public BigInteger opTree;
+    }
+
+    public static class NewGovernorEventResponse extends BaseEventResponse {
+        public String newGovernor;
+    }
+
+    public static class NewPriorityModeAuctionBidEventResponse extends BaseEventResponse {
+        public BigInteger opTree;
+
         public String sender;
 
-        public BigInteger nonce;
+        public BigInteger bidAmount;
 
-        public byte[] fact;
+        public BigInteger complexity;
+    }
+
+    public static class NewPriorityModeSubEpochEventResponse extends BaseEventResponse {
+        public BigInteger subEpoch;
+
+        public BigInteger subEpochEndTimestamp;
     }
 
     public static class NewPriorityRequestEventResponse extends BaseEventResponse {
-        public String sender;
-
         public BigInteger serialId;
 
-        public BigInteger opType;
-
-        public byte[] pubData;
-
-        public BigInteger expirationBlock;
+        public byte[] opMetadata;
     }
 
-    public static class WithdrawCommitEventResponse extends BaseEventResponse {
-        public BigInteger zkSyncBlockId;
-
-        public BigInteger accountId;
-
-        public String zkSyncTokenAddress;
-
-        public String owner;
-
-        public BigInteger amount;
+    public static class PriorityModeActivatedEventResponse extends BaseEventResponse {
     }
 
-    public static class WithdrawalEventResponse extends BaseEventResponse {
+    public static class UnfreezeEventResponse extends BaseEventResponse {
+    }
+
+    public static class ValidatorStatusUpdateEventResponse extends BaseEventResponse {
+        public String validatorAddress;
+
+        public Boolean isActive;
+    }
+
+    public static class WithdrawPendingBalanceEventResponse extends BaseEventResponse {
         public String zkSyncTokenAddress;
 
         public BigInteger amount;

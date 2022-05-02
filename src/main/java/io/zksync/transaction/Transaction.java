@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import io.zksync.transaction.fee.Fee;
 import org.apache.commons.lang3.tuple.Pair;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
@@ -31,27 +32,19 @@ import lombok.NoArgsConstructor;
   include = JsonTypeInfo.As.PROPERTY, 
   property = "type")
 @JsonSubTypes({ 
-  @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = DeployContract.class, name = "DeployContract"), 
-  @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = MigrateToPorter.class, name = "MigrateToPorter"),
-  @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Transfer.class, name = "Transfer"),
-  @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Withdraw.class, name = "Withdraw"),
-  @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Execute.class, name = "Execute"),
+  @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = DeployContract.class, name = DeployContract.DEPLOY_CONTRACT_TYPE),
+  @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Withdraw.class, name = Withdraw.WITHDRAW_TYPE),
+  @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Execute.class, name = Execute.EXECUTE_TYPE),
 })
 public abstract class Transaction implements Structurable {
 
     @JsonIgnore
     private Address initiatorAddress;
 
-    @JsonIgnore
-    private Address feeToken;
-
-    @JsonIgnore
-    private Uint256 fee;
+    private Fee fee;
 
     @JsonIgnore
     private Uint32 nonce;
-
-    private TimeRange validIn;
 
     @Override
     public abstract String getType();
@@ -59,16 +52,6 @@ public abstract class Transaction implements Structurable {
     @JsonGetter("initiatorAddress")
     public String getInitiatorAddressString() {
         return initiatorAddress.getValue();
-    }
-
-    @JsonGetter("feeToken")
-    public String getFeeTokenString() {
-        return feeToken.getValue();
-    }
-
-    @JsonGetter("fee")
-    public BigInteger getFeeNumber() {
-        return fee.getValue();
     }
 
     @JsonGetter("nonce")
@@ -81,20 +64,6 @@ public abstract class Transaction implements Structurable {
         this.initiatorAddress = new Address(initiatorAddress);
     }
 
-    @JsonSetter("feeToken")
-    public void setFeeToken(String feeToken) {
-        this.feeToken = new Address(feeToken);
-    }
-
-    @JsonSetter("fee")
-    public void setFee(String feeHex) {
-        this.fee = new Uint256(Numeric.toBigInt(feeHex));
-    }
-
-    public void setFee(BigInteger fee) {
-        this.fee = new Uint256(fee);
-    }
-
     @JsonSetter("nonce")
     public void setNonce(Integer nonce) {
         this.nonce = new Uint32(nonce);
@@ -104,11 +73,12 @@ public abstract class Transaction implements Structurable {
     public List<Pair<String, Type<?>>> eip712types() {
         return new ArrayList<Pair<String, Type<?>>>() {{
             add(Pair.of("initiatorAddress", initiatorAddress));
-            add(Pair.of("feeToken", feeToken));
-            add(Pair.of("fee", fee));
+            add(Pair.of("feeToken", fee.getFeeToken()));
+            add(Pair.of("ergsLimit", fee.getErgsLimit()));
+            add(Pair.of("ergsPriceLimit", fee.getErgsPriceLimit()));
+            add(Pair.of("ergsPerPubdataLimit", fee.getErgsPerPubdataLimit()));
+            add(Pair.of("ergsPerStorageLimit", fee.getErgsPerStorageLimit()));
             add(Pair.of("nonce", nonce));
-            add(Pair.of("validFrom", validIn.getFrom()));
-            add(Pair.of("validUntil", validIn.getUntil()));
         }};
     }
 }
