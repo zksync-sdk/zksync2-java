@@ -14,22 +14,19 @@ import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 
-import io.zksync.protocol.core.TimeRange;
 import io.zksync.protocol.core.Token;
-import org.web3j.utils.Numeric;
 
 public class BaseTransactionTest {
     protected static final Token FEE_TOKEN = Token.createETH();
     protected static final Credentials SENDER = Credentials.create(ECKeyPair.create(BigInteger.ONE));
     protected static final Fee FEE;
     protected static final Integer NONCE = 42;
-    protected static final TimeRange VALIDITY_TIME = new TimeRange();
 
     static {
         FEE = new Fee(
                 new Uint256(BigInteger.valueOf(123)),
                 new Uint256(BigInteger.valueOf(123)),
-                new Address(Token.createETH().getAddress()),
+                new Address(FEE_TOKEN.getAddress()),
                 new Uint256(BigInteger.valueOf(123)),
                 new Uint256(BigInteger.valueOf(123))
         );
@@ -46,25 +43,30 @@ public class BaseTransactionTest {
             assertEquals("feeToken", t2.getKey());
             assertEquals(new Address(FEE_TOKEN.getAddress()), t2.getValue());
         }
-//        {
-//            Pair<String, Type<?>> t2 = base.next();
-//            assertEquals("fee", t2.getKey());
-//            assertEquals(new Uint256(FEE), t2.getValue());
-//        }
+        {
+            Pair<String, Type<?>> t2 = base.next();
+            assertEquals("ergsLimit", t2.getKey());
+            assertEquals(FEE.getErgsLimit(), t2.getValue());
+        }
+        {
+            Pair<String, Type<?>> t2 = base.next();
+            assertEquals("ergsPriceLimit", t2.getKey());
+            assertEquals(FEE.getErgsPriceLimit(), t2.getValue());
+        }
+        {
+            Pair<String, Type<?>> t2 = base.next();
+            assertEquals("ergsPerPubdataLimit", t2.getKey());
+            assertEquals(FEE.getErgsPerPubdataLimit(), t2.getValue());
+        }
+        {
+            Pair<String, Type<?>> t2 = base.next();
+            assertEquals("ergsPerStorageLimit", t2.getKey());
+            assertEquals(FEE.getErgsPerStorageLimit(), t2.getValue());
+        }
         {
             Pair<String, Type<?>> t2 = base.next();
             assertEquals("nonce", t2.getKey());
             assertEquals(new Uint32(NONCE), t2.getValue());
-        }
-        {
-            Pair<String, Type<?>> t2 = base.next();
-            assertEquals("validFrom", t2.getKey());
-            assertEquals(VALIDITY_TIME.getFrom(), t2.getValue());
-        }
-        {
-            Pair<String, Type<?>> t2 = base.next();
-            assertEquals("validUntil", t2.getKey());
-            assertEquals(VALIDITY_TIME.getUntil(), t2.getValue());
         }
     }
 }

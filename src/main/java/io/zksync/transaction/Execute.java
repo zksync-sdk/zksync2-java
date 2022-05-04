@@ -18,7 +18,6 @@ import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.crypto.Hash;
 import org.web3j.utils.Numeric;
 
-import io.zksync.protocol.core.TimeRange;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -67,7 +66,7 @@ public class Execute extends Transaction {
     @Override
     public List<Pair<String, Type<?>>> eip712types() {
         List<Pair<String, Type<?>>> base = super.eip712types();
-        List<Pair<String, Type<?>>> result = new ArrayList<Pair<String, Type<?>>>(base.size() + 3);
+        List<Pair<String, Type<?>>> result = new ArrayList<>(base.size() + 3);
 
         result.add(Pair.of("contractAddress", contractAddress));
         result.add(Pair.of("calldataHash", new Uint256(Numeric.toBigInt(Hash.sha3(calldata)))));

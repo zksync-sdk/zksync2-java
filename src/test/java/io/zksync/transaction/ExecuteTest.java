@@ -44,11 +44,6 @@ public class ExecuteTest extends BaseTransactionTest {
             assertEquals(new Uint256(Numeric.toBigInt(Hash.sha3(FunctionEncoder.encode(FUNC)))), t2.getValue());
         }
         super.assertSerializeToEIP712(t);
-        {
-            Pair<String, Type<?>> t2 = t.next();
-            assertEquals("padding", t2.getKey());
-            assertEquals(Uint256.DEFAULT, t2.getValue());
-        }
     }
 
     @Test
@@ -57,7 +52,7 @@ public class ExecuteTest extends BaseTransactionTest {
         String result = Eip712Encoder.encodeType(execute.intoEip712Struct());
 
         assertEquals(
-                "Execute(address contractAddress,uint256 calldataHash,address initiatorAddress,address feeToken,uint256 fee,uint32 nonce,uint64 validFrom,uint64 validUntil,uint256 padding)",
+                "Execute(address contractAddress,uint256 calldataHash,address initiatorAddress,address feeToken,uint256 ergsLimit,uint256 ergsPriceLimit,uint256 ergsPerPubdataLimit,uint256 ergsPerStorageLimit,uint32 nonce)",
                 result);
     }
 
@@ -66,7 +61,7 @@ public class ExecuteTest extends BaseTransactionTest {
         Execute execute = buildExecute();
         byte[] encoded = Eip712Encoder.encodeValue(execute.intoEip712Struct()).getValue();
 
-        assertEquals("0xdb2a6569d0fe824cae6f3a1380a8e927d4d9663d467996b5b0fa13f1d7c272d1",
+        assertEquals("0xb1cda52df83b03210d19ccc7792d1998d6879c70734e40fa0a8e0288d7d28789",
                 Numeric.toHexString(encoded));
     }
 
@@ -76,7 +71,7 @@ public class ExecuteTest extends BaseTransactionTest {
         byte[] encoded = Eip712Encoder.typedDataToSignedBytes(Eip712Domain.defaultDomain(ZkSyncNetwork.Localhost),
                 execute);
 
-        assertEquals("0x2cdc84d892bc3a843451c6b938b96d57fb9efeb949b21c4644f818ae6e4386b6",
+        assertEquals("0x54a536300508ab44aeeddd75a13cfc641cb07d84acd2564438a48e03a905be75",
                 Numeric.toHexString(encoded));
     }
 

@@ -15,11 +15,9 @@ import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Hash;
 import org.web3j.utils.Numeric;
 
-import io.zksync.abi.TransactionEncoder;
 import io.zksync.crypto.eip712.Eip712Domain;
 import io.zksync.crypto.eip712.Eip712Encoder;
 import io.zksync.helper.CounterContract;
-import io.zksync.protocol.core.AccountType;
 import io.zksync.protocol.core.ZkSyncNetwork;
 
 public class DeployContractTest extends BaseTransactionTest {
@@ -35,11 +33,6 @@ public class DeployContractTest extends BaseTransactionTest {
 
         {
             Pair<String, Type<?>> t2 = t.next();
-            assertEquals("accountType", t2.getKey());
-            assertEquals(AccountType.ZkRollup.getType(), t2.getValue());
-        }
-        {
-            Pair<String, Type<?>> t2 = t.next();
             assertEquals("bytecodeHash", t2.getKey());
             assertEquals(new Uint256(Numeric.toBigInt(Hash.sha3(BYTECODE))), t2.getValue());
         }
@@ -49,11 +42,6 @@ public class DeployContractTest extends BaseTransactionTest {
             assertEquals(new Uint256(Numeric.toBigInt(Hash.sha3(FunctionEncoder.encode(FUNC)))), t2.getValue());
         }
         super.assertSerializeToEIP712(t);
-        {
-            Pair<String, Type<?>> t2 = t.next();
-            assertEquals("padding", t2.getKey());
-            assertEquals(Uint256.DEFAULT, t2.getValue());
-        }
     }
 
     @Test
@@ -62,7 +50,7 @@ public class DeployContractTest extends BaseTransactionTest {
         String result = Eip712Encoder.encodeType(deployContract.intoEip712Struct());
 
         assertEquals(
-                "DeployContract(uint8 accountType,uint256 bytecodeHash,uint256 calldataHash,address initiatorAddress,address feeToken,uint256 fee,uint32 nonce,uint64 validFrom,uint64 validUntil,uint256 padding)",
+                "DeployContract(uint256 bytecodeHash,uint256 calldataHash,address initiatorAddress,address feeToken,uint256 ergsLimit,uint256 ergsPriceLimit,uint256 ergsPerPubdataLimit,uint256 ergsPerStorageLimit,uint32 nonce)",
                 result);
     }
 
@@ -71,7 +59,7 @@ public class DeployContractTest extends BaseTransactionTest {
         DeployContract deployContract = buildDeployContract();
         byte[] encoded = Eip712Encoder.encodeValue(deployContract.intoEip712Struct()).getValue();
 
-        assertEquals("0x313228dd2323576aea6cc8cd056558ebca835cc1843433106a76ec75cbda6cc5",
+        assertEquals("0x3f8401016a22a03fc94a264aac3994bd55fe43ba79973349f1aa597671745a25",
                 Numeric.toHexString(encoded));
     }
 
@@ -81,7 +69,7 @@ public class DeployContractTest extends BaseTransactionTest {
         byte[] encoded = Eip712Encoder.typedDataToSignedBytes(Eip712Domain.defaultDomain(ZkSyncNetwork.Localhost),
                 deployContract);
 
-        assertEquals("0xe7b596fde369e5a2e71a1b021b895dac3481b4b68eb4038a7553c6c41b5aa203",
+        assertEquals("0xd3cd685f73dae929805486fc733a339835f5d06cb10dea6301d1d1108db6e5c4",
                 Numeric.toHexString(encoded));
     }
 

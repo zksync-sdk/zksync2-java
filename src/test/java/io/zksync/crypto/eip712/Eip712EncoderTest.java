@@ -10,36 +10,27 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.generated.Uint128;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
-import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
-import org.web3j.utils.Convert.Unit;
 
-import io.zksync.protocol.core.TimeRange;
 import io.zksync.protocol.core.Token;
 import io.zksync.protocol.core.ZkSyncNetwork;
 import io.zksync.helper.eip712.Mail;
 
 public class Eip712EncoderTest {
 
-    private static final Token ETH = Token.createETH();
-
     private Eip712Domain domain;
     private Mail message;
-
-    private Credentials credentials;
 
     @Before
     public void setUp() {
         this.message = new Mail();
-        Eip712Domain domain = new Eip712Domain(
+
+        this.domain = new Eip712Domain(
             "Ether Mail",
             "1",
             ZkSyncNetwork.Mainnet,
             "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
         );
-
-        this.domain = domain;
-        this.credentials = Credentials.create(ECKeyPair.create(BigInteger.ONE));
     }
 
     @Test

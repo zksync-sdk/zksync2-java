@@ -83,39 +83,6 @@ public class ZkSyncWallet {
         return erc20.transfer(to, amount);
     }
 
-//    public RemoteCall<TransactionReceipt> migrateToPorter() {
-//        return migrateToPorter(null, null);
-//    }
-//
-//    public RemoteCall<TransactionReceipt> migrateToPorter(Integer nonce) {
-//        return migrateToPorter(nonce, null);
-//    }
-//
-//    public RemoteCall<TransactionReceipt> migrateToPorter(TimeRange timeRange) {
-//        return migrateToPorter(null, timeRange);
-//    }
-
-//    public RemoteCall<TransactionReceipt> migrateToPorter(@Nullable Integer nonce, @Nullable TimeRange timeRange) {
-//        return new RemoteCall<>(() -> {
-//            Integer nonceToUse = nonce != null ? nonce : getNonce().send();
-//            MigrateToPorter zkMigrateToPorter = new MigrateToPorter(
-//                    signer.getAddress(),
-//                    signer.getAddress(),
-//                    feeProvider.getFeeToken().getAddress(),
-//                    BigInteger.ZERO,
-//                    nonceToUse,
-//                    timeRange == null ? new TimeRange() : timeRange);
-//
-//            EthSendTransaction sent = estimateAndSend(zkMigrateToPorter).join();
-//
-//            try {
-//                return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
-//            } catch (IOException | TransactionException e) {
-//                throw new RuntimeException(e);
-//            }
-//        });
-//    }
-
     public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount) {
         return withdraw(to, amount, null, null);
     }

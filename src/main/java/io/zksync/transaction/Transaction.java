@@ -14,12 +14,9 @@ import io.zksync.transaction.fee.Fee;
 import org.apache.commons.lang3.tuple.Pair;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint32;
-import org.web3j.utils.Numeric;
 
 import io.zksync.crypto.eip712.Structurable;
-import io.zksync.protocol.core.TimeRange;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,14 +24,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME, 
-  include = JsonTypeInfo.As.PROPERTY, 
-  property = "type")
-@JsonSubTypes({ 
-  @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = DeployContract.class, name = DeployContract.DEPLOY_CONTRACT_TYPE),
-  @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Withdraw.class, name = Withdraw.WITHDRAW_TYPE),
-  @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Execute.class, name = Execute.EXECUTE_TYPE),
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+        @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = DeployContract.class, name = DeployContract.DEPLOY_CONTRACT_TYPE),
+        @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Withdraw.class, name = Withdraw.WITHDRAW_TYPE),
+        @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Execute.class, name = Execute.EXECUTE_TYPE),
 })
 public abstract class Transaction implements Structurable {
 

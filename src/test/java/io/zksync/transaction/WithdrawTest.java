@@ -58,7 +58,7 @@ public class WithdrawTest extends BaseTransactionTest {
         String result = Eip712Encoder.encodeType(withdraw.intoEip712Struct());
 
         assertEquals(
-                "Withdraw(address to,address token,uint256 amount,address initiatorAddress,address feeToken,uint256 fee,uint32 nonce,uint64 validFrom,uint64 validUntil)",
+                "Withdraw(address to,address token,uint256 amount,address initiatorAddress,address feeToken,uint256 ergsLimit,uint256 ergsPriceLimit,uint256 ergsPerPubdataLimit,uint256 ergsPerStorageLimit,uint32 nonce)",
                 result);
     }
 
@@ -67,7 +67,7 @@ public class WithdrawTest extends BaseTransactionTest {
         Withdraw withdraw = buildWithdraw();
         byte[] encoded = Eip712Encoder.encodeValue(withdraw.intoEip712Struct()).getValue();
 
-        assertEquals("0x3a99876e01820f4d66c90ed96be2dc0c1f44b0d7d490e2af4a7ab498c2bcb1ad",
+        assertEquals("0x5b904211a74b103d999ca3f4248ddfaaa3e14ed61db15329df375d79e53503b0",
                 Numeric.toHexString(encoded));
     }
 
@@ -77,7 +77,7 @@ public class WithdrawTest extends BaseTransactionTest {
         byte[] encoded = Eip712Encoder.typedDataToSignedBytes(Eip712Domain.defaultDomain(ZkSyncNetwork.Localhost),
                 withdraw);
 
-        assertEquals("0xb7735ab5994e9baec8aed00895c54574a513ad7d2b96965cee0ad66ff0e405f0",
+        assertEquals("0xf05e868661957575f6b94f24a094c8a2ab7b17566501f909bfe51faae8b921e7",
                 Numeric.toHexString(encoded));
     }
 

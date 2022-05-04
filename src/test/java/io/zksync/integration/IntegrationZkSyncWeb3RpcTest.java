@@ -7,7 +7,7 @@ import java.math.BigInteger;
 import java.util.Map;
 
 import io.zksync.helper.CounterContract;
-import io.zksync.methods.response.ZksAccountBalances;
+import io.zksync.methods.response.*;
 import io.zksync.transaction.TransactionRequest;
 import io.zksync.transaction.manager.ZkSyncTransactionManager;
 import io.zksync.transaction.type.Transaction712;
@@ -22,6 +22,7 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.Response;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
@@ -38,7 +39,6 @@ import org.web3j.utils.Convert.Unit;
 import io.zksync.abi.TransactionEncoder;
 import io.zksync.crypto.signer.EthSigner;
 import io.zksync.crypto.signer.PrivateKeyEthSigner;
-import io.zksync.methods.response.ZksEstimateFee;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.Token;
 import io.zksync.protocol.core.ZkBlockParameterName;
@@ -85,7 +85,7 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
-    public void sendTestMoney() throws IOException {
+    public void sendTestMoney() {
         Web3j web3j = Web3j.build(new HttpService("http://127.0.0.1:8545"));
 
         String account = web3j.ethAccounts().sendAsync().join().getAccounts().get(0);
@@ -95,18 +95,11 @@ public class IntegrationZkSyncWeb3RpcTest {
                         this.credentials.getAddress(), Convert.toWei("10", Unit.ETHER).toBigInteger()))
                 .sendAsync().join();
 
-        if (sent.hasError()) {
-            System.out.println(sent.getError().getMessage());
-            System.out.println(sent.getError().getData());
-        } else {
-            System.out.println(sent.getResult());
-        }
-
-        assertFalse(sent::hasError);
+        assertResponse(sent);
     }
 
     @Test
-    public void testDeposit() throws IOException {
+    public void testDeposit() {
         TransactionReceipt receipt = EthereumProvider
                 .load(zksync, Web3j.build(new HttpService("http://127.0.0.1:8545")), this.credentials).join()
                 .deposit(ETH, Convert.toWei("9", Unit.ETHER).toBigInteger(), credentials.getAddress()).join();
@@ -160,14 +153,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         EthSendTransaction sent = this.zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
 
-        if (sent.hasError()) {
-            System.out.println(sent.getError().getMessage());
-            System.out.println(sent.getError().getData());
-        } else {
-            System.out.println(sent.getResult());
-        }
-
-        assertFalse(sent::hasError);
+        assertResponse(sent);
 
         TransactionReceipt receipt = this.processor.waitForTransactionReceipt(sent.getResult());
 
@@ -197,13 +183,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         ZksEstimateFee estimateFee = estimateFee(zkWithdraw);
 
-        if (estimateFee.hasError()) {
-            System.out.println(estimateFee.getError().getMessage());
-        } else {
-            System.out.println(estimateFee.getResult());
-        }
-
-        assertFalse(estimateFee::hasError);
+        assertResponse(estimateFee);
     }
 
     @Test
@@ -223,13 +203,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         ZksEstimateFee estimateFee = estimateFee(zkExecute);
 
-        if (estimateFee.hasError()) {
-            System.out.println(estimateFee.getError().getMessage());
-        } else {
-            System.out.println(estimateFee.getResult());
-        }
-
-        assertFalse(estimateFee::hasError);
+        assertResponse(estimateFee);
     }
 
     @Test
@@ -242,13 +216,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         ZksEstimateFee estimateFee = estimateFee(zkDeployContract);
 
-        if (estimateFee.hasError()) {
-            System.out.println(estimateFee.getError().getMessage());
-        } else {
-            System.out.println(estimateFee.getResult());
-        }
-
-        assertFalse(estimateFee::hasError);
+        assertResponse(estimateFee);
     }
 
     @Test
@@ -307,14 +275,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         EthSendTransaction sent = this.zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
 
-        if (sent.hasError()) {
-            System.out.println(sent.getError().getMessage());
-            System.out.println(sent.getError().getData());
-        } else {
-            System.out.println(sent.getResult());
-        }
-
-        assertFalse(sent::hasError);
+        assertResponse(sent);
 
         TransactionReceipt receipt = this.processor.waitForTransactionReceipt(sent.getResult());
 
@@ -347,14 +308,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         EthSendTransaction sent = this.zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
 
-        if (sent.hasError()) {
-            System.out.println(sent.getError().getMessage());
-            System.out.println(sent.getError().getData());
-        } else {
-            System.out.println(sent.getResult());
-        }
-
-        assertFalse(sent::hasError);
+        assertResponse(estimateFee);
 
         TransactionReceipt receipt = this.processor.waitForTransactionReceipt(sent.getResult());
 
@@ -365,18 +319,53 @@ public class IntegrationZkSyncWeb3RpcTest {
     public void testGetAllAccountBalances() throws IOException {
         ZksAccountBalances response = this.zksync.zksGetAllAccountBalances(credentials.getAddress()).send();
 
-        if (response.hasError()) {
-            System.out.println(response.getError().getMessage());
-            System.out.println(response.getError().getData());
-        } else {
-            System.out.println(response.getResult());
-        }
-
-        assertFalse(response::hasError);
+        assertResponse(response);
 
         Map<String, BigInteger> balances = response.getBalances();
 
         System.out.println(balances);
+    }
+
+    @Test
+    public void testGetAccountTransactions() throws IOException {
+        int offset = 0;
+        short limit = 10; // Get latest 10 transactions
+
+        ZksTransactions response = this.zksync.zksGetAccountTransactions(this.credentials.getAddress(), offset, limit).send();
+
+        assertResponse(response);
+    }
+
+    @Test
+    public void testGetConfirmedTokens() throws IOException {
+        int offset = 0;
+        short limit = 10; // Get first 10 confirmed tokens
+
+        ZksTokens response = this.zksync.zksGetConfirmedTokens(offset, limit).send();
+
+        assertResponse(response);
+    }
+
+    @Test
+    public void testIsTokenLiquid() throws IOException {
+        ZksIsTokenLiquid response = this.zksync.zksIsTokenLiquid(ETH.getAddress()).send();
+
+        assertResponse(response);
+        assertTrue(response.getResult());
+    }
+
+    @Test
+    public void testGetTokenPrice() throws IOException {
+        ZksTokenPrice response = this.zksync.zksGetTokenPrice(ETH.getAddress()).send();
+
+        assertResponse(response);
+    }
+
+    @Test
+    public void testGetL1ChainId() throws IOException {
+        ZksL1ChainId response = this.zksync.zksL1ChainId().send();
+
+        assertResponse(response);
     }
 
     private <T extends io.zksync.transaction.Transaction> ZksEstimateFee estimateFee(T transaction) throws IOException {
@@ -390,6 +379,17 @@ public class IntegrationZkSyncWeb3RpcTest {
         }
 
         return estimateFee;
+    }
+
+    private void assertResponse(Response<?> response) {
+        if (response.hasError()) {
+            System.out.println(response.getError().getMessage());
+            System.out.println(response.getError().getData());
+        } else {
+            System.out.println(response.getResult());
+        }
+
+        assertFalse(response::hasError);
     }
 
 }
