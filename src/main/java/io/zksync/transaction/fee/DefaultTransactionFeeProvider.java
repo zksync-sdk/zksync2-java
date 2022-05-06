@@ -3,6 +3,7 @@ package io.zksync.transaction.fee;
 import io.zksync.methods.response.ZksEstimateFee;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.Token;
+import io.zksync.protocol.exceptions.JsonRpcResponseException;
 import io.zksync.transaction.DeployContract;
 import io.zksync.transaction.Execute;
 import io.zksync.transaction.Transaction;
@@ -26,6 +27,10 @@ public class DefaultTransactionFeeProvider implements ZkTransactionFeeProvider {
             estimateFee = this.zksync.zksEstimateFee(new io.zksync.methods.request.Transaction((Execute) transaction)).send();
         } else {
             estimateFee = this.zksync.zksEstimateFee(new io.zksync.methods.request.Transaction((Withdraw) transaction)).send();
+        }
+
+        if (estimateFee.hasError()) {
+            throw new JsonRpcResponseException(estimateFee);
         }
 
         return estimateFee.getResult();

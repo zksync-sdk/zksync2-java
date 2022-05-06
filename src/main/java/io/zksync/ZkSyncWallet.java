@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.concurrent.CompletableFuture;
 
+import io.zksync.protocol.exceptions.JsonRpcResponseException;
 import io.zksync.transaction.*;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.transaction.fee.Fee;
-import io.zksync.transaction.manager.ZkSyncTransactionManager;
 import io.zksync.wrappers.ERC20;
 import org.jetbrains.annotations.Nullable;
+import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.core.DefaultBlockParameter;
@@ -71,16 +72,26 @@ public class ZkSyncWallet {
     }
 
     public RemoteCall<TransactionReceipt> transfer(String to, BigInteger amount, @Nullable Token token, @Nullable Integer nonce) {
-        ERC20 erc20 = ERC20.load(
-                (token == null ? Token.ETH : token).getAddress(),
-                zksync,
-                new ZkSyncTransactionManager(zksync, signer, feeProvider),
-                null
+        return new RemoteCall<>(() -> {
+            Integer nonceToUse = nonce != null ? nonce : getNonce().send();
+            Function function = ERC20.encodeTransfer(to, amount);
+            String calldata = FunctionEncoder.encode(function);
 
-        );
+            Execute zkExecute = new Execute(
+                    (token == null ? Token.ETH : token).getAddress(),
+                    calldata,
+                    signer.getAddress(),
+                    new Fee(feeProvider.getFeeToken().getAddress()),
+                    BigInteger.valueOf(nonceToUse));
 
-//        Integer nonceToUse = nonce != null ? nonce : getNonce().send();
-        return erc20.transfer(to, amount);
+            EthSendTransaction sent = estimateAndSend(zkExecute).join();
+
+            try {
+                return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
+            } catch (IOException | TransactionException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount) {
@@ -99,7 +110,7 @@ public class ZkSyncWallet {
                     to,
                     amount,
                     signer.getAddress(),
-                    null,
+                    new Fee(feeProvider.getFeeToken().getAddress()),
                     BigInteger.valueOf(nonceToUse));
 
             EthSendTransaction sent = estimateAndSend(zkWithdraw).join();
@@ -134,7 +145,7 @@ public class ZkSyncWallet {
                     new DeployContract(
                             Numeric.toHexString(bytecode),
                             signer.getAddress(),
-                            null,
+                            new Fee(feeProvider.getFeeToken().getAddress()),
                             BigInteger.valueOf(nonceToUse));
 
             EthSendTransaction sent = estimateAndSend(zkDeployContract).join();
@@ -154,13 +165,13 @@ public class ZkSyncWallet {
     public RemoteCall<TransactionReceipt> execute(String contractAddress, Function function, @Nullable Integer nonce) {
         return new RemoteCall<>(() -> {
             Integer nonceToUse = nonce != null ? nonce : getNonce().send();
-            byte[] calldata = ZkFunctionEncoder.encodeCalldata(function);
+            String calldata = FunctionEncoder.encode(function);
 
             Execute zkExecute = new Execute(
                     contractAddress,
-                    Numeric.toHexString(calldata),
+                    calldata,
                     signer.getAddress(),
-                    null,
+                    new Fee(feeProvider.getFeeToken().getAddress()),
                     BigInteger.valueOf(nonceToUse));
 
             EthSendTransaction sent = estimateAndSend(zkExecute).join();
@@ -197,6 +208,13 @@ public class ZkSyncWallet {
 
                     return this.zksync.ethSendRawTransaction(Numeric.toHexString(signed))
                             .sendAsync().join();
+                })
+                .thenApply(response -> {
+                    if (response.hasError()) {
+                        throw new JsonRpcResponseException(response);
+                    } else {
+                        return response;
+                    }
                 });
     }
 

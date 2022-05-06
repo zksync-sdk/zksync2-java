@@ -42,6 +42,10 @@ public class Token implements TokenId {
         return amount.multiply(BigDecimal.TEN.pow(decimals)).toBigInteger();
     }
 
+    public BigInteger toBigInteger(double amount) {
+        return BigDecimal.valueOf(amount).multiply(BigDecimal.TEN.pow(decimals)).toBigInteger();
+    }
+
     public static Token createETH() {
         return new Token(
                 "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",

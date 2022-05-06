@@ -2,6 +2,7 @@ package io.zksync.transaction.manager;
 
 import io.zksync.abi.TransactionEncoder;
 import io.zksync.crypto.signer.EthSigner;
+import io.zksync.protocol.exceptions.JsonRpcResponseException;
 import io.zksync.transaction.TransactionRequest;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
@@ -50,12 +51,12 @@ public class ZkSyncTransactionManager extends TransactionManager {
             DeployContract deployContract = new DeployContract(
                     data,
                     getFromAddress(),
-                    new Fee(feeProvider.getFeeToken().getAddress()),
+                    new Fee(getFeeProvider().getFeeToken().getAddress()),
                     getNonce()
             );
 
-            long chainId = signer.getDomain().join().getChainId().getValue().longValue();
-            Fee fee = feeProvider.getFee(deployContract);
+            long chainId = getSigner().getDomain().join().getChainId().getValue().longValue();
+            Fee fee = getFeeProvider().getFee(deployContract);
             deployContract.setFee(fee);
             transaction = new Transaction712<>(chainId, deployContract);
         } else {
@@ -63,20 +64,26 @@ public class ZkSyncTransactionManager extends TransactionManager {
                     to,
                     data,
                     getFromAddress(),
-                    new Fee(feeProvider.getFeeToken().getAddress()),
+                    new Fee(getFeeProvider().getFeeToken().getAddress()),
                     getNonce()
             );
 
-            long chainId = signer.getDomain().join().getChainId().getValue().longValue();
-            Fee fee = feeProvider.getFee(execute);
+            long chainId = getSigner().getDomain().join().getChainId().getValue().longValue();
+            Fee fee = getFeeProvider().getFee(execute);
             execute.setFee(fee);
             transaction = new Transaction712<>(chainId, execute);
         }
 
-        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, TransactionRequest.from(transaction))).join();
+        String signature = getSigner().getDomain().thenCompose(domain -> getSigner().signTypedData(domain, TransactionRequest.from(transaction))).join();
         byte[] signed = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
-        return zkSync.ethSendRawTransaction(Numeric.toHexString(signed)).send();
+        EthSendTransaction response = zkSync.ethSendRawTransaction(Numeric.toHexString(signed)).send();
+
+        if (response.hasError()) {
+            throw new JsonRpcResponseException(response);
+        } else {
+            return response;
+        }
     }
 
     @Override
@@ -92,6 +99,10 @@ public class ZkSyncTransactionManager extends TransactionManager {
                                 defaultBlockParameter)
                         .send();
 
+        if (ethCall.hasError()) {
+            throw new JsonRpcResponseException(ethCall);
+        }
+
         return ethCall.getValue();
     }
 
@@ -100,10 +111,18 @@ public class ZkSyncTransactionManager extends TransactionManager {
         return zkSync.ethGetCode(contractAddress, defaultBlockParameter).send();
     }
 
+    public ZkTransactionFeeProvider getFeeProvider() {
+        return feeProvider;
+    }
+
+    public EthSigner getSigner() {
+        return signer;
+    }
+
     protected BigInteger getNonce() throws IOException {
         EthGetTransactionCount ethGetTransactionCount =
                 zkSync.ethGetTransactionCount(
-                                signer.getAddress(), ZkBlockParameterName.COMMITTED)
+                                getSigner().getAddress(), ZkBlockParameterName.COMMITTED)
                         .send();
 
         return ethGetTransactionCount.getTransactionCount();
