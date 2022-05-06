@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import io.zksync.protocol.exceptions.JsonRpcResponseException;
 import io.zksync.transaction.*;
+import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.transaction.fee.Fee;
 import io.zksync.wrappers.ERC20;
@@ -18,12 +19,10 @@ import org.web3j.protocol.core.RemoteCall;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
-import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.tx.response.TransactionReceiptProcessor;
 import org.web3j.utils.Numeric;
 
 import io.zksync.abi.TransactionEncoder;
-import io.zksync.abi.ZkFunctionEncoder;
 import io.zksync.crypto.signer.EthSigner;
 import io.zksync.crypto.signer.PrivateKeyEthSigner;
 import io.zksync.protocol.ZkSync;
@@ -32,6 +31,9 @@ import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.transaction.fee.DefaultTransactionFeeProvider;
 import io.zksync.transaction.fee.ZkTransactionFeeProvider;
 import lombok.Getter;
+
+import static io.zksync.transaction.manager.ZkSyncTransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
+import static io.zksync.transaction.manager.ZkSyncTransactionManager.DEFAULT_POLLING_FREQUENCY;
 
 @Getter
 public class ZkSyncWallet {
@@ -50,12 +52,12 @@ public class ZkSyncWallet {
     }
 
     public ZkSyncWallet(ZkSync zksync, EthSigner signer) {
-        this(zksync, signer, new PollingTransactionReceiptProcessor(zksync, 200, 10),
+        this(zksync, signer, new ZkSyncTransactionReceiptProcessor(zksync, DEFAULT_POLLING_FREQUENCY, DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH),
                 new DefaultTransactionFeeProvider(zksync, Token.ETH));
     }
 
     public ZkSyncWallet(ZkSync zksync, EthSigner signer, Token feeToken) {
-        this(zksync, signer, new PollingTransactionReceiptProcessor(zksync, 200, 10),
+        this(zksync, signer, new ZkSyncTransactionReceiptProcessor(zksync, DEFAULT_POLLING_FREQUENCY, DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH),
                 new DefaultTransactionFeeProvider(zksync, feeToken));
     }
 
@@ -71,9 +73,9 @@ public class ZkSyncWallet {
         return transfer(to, amount, token, null);
     }
 
-    public RemoteCall<TransactionReceipt> transfer(String to, BigInteger amount, @Nullable Token token, @Nullable Integer nonce) {
+    public RemoteCall<TransactionReceipt> transfer(String to, BigInteger amount, @Nullable Token token, @Nullable BigInteger nonce) {
         return new RemoteCall<>(() -> {
-            Integer nonceToUse = nonce != null ? nonce : getNonce().send();
+            BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
             Function function = ERC20.encodeTransfer(to, amount);
             String calldata = FunctionEncoder.encode(function);
 
@@ -82,7 +84,7 @@ public class ZkSyncWallet {
                     calldata,
                     signer.getAddress(),
                     new Fee(feeProvider.getFeeToken().getAddress()),
-                    BigInteger.valueOf(nonceToUse));
+                    nonceToUse);
 
             EthSendTransaction sent = estimateAndSend(zkExecute).join();
 
@@ -102,16 +104,16 @@ public class ZkSyncWallet {
         return withdraw(to, amount, token, null);
     }
 
-    public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount, @Nullable Token token, @Nullable Integer nonce) {
+    public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount, @Nullable Token token, @Nullable BigInteger nonce) {
         return new RemoteCall<>(() -> {
-            Integer nonceToUse = nonce != null ? nonce : getNonce().send();
+            BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
             Withdraw zkWithdraw = new Withdraw(
                     (token == null ? Token.ETH : token).getAddress(),
                     to,
                     amount,
                     signer.getAddress(),
                     new Fee(feeProvider.getFeeToken().getAddress()),
-                    BigInteger.valueOf(nonceToUse));
+                    nonceToUse);
 
             EthSendTransaction sent = estimateAndSend(zkWithdraw).join();
 
@@ -132,21 +134,21 @@ public class ZkSyncWallet {
     }
 
     public RemoteCall<TransactionReceipt> deploy(byte[] bytecode, @Nullable byte[] calldata,
-                                                 @Nullable Integer nonce) {
+                                                 @Nullable BigInteger nonce) {
         return new RemoteCall<>(() -> {
-            Integer nonceToUse = nonce != null ? nonce : getNonce().send();
+            BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
 
             DeployContract zkDeployContract = calldata != null ? new DeployContract(
                     Numeric.toHexString(bytecode),
                     Numeric.toHexString(calldata),
                     signer.getAddress(),
                     null,
-                    BigInteger.valueOf(nonceToUse)) :
+                    nonceToUse) :
                     new DeployContract(
                             Numeric.toHexString(bytecode),
                             signer.getAddress(),
                             new Fee(feeProvider.getFeeToken().getAddress()),
-                            BigInteger.valueOf(nonceToUse));
+                            nonceToUse);
 
             EthSendTransaction sent = estimateAndSend(zkDeployContract).join();
 
@@ -162,9 +164,9 @@ public class ZkSyncWallet {
         return execute(contractAddress, function, null);
     }
 
-    public RemoteCall<TransactionReceipt> execute(String contractAddress, Function function, @Nullable Integer nonce) {
+    public RemoteCall<TransactionReceipt> execute(String contractAddress, Function function, @Nullable BigInteger nonce) {
         return new RemoteCall<>(() -> {
-            Integer nonceToUse = nonce != null ? nonce : getNonce().send();
+            BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
             String calldata = FunctionEncoder.encode(function);
 
             Execute zkExecute = new Execute(
@@ -172,7 +174,7 @@ public class ZkSyncWallet {
                     calldata,
                     signer.getAddress(),
                     new Fee(feeProvider.getFeeToken().getAddress()),
-                    BigInteger.valueOf(nonceToUse));
+                    nonceToUse);
 
             EthSendTransaction sent = estimateAndSend(zkExecute).join();
 
@@ -184,13 +186,13 @@ public class ZkSyncWallet {
         });
     }
 
-    public RemoteCall<Integer> getNonce(DefaultBlockParameter at) {
+    public RemoteCall<BigInteger> getNonce(DefaultBlockParameter at) {
         return new RemoteCall<>(() -> this.zksync
                 .ethGetTransactionCount(signer.getAddress(), at).sendAsync().join()
-                .getTransactionCount().intValue());
+                .getTransactionCount());
     }
 
-    public RemoteCall<Integer> getNonce() {
+    public RemoteCall<BigInteger> getNonce() {
         return getNonce(ZkBlockParameterName.COMMITTED);
     }
 

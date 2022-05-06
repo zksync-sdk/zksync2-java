@@ -16,7 +16,6 @@ import io.zksync.transaction.fee.ZkTransactionFeeProvider;
 import org.junit.Before;
 import org.junit.Test;
 import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -29,7 +28,6 @@ import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.protocol.http.HttpService;
-import org.web3j.tx.ReadonlyTransactionManager;
 import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.utils.Convert;
@@ -130,10 +128,7 @@ public class IntegrationZkSyncWeb3RpcTest {
         BigInteger nonce = this.zksync
                 .ethGetTransactionCount(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED).send()
                 .getTransactionCount();
-        ERC20 erc20 = ERC20.load(ETH.getAddress(), this.zksync,
-                new ReadonlyTransactionManager(this.zksync, Address.DEFAULT.getValue()),
-                new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO));
-        Function transfer = erc20.encodeTransfer("0xe1fab3efd74a77c23b426c302d96372140ff7d0c", BigInteger.valueOf(1L));
+        Function transfer = ERC20.encodeTransfer("0xe1fab3efd74a77c23b426c302d96372140ff7d0c", BigInteger.valueOf(1L));
         String calldata = FunctionEncoder.encode(transfer);
 
         Execute zkTransfer = new Execute(
@@ -172,6 +167,37 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
+    public void testWithdraw() throws IOException, TransactionException {
+        BigInteger nonce = this.zksync
+                .ethGetTransactionCount(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED).send()
+                .getTransactionCount();
+        Withdraw zkWithdraw = new Withdraw(
+                ETH.getAddress(),
+                credentials.getAddress(),
+                Convert.toWei("1", Unit.ETHER).toBigInteger(),
+                credentials.getAddress(),
+                new Fee(ETH.getAddress()),
+                nonce);
+
+        ZksEstimateFee estimateFee = estimateFee(zkWithdraw);
+
+        zkWithdraw.setFee(estimateFee.getResult());
+
+        Transaction712<Withdraw> transaction = new Transaction712<>(chainId.longValue(), zkWithdraw);
+
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, new TransactionRequest(zkWithdraw))).join();
+        byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
+
+        EthSendTransaction sent = this.zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
+
+        assertResponse(sent);
+
+        TransactionReceipt receipt = this.processor.waitForTransactionReceipt(sent.getResult());
+
+        assertTrue(receipt::isStatusOK);
+    }
+
+    @Test
     public void testEstimateFee_Withdraw() throws IOException {
         Withdraw zkWithdraw = new Withdraw(
                 "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
@@ -188,10 +214,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
     @Test
     public void testEstimateFee_Execute() throws IOException {
-        ERC20 erc20 = ERC20.load("0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", this.zksync,
-                new ReadonlyTransactionManager(this.zksync, Address.DEFAULT.getValue()),
-                new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO));
-        Function transfer = erc20.encodeTransfer("0xe1fab3efd74a77c23b426c302d96372140ff7d0c", BigInteger.valueOf(1L));
+        Function transfer = ERC20.encodeTransfer("0xe1fab3efd74a77c23b426c302d96372140ff7d0c", BigInteger.valueOf(1L));
         String calldata = FunctionEncoder.encode(transfer);
 
         Execute zkExecute = new Execute(

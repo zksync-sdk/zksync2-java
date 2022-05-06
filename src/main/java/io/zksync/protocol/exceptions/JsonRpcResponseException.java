@@ -54,7 +54,7 @@ public class JsonRpcResponseException extends RuntimeException {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            return objectMapper.readValue(data, Data.class);
+            return data != null ? objectMapper.readValue(data, Data.class) : null;
         } catch (JsonProcessingException e) {
             return null;
         }
