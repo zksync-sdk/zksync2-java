@@ -22,7 +22,7 @@ import io.zksync.protocol.core.ZkSyncNetwork;
 
 public class DeployContractTest extends BaseTransactionTest {
 
-    private static final byte[] BYTECODE = CounterContract.getCode();
+    private static final byte[] BYTECODE = Numeric.hexStringToByteArray(CounterContract.BINARY);
     private static final Function FUNC = CounterContract.encodeIncrement(BigInteger.valueOf(123123));
 
     @Test

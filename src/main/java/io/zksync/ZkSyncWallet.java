@@ -138,12 +138,13 @@ public class ZkSyncWallet {
         return new RemoteCall<>(() -> {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
 
-            DeployContract zkDeployContract = calldata != null ? new DeployContract(
-                    Numeric.toHexString(bytecode),
-                    Numeric.toHexString(calldata),
-                    signer.getAddress(),
-                    null,
-                    nonceToUse) :
+            DeployContract zkDeployContract = calldata != null ?
+                    new DeployContract(
+                            Numeric.toHexString(bytecode),
+                            Numeric.toHexString(calldata),
+                            signer.getAddress(),
+                            new Fee(feeProvider.getFeeToken().getAddress()),
+                            nonceToUse) :
                     new DeployContract(
                             Numeric.toHexString(bytecode),
                             signer.getAddress(),
@@ -184,6 +185,27 @@ public class ZkSyncWallet {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    public RemoteCall<BigInteger> getBalance() {
+        return getBalance(signer.getAddress(), Token.ETH, ZkBlockParameterName.COMMITTED);
+    }
+
+    public RemoteCall<BigInteger> getBalance(Token token) {
+        return getBalance(signer.getAddress(), token, ZkBlockParameterName.COMMITTED);
+    }
+
+    public RemoteCall<BigInteger> getBalance(String address) {
+        return getBalance(address, Token.ETH, ZkBlockParameterName.COMMITTED);
+    }
+
+    public RemoteCall<BigInteger> getBalance(String address, Token token) {
+        return getBalance(address, token, ZkBlockParameterName.COMMITTED);
+    }
+
+    public RemoteCall<BigInteger> getBalance(String address, Token token, DefaultBlockParameter at) {
+        return new RemoteCall<>(() ->
+                this.zksync.ethGetBalance(address, at, token.getAddress()).sendAsync().join().getBalance());
     }
 
     public RemoteCall<BigInteger> getNonce(DefaultBlockParameter at) {

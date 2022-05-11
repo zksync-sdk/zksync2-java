@@ -54,7 +54,7 @@ public class ZkTransactionEncoderTest {
     @Test
     public void testEncodeDeploy() {
         DeployContract zkDeploy = new DeployContract(
-            Numeric.toHexString(CounterContract.getCode()),
+            CounterContract.BINARY,
             this.credentials.getAddress(),
             new Fee(ETH.getAddress()),
             BigInteger.ZERO

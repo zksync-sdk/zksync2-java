@@ -28,6 +28,8 @@ import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.tx.TransactionManager;
+import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.utils.Convert;
@@ -75,11 +77,14 @@ public class IntegrationZkSyncWeb3RpcTest {
         this.processor = new PollingTransactionReceiptProcessor(this.zksync, 200, 10);
 
         this.feeProvider = new DefaultTransactionFeeProvider(zksync, ETH);
+
+        this.contractAddress = "0x2946259e0334f33a064106302415ad3391bed384";
     }
 
     @Test
     public void printChainId() {
         System.out.println(chainId);
+        System.out.println(credentials.getAddress());
     }
 
     @Test
@@ -232,7 +237,7 @@ public class IntegrationZkSyncWeb3RpcTest {
     @Test
     public void testEstimateFee_DeployContract() throws IOException {
         DeployContract zkDeployContract = new DeployContract(
-                Numeric.toHexString(CounterContract.getCode()),
+                CounterContract.BINARY,
                 "0xe1fab3efd74a77c23b426c302d96372140ff7d0c",
                 new Fee(ETH.getAddress()),
                 BigInteger.valueOf(0));
@@ -244,8 +249,9 @@ public class IntegrationZkSyncWeb3RpcTest {
 
     @Test
     public void testDeployWeb3jContract() throws Exception {
+        TransactionManager transactionManager = new ZkSyncTransactionManager(zksync, signer, feeProvider);
         CounterContract contract = CounterContract
-                .deploy(zksync, new DefaultTransactionFeeProvider(zksync, ETH), signer).send();
+                .deploy(zksync, transactionManager, new DefaultGasProvider()).send();
 
         assertNotNull(contract.getContractAddress());
         System.out.println(contract.getContractAddress());
@@ -255,7 +261,8 @@ public class IntegrationZkSyncWeb3RpcTest {
 
     @Test
     public void testReadWeb3jContract() throws Exception {
-        CounterContract zkCounterContract = CounterContract.load(contractAddress, zksync, feeProvider, signer);
+        TransactionManager transactionManager = new ZkSyncTransactionManager(zksync, signer, feeProvider);
+        CounterContract zkCounterContract = CounterContract.load(contractAddress, zksync, transactionManager, new DefaultGasProvider());
 
         BigInteger result = zkCounterContract.get().send();
 
@@ -266,7 +273,8 @@ public class IntegrationZkSyncWeb3RpcTest {
 
     @Test
     public void testWriteWeb3jContract() throws Exception {
-        CounterContract zkCounterContract = CounterContract.load(contractAddress, zksync, feeProvider, signer);
+        TransactionManager transactionManager = new ZkSyncTransactionManager(zksync, signer, feeProvider);
+        CounterContract zkCounterContract = CounterContract.load(contractAddress, zksync, transactionManager, new DefaultGasProvider());
 
         TransactionReceipt receipt = zkCounterContract.increment(BigInteger.TEN).send();
 
@@ -283,7 +291,7 @@ public class IntegrationZkSyncWeb3RpcTest {
                 .ethGetTransactionCount(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED).send()
                 .getTransactionCount();
         DeployContract zkDeploy = new DeployContract(
-                Numeric.toHexString(CounterContract.getCode()),
+                CounterContract.BINARY,
                 this.credentials.getAddress(),
                 new Fee(ETH.getAddress()),
                 nonce);
