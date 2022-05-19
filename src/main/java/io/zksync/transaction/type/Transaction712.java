@@ -62,7 +62,8 @@ public class Transaction712<T extends Transaction> implements ITransaction {
         result.add(RlpString.create(data)); //5
 
         if (signatureData != null) {
-            result.add(RlpString.create(Bytes.trimLeadingZeroes(signatureData.getV()))); //6
+            byte[] v = signatureData.getV()[0] == (byte) 0 ? new byte[] {} : signatureData.getV();
+            result.add(RlpString.create(v)); //6
             result.add(RlpString.create(Bytes.trimLeadingZeroes(signatureData.getR()))); //7
             result.add(RlpString.create(Bytes.trimLeadingZeroes(signatureData.getS()))); //8
         }

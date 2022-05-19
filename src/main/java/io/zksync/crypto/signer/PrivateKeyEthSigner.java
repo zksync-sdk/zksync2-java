@@ -74,7 +74,7 @@ public class PrivateKeyEthSigner implements EthSigner {
         try {
             output.write(sig.getR());
             output.write(sig.getS());
-            output.write(sig.getV());
+            output.write(sig.getV()[0] - 27);
         } catch (IOException e) {
             throw new IllegalStateException("Error when creating ETH signature", e);
         }
