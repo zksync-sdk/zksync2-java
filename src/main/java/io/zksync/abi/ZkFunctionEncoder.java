@@ -3,6 +3,7 @@ package io.zksync.abi;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -26,6 +27,9 @@ public class ZkFunctionEncoder extends FunctionEncoder {
     private static final int ABI_OFFSET_CALL_RETURN_DATA = 8;
     private static final int ABI_OFFSET_RETURN_DATA_SIZE = 1;
     private static final int ABI_OFFSET_CALLDATA_SIZE = 0;
+
+    private static final int ABI_MEMORY_DATA_OFFSET = 1;
+    private static final int ABI_MEMORY_HEADER_OFFSET = 0;
     private static final int ABI_OFFSET_ENTRY_HASH = 7;
     private static final int FIELD_SIZE = 32;
     
@@ -47,6 +51,33 @@ public class ZkFunctionEncoder extends FunctionEncoder {
     @SuppressWarnings("rawtypes")
     public String encodeParameters(final List<Type> parameters) {
         return encodeParameters(parameters, new StringBuilder());
+    }
+
+    public static byte[] encodeConstructor(byte[] calldata) {
+        int size = calldata.length;
+
+        if (size % 32 != 0) {
+            int offset = 32 - size % 32;
+            int newLength = size + offset;
+            calldata = Arrays.copyOf(calldata, newLength);
+        }
+
+        byte[] result = new byte[ABI_MEMORY_DATA_OFFSET * FIELD_SIZE + calldata.length];
+
+        int calldataOffset = ABI_MEMORY_HEADER_OFFSET * FIELD_SIZE;
+        byte[] calldataSize = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(size).array();
+
+        System.arraycopy(calldataSize, 0, result, calldataOffset, 4);
+
+        int constructorDataOffset = 8;
+        result[constructorDataOffset] |= 0b00000001;
+
+        for (int i = 0; i < calldata.length; i += FIELD_SIZE) {
+            ArrayUtils.reverse(calldata, i, Math.min(calldata.length, i + FIELD_SIZE));
+        }
+        System.arraycopy(calldata, 0, result, FIELD_SIZE, calldata.length);
+
+        return result;
     }
 
     public static byte[] encodeCalldata(Function function) {

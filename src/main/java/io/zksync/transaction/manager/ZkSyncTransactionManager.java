@@ -48,6 +48,7 @@ public class ZkSyncTransactionManager extends TransactionManager {
     public EthSendTransaction sendTransaction(BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger value, boolean constructor) throws IOException {
         Transaction712<?> transaction;
         if (constructor) {
+            // TODO: Split bytecode and encoded constructor call
             DeployContract deployContract = new DeployContract(
                     data,
                     getFromAddress(),

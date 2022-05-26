@@ -51,7 +51,7 @@ public class Fee {
         this.ergsLimit = new Uint256(ergsLimit);
     }
 
-    @JsonSetter("ergsLimit")
+    @JsonSetter("ergs_limit")
     public void setErgsLimit(String ergsLimit) {
         this.ergsLimit = new Uint256(Numeric.toBigInt(ergsLimit));
     }
@@ -64,7 +64,7 @@ public class Fee {
         this.ergsPriceLimit = new Uint256(ergsPriceLimit);
     }
 
-    @JsonSetter("ergsPriceLimit")
+    @JsonSetter("ergs_price_limit")
     public void setErgsPriceLimit(String ergsPriceLimit) {
         this.ergsPriceLimit = new Uint256(Numeric.toBigInt(ergsPriceLimit));
     }
@@ -73,7 +73,7 @@ public class Fee {
         return feeToken.getValue();
     }
 
-    @JsonSetter("feeToken")
+    @JsonSetter("fee_token")
     public void setFeeToken(String feeToken) {
         this.feeToken = new Address(feeToken);
     }
@@ -86,7 +86,7 @@ public class Fee {
         this.ergsPerStorageLimit = new Uint256(ergsPerStorageLimit);
     }
 
-    @JsonSetter("ergsPerStorageLimit")
+    @JsonSetter("ergs_per_storage_limit")
     public void setErgsPerStorageLimit(String ergsPerStorageLimit) {
         this.ergsPerStorageLimit = new Uint256(Numeric.toBigInt(ergsPerStorageLimit));
     }
@@ -99,7 +99,7 @@ public class Fee {
         this.ergsPerPubdataLimit = new Uint256(ergsPerPubdataLimit);
     }
 
-    @JsonSetter("ergsPerPubdataLimit")
+    @JsonSetter("ergs_per_pubdata_limit")
     public void setErgsPerPubdataLimit(String ergsPerPubdataLimit) {
         this.ergsPerPubdataLimit = new Uint256(Numeric.toBigInt(ergsPerPubdataLimit));
     }

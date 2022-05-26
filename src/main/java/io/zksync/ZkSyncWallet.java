@@ -138,15 +138,9 @@ public class ZkSyncWallet {
         return new RemoteCall<>(() -> {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
 
-            DeployContract zkDeployContract = calldata != null ?
-                    new DeployContract(
-                            Numeric.toHexString(bytecode),
-                            Numeric.toHexString(calldata),
-                            signer.getAddress(),
-                            new Fee(feeProvider.getFeeToken().getAddress()),
-                            nonceToUse) :
-                    new DeployContract(
-                            Numeric.toHexString(bytecode),
+            DeployContract zkDeployContract = new DeployContract(
+                            bytecode,
+                            calldata,
                             signer.getAddress(),
                             new Fee(feeProvider.getFeeToken().getAddress()),
                             nonceToUse);

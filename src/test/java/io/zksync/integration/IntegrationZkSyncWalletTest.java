@@ -3,6 +3,7 @@ package io.zksync.integration;
 import io.zksync.ZkSyncWallet;
 import io.zksync.crypto.signer.EthSigner;
 import io.zksync.crypto.signer.PrivateKeyEthSigner;
+import io.zksync.helper.ConstructorContract;
 import io.zksync.helper.CounterContract;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.Token;
@@ -11,7 +12,6 @@ import io.zksync.protocol.provider.EthereumProvider;
 import io.zksync.transaction.manager.ZkSyncTransactionManager;
 import org.junit.Before;
 import org.junit.Test;
-import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.crypto.ContractUtils;
 import org.web3j.crypto.Credentials;
@@ -143,7 +143,7 @@ public class IntegrationZkSyncWalletTest {
     }
 
     @Test
-    public void testDeployWithCalldata() throws Exception {
+    public void testDeployWithConstructor() throws Exception {
 
         BigInteger nonce = wallet.getNonce().send();
         String contractAddress = ContractUtils.generateContractAddress(this.credentials.getAddress(), nonce);
@@ -153,8 +153,8 @@ public class IntegrationZkSyncWalletTest {
         assertResponse(code);
         assertEquals("0x", code.getCode());
 
-        byte[] calldata = Numeric.hexStringToByteArray(FunctionEncoder.encode(CounterContract.encodeIncrement(BigInteger.TEN)));
-        TransactionReceipt receipt = wallet.deploy(Numeric.hexStringToByteArray(CounterContract.BINARY), calldata).send();
+        byte[] constructor = ConstructorContract.encodeConstructor(BigInteger.valueOf(42), BigInteger.valueOf(43), false);
+        TransactionReceipt receipt = wallet.deploy(Numeric.hexStringToByteArray(ConstructorContract.BINARY), constructor).send();
 
         assertTrue(receipt.isStatusOK());
 
@@ -163,10 +163,10 @@ public class IntegrationZkSyncWalletTest {
         assertResponse(codeDeployed);
         assertNotEquals("0x", codeDeployed.getCode());
 
-        CounterContract contract = CounterContract.load(contractAddress, wallet.getZksync(), new ReadonlyTransactionManager(wallet.getZksync(), wallet.getSigner().getAddress()), new DefaultGasProvider());
+        ConstructorContract contract = ConstructorContract.load(contractAddress, wallet.getZksync(), new ReadonlyTransactionManager(wallet.getZksync(), wallet.getSigner().getAddress()), new DefaultGasProvider());
 
         BigInteger after = contract.get().send();
-        assertEquals(BigInteger.TEN, after);
+        assertEquals(BigInteger.valueOf(42).multiply(BigInteger.valueOf(43)), after);
     }
 
     @Test

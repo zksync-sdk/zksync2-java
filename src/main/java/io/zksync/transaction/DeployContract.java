@@ -32,13 +32,20 @@ public class DeployContract extends Transaction {
 
         this.mainContractHash = Hash.sha3(bytecode);
         this.factoryDeps = new byte[][] { bytecode };
-        this.calldata = calldata;
+        if (calldata != null) {
+            this.calldata = calldata;
+        } else {
+            this.calldata = new byte[32];
+            this.calldata[8] = 1;
+        }
     }
 
     public DeployContract(byte[] bytecode, Address initiatorAddress, Fee fee, Uint32 nonce) {
-        this(bytecode, new byte[32], initiatorAddress, fee, nonce);
+        this(bytecode, null, initiatorAddress, fee, nonce);
+    }
 
-        this.calldata[8] = 1;
+    public DeployContract(byte[] bytecode, byte[] calldata, String initiatorAddress, Fee fee, BigInteger nonce) {
+        this(bytecode, calldata, new Address(initiatorAddress), fee, new Uint32(nonce));
     }
 
     public DeployContract(String bytecode, String calldata, String initiatorAddress, Fee fee, BigInteger nonce) {
