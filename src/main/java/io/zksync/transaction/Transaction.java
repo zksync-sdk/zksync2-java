@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
         @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Withdraw.class, name = Withdraw.WITHDRAW_TYPE),
         @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Execute.class, name = Execute.EXECUTE_TYPE),
 })
-public abstract class Transaction implements Structurable {
+public abstract class Transaction {
 
     @JsonIgnore
     private Address initiatorAddress;
@@ -40,7 +40,6 @@ public abstract class Transaction implements Structurable {
     @JsonIgnore
     private Uint32 nonce;
 
-    @Override
     public abstract String getType();
 
     @JsonGetter("initiatorAddress")
@@ -61,18 +60,5 @@ public abstract class Transaction implements Structurable {
     @JsonSetter("nonce")
     public void setNonce(Integer nonce) {
         this.nonce = new Uint32(nonce);
-    }
-
-    @Override
-    public List<Pair<String, Type<?>>> eip712types() {
-        return new ArrayList<Pair<String, Type<?>>>() {{
-            add(Pair.of("initiatorAddress", initiatorAddress));
-            add(Pair.of("feeToken", fee.getFeeToken()));
-            add(Pair.of("ergsLimit", fee.getErgsLimit()));
-            add(Pair.of("ergsPriceLimit", fee.getErgsPriceLimit()));
-            add(Pair.of("ergsPerPubdataLimit", fee.getErgsPerPubdataLimit()));
-            add(Pair.of("ergsPerStorageLimit", fee.getErgsPerStorageLimit()));
-            add(Pair.of("nonce", nonce));
-        }};
     }
 }

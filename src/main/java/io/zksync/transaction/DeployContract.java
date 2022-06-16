@@ -78,17 +78,5 @@ public class DeployContract extends Transaction {
         input.put(calldata);
         return input.array();
     }
-
-    @Override
-    public List<Pair<String, Type<?>>> eip712types() {
-        List<Pair<String, Type<?>>> base = super.eip712types();
-        List<Pair<String, Type<?>>> result = new ArrayList<Pair<String, Type<?>>>(base.size() + 3);
-
-        result.add(Pair.of("bytecodeHash", new Uint256(Numeric.toBigInt(mainContractHash))));
-        result.add(Pair.of("calldataHash", new Uint256(Numeric.toBigInt(Hash.sha3(calldata)))));
-        result.addAll(base);
-
-        return result;
-    }
     
 }

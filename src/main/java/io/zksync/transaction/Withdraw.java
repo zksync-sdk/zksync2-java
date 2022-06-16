@@ -87,18 +87,5 @@ public class Withdraw extends Transaction {
     public String getType() {
         return WITHDRAW_TYPE;
     }
-
-    @Override
-    public List<Pair<String, Type<?>>> eip712types() {
-        List<Pair<String, Type<?>>> base = super.eip712types();
-        List<Pair<String, Type<?>>> result = new ArrayList<>(base.size() + 3);
-
-        result.add(Pair.of("to", to));
-        result.add(Pair.of("token", token));
-        result.add(Pair.of("amount", amount));
-        result.addAll(base);
-
-        return result;
-    }
     
 }

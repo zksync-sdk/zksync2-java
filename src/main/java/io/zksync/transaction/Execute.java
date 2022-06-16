@@ -62,17 +62,5 @@ public class Execute extends Transaction {
     public String getType() {
         return EXECUTE_TYPE;
     }
-
-    @Override
-    public List<Pair<String, Type<?>>> eip712types() {
-        List<Pair<String, Type<?>>> base = super.eip712types();
-        List<Pair<String, Type<?>>> result = new ArrayList<>(base.size() + 3);
-
-        result.add(Pair.of("contractAddress", contractAddress));
-        result.add(Pair.of("calldataHash", new Uint256(Numeric.toBigInt(Hash.sha3(calldata)))));
-        result.addAll(base);
-
-        return result;
-    }
     
 }
