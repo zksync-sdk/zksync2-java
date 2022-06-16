@@ -19,6 +19,7 @@ import org.web3j.protocol.core.methods.response.EthGetCode;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.tx.TransactionManager;
+import org.web3j.utils.Assertions;
 import org.web3j.utils.Numeric;
 
 import java.io.IOException;
@@ -48,7 +49,7 @@ public class ZkSyncTransactionManager extends TransactionManager {
     public EthSendTransaction sendTransaction(BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger value, boolean constructor) throws IOException {
         Transaction712<?> transaction;
         if (constructor) {
-            // TODO: Split bytecode and encoded constructor call
+            Assertions.verifyPrecondition(!isVanillaEVMByteCode(data), "ZkSync zkEVM does not support EVM bytecode");
             DeployContract deployContract = new DeployContract(
                     data,
                     getFromAddress(),
@@ -127,5 +128,9 @@ public class ZkSyncTransactionManager extends TransactionManager {
                         .send();
 
         return ethGetTransactionCount.getTransactionCount();
+    }
+
+    private boolean isVanillaEVMByteCode(String bytecodeHex) {
+        return bytecodeHex.startsWith("0x60");
     }
 }
