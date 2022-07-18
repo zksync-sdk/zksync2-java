@@ -37,7 +37,7 @@ public interface EthereumProvider {
     CompletableFuture<TransactionReceipt> transfer(Token token, BigInteger amount, String to);
 
     /**
-     * Send deposit transaction to ZkSync contract. For ERC20 token must be approved before. @see EthereumProvider.approveDepodits
+     * Send deposit transaction to ZkSync contract. For ERC20 token must be approved before. @see EthereumProvider.approveDeposits
      * 
      * @param token - Token object supported by ZkSync
      * @param amount - Amount tokens to transfer
