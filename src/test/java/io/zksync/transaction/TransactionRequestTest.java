@@ -59,7 +59,7 @@ public class TransactionRequestTest extends BaseTransactionTest {
 
     private Withdraw buildWithdraw() {
         return new Withdraw(
-                WITHDRAW_TOKEN.getAddress(),
+                WITHDRAW_TOKEN.getL2Address(),
                 RECEIVER,
                 Convert.toWei("1", Unit.ETHER).toBigInteger(),
                 SENDER.getAddress(),

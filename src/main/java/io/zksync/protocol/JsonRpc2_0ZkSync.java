@@ -5,6 +5,7 @@ import java.util.Collections;
 
 import io.zksync.methods.request.Transaction;
 import io.zksync.methods.response.*;
+import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.JsonRpc2_0Web3j;
@@ -102,5 +103,15 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     @Override
     public Request<?, ZksAccountBalances> zksGetAllAccountBalances(String address) {
         return new Request<>("zks_getAllAccountBalances", Collections.singletonList(address), web3jService, ZksAccountBalances.class);
+    }
+
+    @Override
+    public Request<?, ZksBridgeAddresses> zksGetBridgeContracts() {
+        return new Request<>("zks_getBridgeContracts", Collections.emptyList(), web3jService, ZksBridgeAddresses.class);
+    }
+
+    @Override
+    public Request<?, ZksMessageProof> zksGetL2ToL1MsgProof(Integer block, String sender, String message, @Nullable Long l2LogPosition) {
+        return new Request<>("zks_getL2ToL1MsgProof", Arrays.asList(block, sender, message), web3jService, ZksMessageProof.class);
     }
 }

@@ -28,7 +28,9 @@ import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
+import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.tx.response.PollingTransactionReceiptProcessor;
@@ -94,17 +96,21 @@ public class IntegrationZkSyncWeb3RpcTest {
         String account = web3j.ethAccounts().sendAsync().join().getAccounts().get(0);
 
         EthSendTransaction sent = web3j.ethSendTransaction(
-                Transaction.createEtherTransaction(account, null, BigInteger.ZERO, BigInteger.valueOf(21_000L),
-                        this.credentials.getAddress(), Convert.toWei("10", Unit.ETHER).toBigInteger()))
+                Transaction.createEtherTransaction(account, null, Convert.toWei("1", Unit.GWEI).toBigInteger(), BigInteger.valueOf(21_000L),
+                        this.credentials.getAddress(), Convert.toWei("1000000", Unit.ETHER).toBigInteger()))
                 .sendAsync().join();
 
         assertResponse(sent);
     }
 
     @Test
-    public void testDeposit() {
+    public void testDeposit() throws IOException {
+        Web3j web3j = Web3j.build(new HttpService("http://127.0.0.1:8545"));
+        BigInteger chainId = web3j.ethChainId().send().getChainId();
+        TransactionManager manager = new RawTransactionManager(web3j, credentials, chainId.longValue());
+        ContractGasProvider gasProvider = new StaticGasProvider(Convert.toWei("1", Unit.GWEI).toBigInteger(), BigInteger.valueOf(555_000L));
         TransactionReceipt receipt = EthereumProvider
-                .load(zksync, Web3j.build(new HttpService("http://127.0.0.1:8545")), this.credentials).join()
+                .load(zksync, web3j, manager, gasProvider).join()
                 .deposit(ETH, Convert.toWei("9", Unit.ETHER).toBigInteger(), credentials.getAddress()).join();
 
         System.out.println(receipt);
@@ -113,7 +119,7 @@ public class IntegrationZkSyncWeb3RpcTest {
     @Test
     public void testGetBalanceOfToken() throws IOException {
         EthGetBalance getBalance = this.zksync
-                .ethGetBalance(this.credentials.getAddress(), DefaultBlockParameterName.LATEST, ETH.getAddress())
+                .ethGetBalance(this.credentials.getAddress(), DefaultBlockParameterName.LATEST, ETH.getL2Address())
                 .send();
 
         System.out.printf("%s: %d\n", this.credentials.getAddress(), Numeric.toBigInt(getBalance.getResult()));
@@ -137,10 +143,10 @@ public class IntegrationZkSyncWeb3RpcTest {
         String calldata = FunctionEncoder.encode(transfer);
 
         Execute zkTransfer = new Execute(
-                ETH.getAddress(),
+                ETH.getL2Address(),
                 calldata,
                 credentials.getAddress(),
-                new Fee(ETH.getAddress()),
+                new Fee(ETH.getL2Address()),
                 nonce);
 
         ZksEstimateFee estimateFee = estimateFee(zkTransfer);
@@ -162,7 +168,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
     @Test
     public void testTransferToSelfWeb3jContract() throws Exception {
-        ERC20 erc20 = ERC20.load(ETH.getAddress(), this.zksync,
+        ERC20 erc20 = ERC20.load(ETH.getL2Address(), this.zksync,
                 new ZkSyncTransactionManager(this.zksync, this.signer, this.feeProvider),
                 new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO));
 
@@ -177,11 +183,11 @@ public class IntegrationZkSyncWeb3RpcTest {
                 .ethGetTransactionCount(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED).send()
                 .getTransactionCount();
         Withdraw zkWithdraw = new Withdraw(
-                ETH.getAddress(),
+                ETH.getL2Address(),
                 credentials.getAddress(),
                 Convert.toWei("1", Unit.ETHER).toBigInteger(),
                 credentials.getAddress(),
-                new Fee(ETH.getAddress()),
+                new Fee(ETH.getL2Address()),
                 nonce);
 
         ZksEstimateFee estimateFee = estimateFee(zkWithdraw);
@@ -209,7 +215,7 @@ public class IntegrationZkSyncWeb3RpcTest {
                 "0xe1fab3efd74a77c23b426c302d96372140ff7d0c",
                 BigInteger.ONE,
                 credentials.getAddress(),
-                new Fee(ETH.getAddress()),
+                new Fee(ETH.getL2Address()),
                 BigInteger.valueOf(0));
 
         ZksEstimateFee estimateFee = estimateFee(zkWithdraw);
@@ -226,7 +232,7 @@ public class IntegrationZkSyncWeb3RpcTest {
                 "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
                 calldata,
                 credentials.getAddress(),
-                new Fee(ETH.getAddress()),
+                new Fee(ETH.getL2Address()),
                 BigInteger.valueOf(0));
 
         ZksEstimateFee estimateFee = estimateFee(zkExecute);
@@ -239,7 +245,7 @@ public class IntegrationZkSyncWeb3RpcTest {
         DeployContract zkDeployContract = new DeployContract(
                 CounterContract.BINARY,
                 "0xe1fab3efd74a77c23b426c302d96372140ff7d0c",
-                new Fee(ETH.getAddress()),
+                new Fee(ETH.getL2Address()),
                 BigInteger.valueOf(0));
 
         ZksEstimateFee estimateFee = estimateFee(zkDeployContract);
@@ -293,7 +299,7 @@ public class IntegrationZkSyncWeb3RpcTest {
         DeployContract zkDeploy = new DeployContract(
                 CounterContract.BINARY,
                 this.credentials.getAddress(),
-                new Fee(ETH.getAddress()),
+                new Fee(ETH.getL2Address()),
                 nonce);
 
         ZksEstimateFee estimateFee = estimateFee(zkDeploy);
@@ -316,6 +322,11 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
+    public void testDeployContractWithCreate2() {
+
+    }
+
+    @Test
     public void testExecuteContract() throws IOException, TransactionException {
         BigInteger nonce = this.zksync
                 .ethGetTransactionCount(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED).send()
@@ -326,7 +337,7 @@ public class IntegrationZkSyncWeb3RpcTest {
                 contractAddress,
                 calldata,
                 this.credentials.getAddress(),
-                new Fee(ETH.getAddress()),
+                new Fee(ETH.getL2Address()),
                 nonce);
 
         ZksEstimateFee estimateFee = estimateFee(zkExecute);
@@ -379,7 +390,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
     @Test
     public void testIsTokenLiquid() throws IOException {
-        ZksIsTokenLiquid response = this.zksync.zksIsTokenLiquid(ETH.getAddress()).send();
+        ZksIsTokenLiquid response = this.zksync.zksIsTokenLiquid(ETH.getL2Address()).send();
 
         assertResponse(response);
         assertTrue(response.getResult());
@@ -387,7 +398,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
     @Test
     public void testGetTokenPrice() throws IOException {
-        ZksTokenPrice response = this.zksync.zksGetTokenPrice(ETH.getAddress()).send();
+        ZksTokenPrice response = this.zksync.zksGetTokenPrice(ETH.getL2Address()).send();
 
         assertResponse(response);
     }
@@ -395,6 +406,13 @@ public class IntegrationZkSyncWeb3RpcTest {
     @Test
     public void testGetL1ChainId() throws IOException {
         ZksL1ChainId response = this.zksync.zksL1ChainId().send();
+
+        assertResponse(response);
+    }
+
+    @Test
+    public void testGetBridgeAddresses() throws IOException {
+        ZksBridgeAddresses response = this.zksync.zksGetBridgeContracts().send();
 
         assertResponse(response);
     }

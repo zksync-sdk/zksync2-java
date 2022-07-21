@@ -25,8 +25,10 @@ import org.web3j.protocol.core.methods.response.EthGetCode;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.ReadonlyTransactionManager;
 import org.web3j.tx.TransactionManager;
+import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
@@ -68,9 +70,12 @@ public class IntegrationZkSyncWalletTest {
 
     @Test
     public void testDeposit() {
+        Web3j web3j = Web3j.build(new HttpService("http://127.0.0.1:8545"));
+        TransactionManager manager = new RawTransactionManager(web3j, credentials);
+        ContractGasProvider gasProvider = new DefaultGasProvider();
         TransactionReceipt receipt = EthereumProvider
-                .load(wallet.getZksync(), Web3j.build(new HttpService("http://127.0.0.1:8545")), this.credentials).join()
-                .deposit(Token.ETH, Convert.toWei("999", Convert.Unit.ETHER).toBigInteger(), credentials.getAddress()).join();
+                .load(wallet.getZksync(), web3j, manager, gasProvider).join()
+                .deposit(Token.ETH, Convert.toWei("9", Convert.Unit.ETHER).toBigInteger(), credentials.getAddress()).join();
 
         System.out.println(receipt);
     }
@@ -80,7 +85,7 @@ public class IntegrationZkSyncWalletTest {
         BigInteger amount = Token.ETH.toBigInteger(0.5);
         BigInteger desiredFee = BigInteger.valueOf(10560L).multiply(BigInteger.valueOf(28572L)); // Only for test
         EthGetBalance balance = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getAddress())
+                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getL2Address())
                 .send();
 
         assertResponse(balance);
@@ -90,7 +95,7 @@ public class IntegrationZkSyncWalletTest {
         assertTrue(receipt.isStatusOK());
 
         EthGetBalance balanceNew = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getAddress())
+                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getL2Address())
                 .send();
 
         assertResponse(balanceNew);
@@ -103,7 +108,7 @@ public class IntegrationZkSyncWalletTest {
         BigInteger amount = Token.ETH.toBigInteger(0.5);
         BigInteger desiredFee = BigInteger.valueOf(10560L).multiply(BigInteger.valueOf(28572L)); // Only for test
         EthGetBalance balance = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getAddress())
+                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getL2Address())
                 .send();
 
         assertResponse(balance);
@@ -113,7 +118,7 @@ public class IntegrationZkSyncWalletTest {
         assertTrue(receipt.isStatusOK());
 
         EthGetBalance balanceNew = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getAddress())
+                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getL2Address())
                 .send();
 
         assertResponse(balanceNew);

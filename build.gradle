@@ -106,6 +106,6 @@ dependencies {
 
     // === Test dependencies ===
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.mockito:mockito-inline:4.5.1'
+    testImplementation 'org.mockito:mockito-inline:4.6.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
 }

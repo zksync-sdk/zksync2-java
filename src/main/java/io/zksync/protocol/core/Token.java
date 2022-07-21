@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.web3j.abi.datatypes.Address;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -18,7 +19,9 @@ public class Token implements TokenId {
 
     public static final Token ETH = createETH();
 
-    private String address;
+    private String l1Address;
+
+    private String l2Address;
 
     private String symbol;
 
@@ -29,7 +32,7 @@ public class Token implements TokenId {
     }
 
     public boolean isETH() {
-        return address.equals("0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee") && symbol.equals("ETH");
+        return l2Address.equals(Address.DEFAULT.getValue()) && symbol.equals("ETH");
     }
 
     public BigDecimal intoDecimal(BigInteger amount) {
@@ -48,7 +51,8 @@ public class Token implements TokenId {
 
     public static Token createETH() {
         return new Token(
-                "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                Address.DEFAULT.getValue(),
+                Address.DEFAULT.getValue(),
                 "ETH",
                 18);
     }

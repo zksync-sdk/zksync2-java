@@ -53,7 +53,7 @@ public class ZkSyncTransactionManager extends TransactionManager {
             DeployContract deployContract = new DeployContract(
                     data,
                     getFromAddress(),
-                    new Fee(getFeeProvider().getFeeToken().getAddress()),
+                    new Fee(getFeeProvider().getFeeToken().getL2Address()),
                     getNonce()
             );
 
@@ -66,7 +66,7 @@ public class ZkSyncTransactionManager extends TransactionManager {
                     to,
                     data,
                     getFromAddress(),
-                    new Fee(getFeeProvider().getFeeToken().getAddress()),
+                    new Fee(getFeeProvider().getFeeToken().getL2Address()),
                     getNonce()
             );
 

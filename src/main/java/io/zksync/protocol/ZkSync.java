@@ -2,6 +2,7 @@ package io.zksync.protocol;
 
 import io.zksync.methods.request.Transaction;
 import io.zksync.methods.response.*;
+import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.DefaultBlockParameter;
@@ -102,4 +103,7 @@ public interface ZkSync extends Web3j {
 
     Request<?, ZksAccountBalances> zksGetAllAccountBalances(String address);
 
+    Request<?, ZksBridgeAddresses> zksGetBridgeContracts();
+
+    Request<?, ZksMessageProof> zksGetL2ToL1MsgProof(Integer block, String sender, String message, @Nullable Long l2LogPosition);
 }

@@ -36,11 +36,11 @@ public class ZkTransactionEncoderTest {
     @Test
     public void testEncodeWithdraw() {
         Withdraw zkWithdraw = new Withdraw(
-            ETH.getAddress(),
+            ETH.getL2Address(),
             this.credentials.getAddress(),
             Convert.toWei("1", Unit.ETHER).toBigInteger(),
             this.credentials.getAddress(),
-            new Fee(ETH.getAddress()),
+            new Fee(ETH.getL2Address()),
             BigInteger.ZERO
         );
 
@@ -56,7 +56,7 @@ public class ZkTransactionEncoderTest {
         DeployContract zkDeploy = new DeployContract(
             CounterContract.BINARY,
             this.credentials.getAddress(),
-            new Fee(ETH.getAddress()),
+            new Fee(ETH.getL2Address()),
             BigInteger.ZERO
         );
 
@@ -73,7 +73,7 @@ public class ZkTransactionEncoderTest {
             "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
             FunctionEncoder.encode(CounterContract.encodeIncrement(BigInteger.valueOf(42L))),
             "0xe1fab3efd74a77c23b426c302d96372140ff7d0c",
-            new Fee(ETH.getAddress()),
+            new Fee(ETH.getL2Address()),
             BigInteger.ZERO
         );
 

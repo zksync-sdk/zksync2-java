@@ -26,7 +26,7 @@ public class BaseTransactionTest {
         FEE = new Fee(
                 new Uint256(BigInteger.valueOf(123)),
                 new Uint256(BigInteger.valueOf(123)),
-                new Address(FEE_TOKEN.getAddress()),
+                new Address(FEE_TOKEN.getL2Address()),
                 new Uint256(BigInteger.valueOf(123)),
                 new Uint256(BigInteger.valueOf(123))
         );
@@ -41,7 +41,7 @@ public class BaseTransactionTest {
         {
             Pair<String, Type<?>> t2 = base.next();
             assertEquals("feeToken", t2.getKey());
-            assertEquals(new Address(FEE_TOKEN.getAddress()), t2.getValue());
+            assertEquals(new Address(FEE_TOKEN.getL2Address()), t2.getValue());
         }
         {
             Pair<String, Type<?>> t2 = base.next();
