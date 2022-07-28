@@ -2,7 +2,6 @@ package io.zksync.methods.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.zksync.transaction.type.Transaction712;
-import io.zksync.transaction.Execute;
 import io.zksync.utils.Create2;
 import lombok.AllArgsConstructor;
 import org.web3j.abi.FunctionEncoder;
@@ -44,27 +43,6 @@ public class Transaction {
         this.eip712Meta = eip712Meta;
 
         this.transactionType = (long) Transaction712.EIP_712_TX_TYPE;
-    }
-
-    private Transaction(io.zksync.transaction.Transaction transaction) {
-        this.eip712Meta = new Eip712Meta();
-        this.from = transaction.getInitiatorAddressString();
-//        this.gas = transaction.getFee().getErgsLimitNumber();
-//        this.gasPrice = transaction.getFee().getErgsPriceLimitNumber();
-
-        this.eip712Meta.setFeeToken(transaction.getFee().getFeeTokenString());
-        this.eip712Meta.setErgsPerPubdata(transaction.getFee().getErgsPerPubdataLimitNumber());
-        this.eip712Meta.setErgsPerStorage(BigInteger.ZERO);
-
-        this.transactionType = (long) Transaction712.EIP_712_TX_TYPE;
-    }
-
-    @Deprecated
-    public Transaction(Execute execute) {
-        this((io.zksync.transaction.Transaction) execute);
-
-        this.to = execute.getContractAddressString();
-        this.data = Numeric.toHexString(execute.getCalldata());
     }
 
     public static Transaction createContractTransaction(

@@ -19,48 +19,5 @@ import io.zksync.protocol.core.Token;
 public class BaseTransactionTest {
     protected static final Token FEE_TOKEN = Token.createETH();
     protected static final Credentials SENDER = Credentials.create(ECKeyPair.create(BigInteger.ONE));
-    protected static final Fee FEE;
     protected static final Integer NONCE = 42;
-
-    static {
-        FEE = new Fee(
-                new Uint256(BigInteger.valueOf(123)),
-                new Uint256(BigInteger.valueOf(123)),
-                new Address(FEE_TOKEN.getL2Address()),
-                new Uint256(BigInteger.valueOf(123))
-        );
-    }
-
-    public void assertSerializeToEIP712(Iterator<Pair<String, Type<?>>> base) {
-        {
-            Pair<String, Type<?>> t2 = base.next();
-            assertEquals("initiatorAddress", t2.getKey());
-            assertEquals(new Address(SENDER.getAddress()), t2.getValue());
-        }
-        {
-            Pair<String, Type<?>> t2 = base.next();
-            assertEquals("feeToken", t2.getKey());
-            assertEquals(new Address(FEE_TOKEN.getL2Address()), t2.getValue());
-        }
-        {
-            Pair<String, Type<?>> t2 = base.next();
-            assertEquals("ergsLimit", t2.getKey());
-            assertEquals(FEE.getErgsLimit(), t2.getValue());
-        }
-        {
-            Pair<String, Type<?>> t2 = base.next();
-            assertEquals("ergsPriceLimit", t2.getKey());
-            assertEquals(FEE.getErgsPriceLimit(), t2.getValue());
-        }
-        {
-            Pair<String, Type<?>> t2 = base.next();
-            assertEquals("ergsPerPubdataLimit", t2.getKey());
-            assertEquals(FEE.getErgsPerPubdataLimit(), t2.getValue());
-        }
-        {
-            Pair<String, Type<?>> t2 = base.next();
-            assertEquals("nonce", t2.getKey());
-            assertEquals(new Uint32(NONCE), t2.getValue());
-        }
-    }
 }

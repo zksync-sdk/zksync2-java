@@ -7,7 +7,6 @@ import org.web3j.utils.Numeric;
 
 import io.zksync.crypto.eip712.Eip712Domain;
 import io.zksync.crypto.eip712.Structurable;
-import io.zksync.transaction.Transaction;
 
 public interface EthSigner {
 
