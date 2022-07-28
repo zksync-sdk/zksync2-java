@@ -121,9 +121,9 @@ public class Transaction {
         return new Transaction(from, to, ergsPrice, ergsLimit, null, data, meta);
     }
 
-    public static Transaction createEthCallTransaction(String from, String to, String data) {
+    public static org.web3j.protocol.core.methods.request.Transaction createEthCallTransaction(String from, String to, String data) {
 
-        return new Transaction(from, to, null, null, null, data, null);
+        return org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(from, to, data);
     }
 
     public String getFrom() {

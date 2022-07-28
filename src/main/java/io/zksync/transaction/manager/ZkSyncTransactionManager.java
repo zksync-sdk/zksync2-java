@@ -1,20 +1,18 @@
 package io.zksync.transaction.manager;
 
 import io.zksync.abi.TransactionEncoder;
-import io.zksync.crypto.eip712.Eip712Domain;
 import io.zksync.crypto.signer.EthSigner;
 import io.zksync.methods.request.Eip712Meta;
+import io.zksync.methods.request.Transaction;
 import io.zksync.protocol.exceptions.JsonRpcResponseException;
 import io.zksync.transaction.TransactionRequest;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.ZkBlockParameterName;
-import io.zksync.transaction.Execute;
-import io.zksync.transaction.fee.Fee;
 import io.zksync.transaction.fee.ZkTransactionFeeProvider;
+import io.zksync.utils.Create2;
 import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthGetCode;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
@@ -49,61 +47,63 @@ public class ZkSyncTransactionManager extends TransactionManager {
     @Override
     public EthSendTransaction sendTransaction(BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger value, boolean constructor) throws IOException {
         final Transaction712 transaction;
-        final Fee fee;
+        long chainId = getSigner().getDomain().join().getChainId().getValue().longValue();
+        if (gasPrice == null) {
+            gasPrice = getFeeProvider().getGasPrice();
+        }
+        gasPrice = BigInteger.ZERO; // TODO: Currently using zero cause fee calculation of the node doesn't work
+        Eip712Meta meta = new Eip712Meta(
+                getFeeProvider().getFeeToken().getL2Address(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
+                null,
+                null
+        );
         if (constructor) {
             Assertions.verifyPrecondition(!isVanillaEVMByteCode(data), "ZkSync zkEVM does not support EVM bytecode");
-
-            Eip712Meta meta = new Eip712Meta(
-                    getFeeProvider().getFeeToken().getL2Address(),
-                    BigInteger.ZERO,
-                    BigInteger.ZERO,
-                    null,
-                    null
-            );
-
-            long chainId = getSigner().getDomain().join().getChainId().getValue().longValue();
-            fee = getFeeProvider().getFee(new io.zksync.methods.request.Transaction(
-                    getFromAddress(),
-                    null,
-                    gasLimit,
-                    gasPrice,
-                    value,
-                    data,
-                    (long) Transaction712.EIP_712_TX_TYPE,
-                    null,
-                    meta
-            ));
+            if (gasLimit == null) {
+                Transaction estimate = Transaction.createContractTransaction(
+                        getFromAddress(),
+                        BigInteger.ZERO,
+                        BigInteger.ZERO,
+                        meta.getFeeToken(),
+                        data
+                );
+                gasLimit = getFeeProvider().getGasLimit(estimate);
+                data = estimate.getData();
+                meta = estimate.getEip712Meta();
+            }
             transaction = new Transaction712(
                     getNonce(),
                     gasPrice,
                     gasLimit,
-                    null,
+                    Create2.DEPLOYER_SYSTEM_CONTRACT_ADDRESS,
                     value,
                     data,
                     chainId,
-                    null
+                    meta
             );
         } else {
-            Execute execute = new Execute(
-                    to,
-                    data,
-                    getFromAddress(),
-                    new Fee(getFeeProvider().getFeeToken().getL2Address()),
-                    getNonce()
-            );
-
-            long chainId = getSigner().getDomain().join().getChainId().getValue().longValue();
-            fee = getFeeProvider().getFee(execute);
-            execute.setFee(fee);
+            if (gasLimit == null) {
+                Transaction estimate = Transaction.createFunctionCallTransaction(
+                        getFromAddress(),
+                        to,
+                        BigInteger.ZERO,
+                        BigInteger.ZERO,
+                        getFeeProvider().getFeeToken().getL2Address(),
+                        data
+                );
+                gasLimit = getFeeProvider().getGasLimit(estimate);
+            }
             transaction = new Transaction712(
                     getNonce(),
                     gasPrice,
                     gasLimit,
-                    null,
+                    to,
                     value,
                     data,
                     chainId,
-                    null
+                    meta
             );
         }
 

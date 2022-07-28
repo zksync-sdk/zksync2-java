@@ -23,6 +23,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@Deprecated
 public class Execute extends Transaction {
 
     public static final String EXECUTE_TYPE = "Execute";

@@ -9,6 +9,8 @@ import io.zksync.transaction.Execute;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 
+import java.math.BigInteger;
+
 @AllArgsConstructor
 public class DefaultTransactionFeeProvider implements ZkTransactionFeeProvider {
 
@@ -37,5 +39,29 @@ public class DefaultTransactionFeeProvider implements ZkTransactionFeeProvider {
     public Token getFeeToken() {
         return this.feeToken;
     }
-    
+
+    @Override
+    public BigInteger getGasPrice(String contractFunc) {
+        return zksync.ethGasPrice(feeToken.getL2Address()).sendAsync().join().getGasPrice();
+    }
+
+    @Override
+    public BigInteger getGasPrice() {
+        return zksync.ethGasPrice(feeToken.getL2Address()).sendAsync().join().getGasPrice();
+    }
+
+    @Override
+    public BigInteger getGasLimit(String contractFunc) {
+        return null;
+    }
+
+    @Override
+    public BigInteger getGasLimit() {
+        return null;
+    }
+
+    @Override
+    public BigInteger getGasLimit(Transaction transaction) {
+        return zksync.ethEstimateGas(transaction).sendAsync().join().getAmountUsed();
+    }
 }
