@@ -7,10 +7,15 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Request;
+import org.web3j.protocol.core.methods.response.EthEstimateGas;
+import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthSendRawTransaction;
 
 import io.zksync.protocol.core.debug.ContractSourceDebugInfo;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 public interface ZkSync extends Web3j {
     static ZkSync build(Web3jService web3jService) {
@@ -36,20 +41,10 @@ public interface ZkSync extends Web3j {
     /**
      * Get hash of the withdrawal transaction in the L1 Ethereum chain.
      * 
-     * @param transactionHash Hash of the withdraw transaction in L2 in hex format
+     * @param transactionHash Hash of the withdrawal transaction in L2 in hex format
      * @return Prepared get withdraw transaction hash request
      */
     Request<?, EthSendRawTransaction> zksGetL1WithdrawalTx(String transactionHash);
-
-    /**
-     * Get list of the transactions for a given account.
-     * 
-     * @param address Account address in hex format
-     * @param before  Top offset of transactions
-     * @param limit   Limit of amount of transactions to return
-     * @return Prepared get account transactions request
-     */
-    Request<?, ZksTransactions> zksGetAccountTransactions(String address, Integer before, Short limit);
 
     /**
      * Get list of the tokens supported by ZkSync.
@@ -106,4 +101,8 @@ public interface ZkSync extends Web3j {
     Request<?, ZksBridgeAddresses> zksGetBridgeContracts();
 
     Request<?, ZksMessageProof> zksGetL2ToL1MsgProof(Integer block, String sender, String message, @Nullable Long l2LogPosition);
+
+    Request<?, EthGasPrice> ethGasPrice(String tokenAddress);
+
+    Request<?, EthEstimateGas> ethEstimateGas(Transaction transaction);
 }

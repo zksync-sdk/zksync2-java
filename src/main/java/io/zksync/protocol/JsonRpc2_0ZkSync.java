@@ -10,6 +10,8 @@ import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.JsonRpc2_0Web3j;
 import org.web3j.protocol.core.Request;
+import org.web3j.protocol.core.methods.response.EthEstimateGas;
+import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthSendRawTransaction;
 
@@ -48,13 +50,6 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     public Request<?, EthSendRawTransaction> zksGetL1WithdrawalTx(String transactionHash) {
         return new Request<>(
                 "zks_getL1WithdrawalTx", Collections.singletonList(transactionHash), web3jService, EthSendRawTransaction.class);
-    }
-
-    @Override
-    public Request<?, ZksTransactions> zksGetAccountTransactions(String address, Integer before, Short limit) {
-        return new Request<>(
-                "zks_getAccountTransactions", Arrays.asList(address, before, limit), web3jService,
-                ZksTransactions.class);
     }
 
     @Override
@@ -113,5 +108,17 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     @Override
     public Request<?, ZksMessageProof> zksGetL2ToL1MsgProof(Integer block, String sender, String message, @Nullable Long l2LogPosition) {
         return new Request<>("zks_getL2ToL1MsgProof", Arrays.asList(block, sender, message), web3jService, ZksMessageProof.class);
+    }
+
+    @Override
+    public Request<?, EthGasPrice> ethGasPrice(String tokenAddress) {
+        return new Request<>(
+                "eth_gasPrice", Collections.singletonList(tokenAddress), web3jService, EthGasPrice.class);
+    }
+
+    @Override
+    public Request<?, EthEstimateGas> ethEstimateGas(Transaction transaction) {
+        return new Request<>(
+                "eth_estimateGas", Collections.singletonList(transaction), web3jService, EthEstimateGas.class);
     }
 }
