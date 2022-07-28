@@ -2,18 +2,25 @@ package io.zksync;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 import io.zksync.methods.request.Eip712Meta;
+import io.zksync.methods.request.Transaction;
 import io.zksync.protocol.exceptions.JsonRpcResponseException;
-import io.zksync.transaction.*;
+import io.zksync.transaction.TransactionRequest;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.transaction.fee.Fee;
 import io.zksync.wrappers.ERC20;
+import io.zksync.wrappers.L2ERC20Bridge;
+import io.zksync.wrappers.L2ETHBridge;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.RemoteCall;
@@ -75,19 +82,35 @@ public class ZkSyncWallet {
     }
 
     public RemoteCall<TransactionReceipt> transfer(String to, BigInteger amount, @Nullable Token token, @Nullable BigInteger nonce) {
+        Token tokenToUse = token == null ? Token.ETH : token;
+        String calldata;
+        String txTo;
+        BigInteger txAmount;
+
+        if (tokenToUse.isETH()) {
+            calldata = "0x";
+            txTo = to;
+            txAmount = amount;
+        } else {
+            Function function = ERC20.encodeTransfer(to, amount);
+            calldata = FunctionEncoder.encode(function);
+            txTo = tokenToUse.getL2Address();
+            txAmount = null;
+        }
         return new RemoteCall<>(() -> {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
-            Function function = ERC20.encodeTransfer(to, amount);
-            String calldata = FunctionEncoder.encode(function);
 
-            Execute zkExecute = new Execute(
-                    (token == null ? Token.ETH : token).getL2Address(),
-                    calldata,
+            Transaction estimate = Transaction.createFunctionCallTransaction(
                     signer.getAddress(),
-                    new Fee(feeProvider.getFeeToken().getL2Address()),
-                    nonceToUse);
+                    txTo,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    txAmount,
+                    getFeeProvider().getFeeToken().getL2Address(),
+                    calldata
+            );
 
-            EthSendTransaction sent = estimateAndSend(zkExecute).join();
+            EthSendTransaction sent = estimateAndSend(estimate, nonceToUse).join();
 
             try {
                 return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
@@ -97,64 +120,83 @@ public class ZkSyncWallet {
         });
     }
 
-//    public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount) {
-//        return withdraw(to, amount, null, null);
-//    }
-//
-//    public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount, Token token) {
-//        return withdraw(to, amount, token, null);
-//    }
-//
-//    public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount, @Nullable Token token, @Nullable BigInteger nonce) {
-//        return new RemoteCall<>(() -> {
-//            BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
-//            Withdraw zkWithdraw = new Withdraw(
-//                    (token == null ? Token.ETH : token).getL2Address(),
-//                    to,
-//                    amount,
-//                    signer.getAddress(),
-//                    new Fee(feeProvider.getFeeToken().getL2Address()),
-//                    nonceToUse);
-//
-//            EthSendTransaction sent = estimateAndSend(zkWithdraw).join();
-//
-//            try {
-//                return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
-//            } catch (IOException | TransactionException e) {
-//                throw new RuntimeException(e);
-//            }
-//        });
-//    }
-//
-//    public RemoteCall<TransactionReceipt> deploy(byte[] bytecode) {
-//        return deploy(bytecode, null, null);
-//    }
-//
-//    public RemoteCall<TransactionReceipt> deploy(byte[] bytecode, byte[] calldata) {
-//        return deploy(bytecode, calldata, null);
-//    }
-//
-//    public RemoteCall<TransactionReceipt> deploy(byte[] bytecode, @Nullable byte[] calldata,
-//                                                 @Nullable BigInteger nonce) {
-//        return new RemoteCall<>(() -> {
-//            BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
-//
-//            DeployContract zkDeployContract = new DeployContract(
-//                            bytecode,
-//                            calldata,
-//                            signer.getAddress(),
-//                            new Fee(feeProvider.getFeeToken().getL2Address()),
-//                            nonceToUse);
-//
-//            EthSendTransaction sent = estimateAndSend(zkDeployContract).join();
-//
-//            try {
-//                return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
-//            } catch (IOException | TransactionException e) {
-//                throw new RuntimeException(e);
-//            }
-//        });
-//    }
+    public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount) {
+        return withdraw(to, amount, null, null);
+    }
+
+    public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount, Token token) {
+        return withdraw(to, amount, token, null);
+    }
+
+    public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount, @Nullable Token token, @Nullable BigInteger nonce) {
+        Token tokenToUse = token == null ? Token.ETH : token;
+
+        Function function = new Function(
+                L2ETHBridge.FUNC_WITHDRAW,
+                Arrays.asList(new Address(to),
+                        new Address(tokenToUse.getL2Address()),
+                        new Uint256(amount)),
+                Collections.emptyList());
+        String calldata = FunctionEncoder.encode(function);
+        return new RemoteCall<>(() -> {
+            BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
+            String l2Bridge;
+            if (tokenToUse.isETH()) {
+                l2Bridge = zksync.zksGetBridgeContracts().send().getResult().getL2EthDefaultBridge();
+            } else {
+                l2Bridge = zksync.zksGetBridgeContracts().send().getResult().getL2Erc20DefaultBridge();
+            }
+
+            Transaction estimate = Transaction.createFunctionCallTransaction(
+                    signer.getAddress(),
+                    l2Bridge,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    getFeeProvider().getFeeToken().getL2Address(),
+                    calldata
+            );
+
+            EthSendTransaction sent = estimateAndSend(estimate, nonceToUse).join();
+
+            try {
+                return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
+            } catch (IOException | TransactionException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public RemoteCall<TransactionReceipt> deploy(byte[] bytecode) {
+        return deploy(bytecode, null, null);
+    }
+
+    public RemoteCall<TransactionReceipt> deploy(byte[] bytecode, byte[] calldata) {
+        return deploy(bytecode, calldata, null);
+    }
+
+    public RemoteCall<TransactionReceipt> deploy(byte[] bytecode, @Nullable byte[] calldata,
+                                                 @Nullable BigInteger nonce) {
+        return new RemoteCall<>(() -> {
+            BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
+
+            // TODO: Add using calldata as initializer
+            Transaction estimate = Transaction.createContractTransaction(
+                    signer.getAddress(),
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    getFeeProvider().getFeeToken().getL2Address(),
+                    Numeric.toHexString(bytecode)
+            );
+
+            EthSendTransaction sent = estimateAndSend(estimate, nonceToUse).join();
+
+            try {
+                return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
+            } catch (IOException | TransactionException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
     public RemoteCall<TransactionReceipt> execute(String contractAddress, Function function) {
         return execute(contractAddress, function, null);
@@ -165,14 +207,16 @@ public class ZkSyncWallet {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
             String calldata = FunctionEncoder.encode(function);
 
-            Execute zkExecute = new Execute(
-                    contractAddress,
-                    calldata,
+            Transaction estimate = Transaction.createFunctionCallTransaction(
                     signer.getAddress(),
-                    new Fee(feeProvider.getFeeToken().getL2Address()),
-                    nonceToUse);
+                    contractAddress,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    feeProvider.getFeeToken().getL2Address(),
+                    calldata
+            );
 
-            EthSendTransaction sent = estimateAndSend(zkExecute).join();
+            EthSendTransaction sent = estimateAndSend(estimate, nonceToUse).join();
 
             try {
                 return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
@@ -213,31 +257,25 @@ public class ZkSyncWallet {
         return getNonce(ZkBlockParameterName.COMMITTED);
     }
 
-    private CompletableFuture<EthSendTransaction> estimateAndSend(Execute transaction) {
+    private CompletableFuture<EthSendTransaction> estimateAndSend(Transaction transaction, BigInteger nonce) {
         return CompletableFuture
                 .supplyAsync(() -> {
-                    Fee fee = feeProvider.getFee(transaction);
-                    transaction.setFee(fee);
-
                     long chainId = signer.getDomain().join().getChainId().getValue().longValue();
+                    BigInteger gas = getFeeProvider().getGasLimit(transaction);
+                    BigInteger gasPrice = getFeeProvider().getGasPrice();
+
                     Transaction712 prepared = new Transaction712(
-                            transaction.getNonceNumber(),
-                            transaction.getFee().getErgsPriceLimitNumber(),
-                            transaction.getFee().getErgsLimitNumber(),
-                            transaction.getContractAddressString(),
-                            BigInteger.ZERO,
-                            Numeric.toHexString(transaction.getCalldata()),
+                            nonce,
+                            BigInteger.ZERO,// TODO: Use gas price value
+                            gas,
+                            transaction.getTo(),
+                            transaction.getValueNumber(),
+                            transaction.getData(),
                             chainId,
-                            new Eip712Meta(
-                                    transaction.getFee().getFeeTokenString(),
-                                    transaction.getFee().getErgsPerPubdataLimitNumber(),
-                                    BigInteger.ZERO,
-                                    null,
-                                    null
-                            )
+                            transaction.getEip712Meta()
                     );
 
-                    String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, new TransactionRequest(transaction))).join();
+                    String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, TransactionRequest.from(prepared))).join();
                     byte[] signed = TransactionEncoder.encode(prepared, TransactionEncoder.getSignatureData(signature));
 
                     return this.zksync.ethSendRawTransaction(Numeric.toHexString(signed))
