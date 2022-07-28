@@ -103,96 +103,96 @@ public class IntegrationZkSyncWalletTest {
         assertEquals(balance.getBalance().subtract(amount).subtract(desiredFee), balanceNew.getBalance());
     }
 
-    @Test
-    public void testWithdraw() throws Exception {
-        BigInteger amount = Token.ETH.toBigInteger(0.5);
-        BigInteger desiredFee = BigInteger.valueOf(10560L).multiply(BigInteger.valueOf(28572L)); // Only for test
-        EthGetBalance balance = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getL2Address())
-                .send();
-
-        assertResponse(balance);
-
-        TransactionReceipt receipt = wallet.withdraw(this.credentials.getAddress(), amount).send();
-
-        assertTrue(receipt.isStatusOK());
-
-        EthGetBalance balanceNew = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getL2Address())
-                .send();
-
-        assertResponse(balanceNew);
-
-        assertEquals(balance.getBalance().subtract(amount).subtract(desiredFee), balanceNew.getBalance());
-    }
-
-    @Test
-    public void testDeploy() throws Exception {
-
-        BigInteger nonce = wallet.getNonce().send();
-        String contractAddress = ContractUtils.generateContractAddress(this.credentials.getAddress(), nonce);
-
-        EthGetCode code = wallet.getZksync().ethGetCode(contractAddress, DefaultBlockParameterName.PENDING).send();
-
-        assertResponse(code);
-        assertEquals("0x", code.getCode());
-
-        TransactionReceipt receipt = wallet.deploy(Numeric.hexStringToByteArray(CounterContract.BINARY)).send();
-
-        assertTrue(receipt.isStatusOK());
-
-        EthGetCode codeDeployed = wallet.getZksync().ethGetCode(contractAddress, DefaultBlockParameterName.PENDING).send();
-
-        assertResponse(codeDeployed);
-        assertNotEquals("0x", codeDeployed.getCode());
-    }
-
-    @Test
-    public void testDeployWithConstructor() throws Exception {
-
-        BigInteger nonce = wallet.getNonce().send();
-        String contractAddress = ContractUtils.generateContractAddress(this.credentials.getAddress(), nonce);
-
-        EthGetCode code = wallet.getZksync().ethGetCode(contractAddress, DefaultBlockParameterName.PENDING).send();
-
-        assertResponse(code);
-        assertEquals("0x", code.getCode());
-
-        byte[] constructor = ConstructorContract.encodeConstructor(BigInteger.valueOf(42), BigInteger.valueOf(43), false);
-        TransactionReceipt receipt = wallet.deploy(Numeric.hexStringToByteArray(ConstructorContract.BINARY), constructor).send();
-
-        assertTrue(receipt.isStatusOK());
-
-        EthGetCode codeDeployed = wallet.getZksync().ethGetCode(contractAddress, DefaultBlockParameterName.PENDING).send();
-
-        assertResponse(codeDeployed);
-        assertNotEquals("0x", codeDeployed.getCode());
-
-        ConstructorContract contract = ConstructorContract.load(contractAddress, wallet.getZksync(), new ReadonlyTransactionManager(wallet.getZksync(), wallet.getSigner().getAddress()), new DefaultGasProvider());
-
-        BigInteger after = contract.get().send();
-        assertEquals(BigInteger.valueOf(42).multiply(BigInteger.valueOf(43)), after);
-    }
-
-    @Test
-    public void testExecute() throws Exception {
-        TransactionReceipt deployed = wallet.deploy(Numeric.hexStringToByteArray(CounterContract.BINARY)).send();
-
-        assertTrue(deployed.isStatusOK());
-        String contractAddress = deployed.getContractAddress();
-
-        TransactionManager transactionManager = new ZkSyncTransactionManager(wallet.getZksync(), wallet.getSigner(), wallet.getFeeProvider());
-        CounterContract contract = CounterContract.load(contractAddress, wallet.getZksync(), transactionManager, new DefaultGasProvider());
-
-        BigInteger before = contract.get().send();
-        assertEquals(BigInteger.ZERO, before);
-
-        TransactionReceipt receipt = wallet.execute(contractAddress, CounterContract.encodeIncrement(BigInteger.TEN)).send();
-        assertTrue(receipt.isStatusOK());
-
-        BigInteger after = contract.get().send();
-        assertEquals(BigInteger.TEN, after);
-    }
+//    @Test
+//    public void testWithdraw() throws Exception {
+//        BigInteger amount = Token.ETH.toBigInteger(0.5);
+//        BigInteger desiredFee = BigInteger.valueOf(10560L).multiply(BigInteger.valueOf(28572L)); // Only for test
+//        EthGetBalance balance = wallet.getZksync()
+//                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getL2Address())
+//                .send();
+//
+//        assertResponse(balance);
+//
+//        TransactionReceipt receipt = wallet.withdraw(this.credentials.getAddress(), amount).send();
+//
+//        assertTrue(receipt.isStatusOK());
+//
+//        EthGetBalance balanceNew = wallet.getZksync()
+//                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getL2Address())
+//                .send();
+//
+//        assertResponse(balanceNew);
+//
+//        assertEquals(balance.getBalance().subtract(amount).subtract(desiredFee), balanceNew.getBalance());
+//    }
+//
+//    @Test
+//    public void testDeploy() throws Exception {
+//
+//        BigInteger nonce = wallet.getNonce().send();
+//        String contractAddress = ContractUtils.generateContractAddress(this.credentials.getAddress(), nonce);
+//
+//        EthGetCode code = wallet.getZksync().ethGetCode(contractAddress, DefaultBlockParameterName.PENDING).send();
+//
+//        assertResponse(code);
+//        assertEquals("0x", code.getCode());
+//
+//        TransactionReceipt receipt = wallet.deploy(Numeric.hexStringToByteArray(CounterContract.BINARY)).send();
+//
+//        assertTrue(receipt.isStatusOK());
+//
+//        EthGetCode codeDeployed = wallet.getZksync().ethGetCode(contractAddress, DefaultBlockParameterName.PENDING).send();
+//
+//        assertResponse(codeDeployed);
+//        assertNotEquals("0x", codeDeployed.getCode());
+//    }
+//
+//    @Test
+//    public void testDeployWithConstructor() throws Exception {
+//
+//        BigInteger nonce = wallet.getNonce().send();
+//        String contractAddress = ContractUtils.generateContractAddress(this.credentials.getAddress(), nonce);
+//
+//        EthGetCode code = wallet.getZksync().ethGetCode(contractAddress, DefaultBlockParameterName.PENDING).send();
+//
+//        assertResponse(code);
+//        assertEquals("0x", code.getCode());
+//
+//        byte[] constructor = ConstructorContract.encodeConstructor(BigInteger.valueOf(42), BigInteger.valueOf(43), false);
+//        TransactionReceipt receipt = wallet.deploy(Numeric.hexStringToByteArray(ConstructorContract.BINARY), constructor).send();
+//
+//        assertTrue(receipt.isStatusOK());
+//
+//        EthGetCode codeDeployed = wallet.getZksync().ethGetCode(contractAddress, DefaultBlockParameterName.PENDING).send();
+//
+//        assertResponse(codeDeployed);
+//        assertNotEquals("0x", codeDeployed.getCode());
+//
+//        ConstructorContract contract = ConstructorContract.load(contractAddress, wallet.getZksync(), new ReadonlyTransactionManager(wallet.getZksync(), wallet.getSigner().getAddress()), new DefaultGasProvider());
+//
+//        BigInteger after = contract.get().send();
+//        assertEquals(BigInteger.valueOf(42).multiply(BigInteger.valueOf(43)), after);
+//    }
+//
+//    @Test
+//    public void testExecute() throws Exception {
+//        TransactionReceipt deployed = wallet.deploy(Numeric.hexStringToByteArray(CounterContract.BINARY)).send();
+//
+//        assertTrue(deployed.isStatusOK());
+//        String contractAddress = deployed.getContractAddress();
+//
+//        TransactionManager transactionManager = new ZkSyncTransactionManager(wallet.getZksync(), wallet.getSigner(), wallet.getFeeProvider());
+//        CounterContract contract = CounterContract.load(contractAddress, wallet.getZksync(), transactionManager, new DefaultGasProvider());
+//
+//        BigInteger before = contract.get().send();
+//        assertEquals(BigInteger.ZERO, before);
+//
+//        TransactionReceipt receipt = wallet.execute(contractAddress, CounterContract.encodeIncrement(BigInteger.TEN)).send();
+//        assertTrue(receipt.isStatusOK());
+//
+//        BigInteger after = contract.get().send();
+//        assertEquals(BigInteger.TEN, after);
+//    }
 
     private void assertResponse(Response<?> response) {
         if (response.hasError()) {

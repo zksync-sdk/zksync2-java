@@ -9,7 +9,6 @@ import java.util.concurrent.CompletableFuture;
 import org.web3j.crypto.Bip32ECKeyPair;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECDSASignature;
-import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;
 import org.web3j.crypto.MnemonicUtils;
 import org.web3j.crypto.Sign;
@@ -25,7 +24,12 @@ import lombok.AllArgsConstructor;
 public class PrivateKeyEthSigner implements EthSigner {
 
     private Credentials credentials;
-    private Long chainId;
+    private Eip712Domain domain;
+
+    public PrivateKeyEthSigner(Credentials credentials, long chainId) {
+        this.credentials = credentials;
+        this.domain = Eip712Domain.defaultDomain(chainId);
+    }
 
     public static PrivateKeyEthSigner fromMnemonic(String mnemonic, long chainId) {
         Credentials credentials = generateCredentialsFromMnemonic(mnemonic, 0);
@@ -44,7 +48,6 @@ public class PrivateKeyEthSigner implements EthSigner {
 
     @Override
     public CompletableFuture<Eip712Domain> getDomain() {
-        Eip712Domain domain = Eip712Domain.defaultDomain(chainId);
         return CompletableFuture.completedFuture(domain);
     }
 

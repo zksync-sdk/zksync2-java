@@ -27,7 +27,6 @@ public class BaseTransactionTest {
                 new Uint256(BigInteger.valueOf(123)),
                 new Uint256(BigInteger.valueOf(123)),
                 new Address(FEE_TOKEN.getL2Address()),
-                new Uint256(BigInteger.valueOf(123)),
                 new Uint256(BigInteger.valueOf(123))
         );
     }
@@ -57,11 +56,6 @@ public class BaseTransactionTest {
             Pair<String, Type<?>> t2 = base.next();
             assertEquals("ergsPerPubdataLimit", t2.getKey());
             assertEquals(FEE.getErgsPerPubdataLimit(), t2.getValue());
-        }
-        {
-            Pair<String, Type<?>> t2 = base.next();
-            assertEquals("ergsPerStorageLimit", t2.getKey());
-            assertEquals(FEE.getErgsPerStorageLimit(), t2.getValue());
         }
         {
             Pair<String, Type<?>> t2 = base.next();

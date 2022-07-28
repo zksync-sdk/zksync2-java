@@ -1,14 +1,15 @@
 package io.zksync.transaction.manager;
 
 import io.zksync.abi.TransactionEncoder;
+import io.zksync.crypto.eip712.Eip712Domain;
 import io.zksync.crypto.signer.EthSigner;
+import io.zksync.methods.request.Eip712Meta;
 import io.zksync.protocol.exceptions.JsonRpcResponseException;
 import io.zksync.transaction.TransactionRequest;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.ZkBlockParameterName;
-import io.zksync.transaction.DeployContract;
 import io.zksync.transaction.Execute;
 import io.zksync.transaction.fee.Fee;
 import io.zksync.transaction.fee.ZkTransactionFeeProvider;
@@ -47,20 +48,41 @@ public class ZkSyncTransactionManager extends TransactionManager {
 
     @Override
     public EthSendTransaction sendTransaction(BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger value, boolean constructor) throws IOException {
-        Transaction712<?> transaction;
+        final Transaction712 transaction;
+        final Fee fee;
         if (constructor) {
             Assertions.verifyPrecondition(!isVanillaEVMByteCode(data), "ZkSync zkEVM does not support EVM bytecode");
-            DeployContract deployContract = new DeployContract(
-                    data,
-                    getFromAddress(),
-                    new Fee(getFeeProvider().getFeeToken().getL2Address()),
-                    getNonce()
+
+            Eip712Meta meta = new Eip712Meta(
+                    getFeeProvider().getFeeToken().getL2Address(),
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    null,
+                    null
             );
 
             long chainId = getSigner().getDomain().join().getChainId().getValue().longValue();
-            Fee fee = getFeeProvider().getFee(deployContract);
-            deployContract.setFee(fee);
-            transaction = new Transaction712<>(chainId, deployContract);
+            fee = getFeeProvider().getFee(new io.zksync.methods.request.Transaction(
+                    getFromAddress(),
+                    null,
+                    gasLimit,
+                    gasPrice,
+                    value,
+                    data,
+                    (long) Transaction712.EIP_712_TX_TYPE,
+                    null,
+                    meta
+            ));
+            transaction = new Transaction712(
+                    getNonce(),
+                    gasPrice,
+                    gasLimit,
+                    null,
+                    value,
+                    data,
+                    chainId,
+                    null
+            );
         } else {
             Execute execute = new Execute(
                     to,
@@ -71,9 +93,18 @@ public class ZkSyncTransactionManager extends TransactionManager {
             );
 
             long chainId = getSigner().getDomain().join().getChainId().getValue().longValue();
-            Fee fee = getFeeProvider().getFee(execute);
+            fee = getFeeProvider().getFee(execute);
             execute.setFee(fee);
-            transaction = new Transaction712<>(chainId, execute);
+            transaction = new Transaction712(
+                    getNonce(),
+                    gasPrice,
+                    gasLimit,
+                    null,
+                    value,
+                    data,
+                    chainId,
+                    null
+            );
         }
 
         String signature = getSigner().getDomain().thenCompose(domain -> getSigner().signTypedData(domain, TransactionRequest.from(transaction))).join();

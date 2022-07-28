@@ -26,16 +26,12 @@ public class Fee {
     private Address feeToken;
 
     @JsonIgnore
-    private Uint256 ergsPerStorageLimit;
-
-    @JsonIgnore
     private Uint256 ergsPerPubdataLimit;
 
     public Fee(Address feeToken) {
         this.feeToken = feeToken;
         this.ergsLimit = Uint256.DEFAULT;
         this.ergsPriceLimit = Uint256.DEFAULT;
-        this.ergsPerStorageLimit = Uint256.DEFAULT;
         this.ergsPerPubdataLimit = Uint256.DEFAULT;
     }
 
@@ -76,19 +72,6 @@ public class Fee {
     @JsonSetter("fee_token")
     public void setFeeToken(String feeToken) {
         this.feeToken = new Address(feeToken);
-    }
-
-    public BigInteger getErgsPerStorageLimitNumber() {
-        return ergsPerStorageLimit.getValue();
-    }
-
-    public void setErgsPerStorageLimit(BigInteger ergsPerStorageLimit) {
-        this.ergsPerStorageLimit = new Uint256(ergsPerStorageLimit);
-    }
-
-    @JsonSetter("ergs_per_storage_limit")
-    public void setErgsPerStorageLimit(String ergsPerStorageLimit) {
-        this.ergsPerStorageLimit = new Uint256(Numeric.toBigInt(ergsPerStorageLimit));
     }
 
     public BigInteger getErgsPerPubdataLimitNumber() {

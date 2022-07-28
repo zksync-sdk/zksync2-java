@@ -4,7 +4,12 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 
+import io.zksync.crypto.eip712.Eip712Domain;
+import io.zksync.crypto.signer.EthSigner;
+import io.zksync.crypto.signer.PrivateKeyEthSigner;
+import io.zksync.transaction.TransactionRequest;
 import io.zksync.transaction.type.Transaction712;
+import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Sign;
 import org.web3j.crypto.transaction.type.ITransaction;
 import org.web3j.crypto.transaction.type.TransactionType;
@@ -23,6 +28,12 @@ public class TransactionEncoder extends org.web3j.crypto.TransactionEncoder {
                 Arrays.copyOfRange(signatureRaw, 0, 32),
                 Arrays.copyOfRange(signatureRaw, 32, 64)
         );
+    }
+
+    public static Sign.SignatureData signMessage(TransactionRequest transactionRequest, Eip712Domain domain, Credentials credentials) {
+        EthSigner signer = new PrivateKeyEthSigner(credentials, domain);
+        String signature = signer.signTypedData(domain, transactionRequest).join();
+        return getSignatureData(signature);
     }
 
     public static byte[] encode(ITransaction rawTransaction, Sign.SignatureData signatureData) {

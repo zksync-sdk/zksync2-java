@@ -1,5 +1,6 @@
 package io.zksync.methods.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
@@ -17,30 +18,40 @@ import java.math.BigInteger;
 @Builder
 public class Eip712Meta {
     private String feeToken;
-    private BigInteger ergsPerStorage;
     private BigInteger ergsPerPubdata;
-    private String withdrawToken;
+    private BigInteger ergsPerStorage;
     private byte[][] factoryDeps;
+    private AAParams aaParams;
 
     public String getFeeToken() {
         return feeToken;
-    }
-
-    public String getErgsPerStorage() {
-        return convert(ergsPerStorage);
     }
 
     public String getErgsPerPubdata() {
         return convert(ergsPerPubdata);
     }
 
-    public String getWithdrawToken() {
-        return withdrawToken;
+    @JsonIgnore
+    public BigInteger getErgsPerPubdataNumber() {
+        return ergsPerPubdata;
+    }
+
+    public String getErgsPerStorage() {
+        return convert(ergsPerStorage);
+    }
+
+    @JsonIgnore
+    public BigInteger getErgsPerStorageNumber() {
+        return ergsPerStorage;
     }
 
     @JsonSerialize(using = io.zksync.utils.ByteArray2Serializer.class)
     public byte[][] getFactoryDeps() {
         return factoryDeps;
+    }
+
+    public AAParams getAaParams() {
+        return aaParams;
     }
 
     private static String convert(BigInteger value) {
@@ -51,7 +62,4 @@ public class Eip712Meta {
         }
     }
 
-    private int unsigned(byte value) {
-        return value & 0xFF;
-    }
 }

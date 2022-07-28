@@ -26,10 +26,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-        @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = DeployContract.class, name = DeployContract.DEPLOY_CONTRACT_TYPE),
-        @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Withdraw.class, name = Withdraw.WITHDRAW_TYPE),
         @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Execute.class, name = Execute.EXECUTE_TYPE),
 })
+@Deprecated
 public abstract class Transaction {
 
     @JsonIgnore

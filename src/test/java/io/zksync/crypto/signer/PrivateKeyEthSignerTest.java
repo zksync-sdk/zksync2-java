@@ -27,14 +27,12 @@ public class PrivateKeyEthSignerTest {
         this.credentials = Credentials.create(privateKey);
         this.key = new PrivateKeyEthSigner(credentials, ChainIdLong.MAINNET);
 
-        Eip712Domain domain = new Eip712Domain(
+        this.domain = new Eip712Domain(
             "Ether Mail",
             "1",
             ZkSyncNetwork.Mainnet,
             "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
         );
-
-        this.domain = domain;
 
         this.message = new Mail();
     }
