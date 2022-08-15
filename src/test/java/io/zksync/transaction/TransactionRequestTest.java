@@ -67,6 +67,7 @@ public class TransactionRequestTest extends BaseTransactionTest {
                         BigInteger.ZERO,
                         BigInteger.ZERO,
                         null,
+                        null,
                         null
                 )
         );

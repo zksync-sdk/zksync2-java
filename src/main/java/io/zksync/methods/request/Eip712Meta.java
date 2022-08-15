@@ -23,6 +23,8 @@ public class Eip712Meta {
     private byte[][] factoryDeps;
     private AAParams aaParams;
 
+    private PaymasterParams paymasterParams;
+
     public String getFeeToken() {
         return feeToken;
     }
@@ -52,6 +54,10 @@ public class Eip712Meta {
 
     public AAParams getAaParams() {
         return aaParams;
+    }
+
+    public PaymasterParams getPaymasterParams() {
+        return paymasterParams;
     }
 
     private static String convert(BigInteger value) {

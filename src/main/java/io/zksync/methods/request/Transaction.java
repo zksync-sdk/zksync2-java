@@ -55,7 +55,7 @@ public class Transaction {
     ) {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
         String calldata = FunctionEncoder.encode(Create2.encodeCreate2(bytecodeBytes));
-        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null);
+        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
         return new Transaction(from, Create2.DEPLOYER_SYSTEM_CONTRACT_ADDRESS, ergsPrice, ergsLimit, value, calldata, meta);
     }
 
@@ -68,7 +68,7 @@ public class Transaction {
     ) {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
         String calldata = FunctionEncoder.encode(Create2.encodeCreate2(bytecodeBytes));
-        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null);
+        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
         return new Transaction(from, Create2.DEPLOYER_SYSTEM_CONTRACT_ADDRESS, ergsPrice, ergsLimit, null, calldata, meta);
     }
 
@@ -82,7 +82,7 @@ public class Transaction {
             String data
     ) {
 
-        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, null, null);
+        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, null, null, null);
         return new Transaction(from, to, ergsPrice, ergsLimit, value, data, meta);
     }
 
@@ -95,7 +95,7 @@ public class Transaction {
             String data
     ) {
 
-        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, null, null);
+        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, null, null, null);
         return new Transaction(from, to, ergsPrice, ergsLimit, null, data, meta);
     }
 

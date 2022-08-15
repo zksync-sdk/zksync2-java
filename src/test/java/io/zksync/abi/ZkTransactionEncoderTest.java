@@ -62,6 +62,7 @@ public class ZkTransactionEncoderTest {
                         BigInteger.ZERO,
                         BigInteger.ZERO,
                         null,
+                        null,
                         null
                 )
         );
@@ -89,6 +90,7 @@ public class ZkTransactionEncoderTest {
                         BigInteger.ZERO,
                         BigInteger.ZERO,
                         new byte[][]{bytecodeBytes},
+                        null,
                         null
                 )
         );
@@ -114,6 +116,7 @@ public class ZkTransactionEncoderTest {
                         ETH.getL2Address(),
                         BigInteger.ZERO,
                         BigInteger.ZERO,
+                        null,
                         null,
                         null
                 )

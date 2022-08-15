@@ -57,6 +57,7 @@ public class ZkSyncTransactionManager extends TransactionManager {
                 BigInteger.ZERO,
                 BigInteger.ZERO,
                 null,
+                null,
                 null
         );
         if (constructor) {

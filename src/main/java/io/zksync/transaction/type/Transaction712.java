@@ -66,11 +66,8 @@ public class Transaction712 extends LegacyTransaction {
 
         result.add(RlpString.create(getChainId())); //9
 
-        String feeToken = getFeeToken();
-        result.add(RlpString.create(Numeric.hexStringToByteArray(feeToken)));//10
-
         BigInteger ergsPerPubdata = getErgsPerPubdata();
-        result.add(RlpString.create(ergsPerPubdata)); //11
+        result.add(RlpString.create(ergsPerPubdata)); //10
 
         List<RlpType> factoryDeps;
 
@@ -82,7 +79,7 @@ public class Transaction712 extends LegacyTransaction {
             factoryDeps = Collections.emptyList();
         }
 
-        result.add(new RlpList(factoryDeps)); // 12
+        result.add(new RlpList(factoryDeps)); // 11
 
         List<RlpType> aaParams;
 
@@ -95,7 +92,20 @@ public class Transaction712 extends LegacyTransaction {
             aaParams = Collections.emptyList();
         }
 
-        result.add(new RlpList(aaParams)); // 13
+        result.add(new RlpList(aaParams)); // 12
+
+        List<RlpType> paymasterParams;
+
+        if (getMeta().getPaymasterParams() != null) {
+            paymasterParams = Arrays.asList(
+                    RlpString.create(Numeric.hexStringToByteArray(getMeta().getPaymasterParams().getPaymaster())),
+                    RlpString.create(getMeta().getPaymasterParams().getPaymasterInput())
+            );
+        } else {
+            paymasterParams = Collections.emptyList();
+        }
+
+        result.add(new RlpList(paymasterParams)); // 13
 
         return result;
     }
