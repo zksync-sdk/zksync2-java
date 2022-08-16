@@ -10,9 +10,9 @@ import io.zksync.crypto.eip712.Structurable;
 
 public interface EthSigner {
 
-    static final String MESSAGE_PREFIX = "\u0019Ethereum Signed Message:\n";
-    static final String MESSAGE_EIP712_PREFIX = "\u0019\u0001";
-    static final byte[] EIP1271_SUCCESS_VALUE = Numeric.hexStringToByteArray("0x1626ba7e");
+    String MESSAGE_PREFIX = "\u0019Ethereum Signed Message:\n";
+    String MESSAGE_EIP712_PREFIX = "\u0019\u0001";
+    byte[] EIP1271_SUCCESS_VALUE = Numeric.hexStringToByteArray("0x1626ba7e");
     
     /**
      * Get wallet address
@@ -59,9 +59,9 @@ public interface EthSigner {
 
     /**
      * Sign raw message
-     * 
+     *
      * @param message - Message to sign
-     * @param addPrefix - If true then add secure prefix (https://eips.ethereum.org/EIPS/eip-712)
+     * @param addPrefix - If true then add secure prefix (<a href="https://eips.ethereum.org/EIPS/eip-712">EIP-712</a>)
      * @return Signature object
      */
     CompletableFuture<String> signMessage(byte[] message, boolean addPrefix);
@@ -80,7 +80,7 @@ public interface EthSigner {
      * 
      * @param signature - Signature object
      * @param message - Message to verify
-     * @param prefixed - If true then add secure prefix (https://eips.ethereum.org/EIPS/eip-712)
+     * @param prefixed - If true then add secure prefix (<a href="https://eips.ethereum.org/EIPS/eip-712">EIP-712</a>)
      * @return true on verification success
      */
     CompletableFuture<Boolean> verifySignature(String signature, byte[] message, boolean prefixed);
