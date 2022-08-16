@@ -2,10 +2,10 @@ package io.zksync.protocol.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import io.zksync.utils.ZkSyncAddresses;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.web3j.abi.datatypes.Address;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -32,7 +32,7 @@ public class Token implements TokenId {
     }
 
     public boolean isETH() {
-        return l2Address.equals(Address.DEFAULT.getValue()) && symbol.equals("ETH");
+        return l2Address.equals(ZkSyncAddresses.ETH_ADDRESS) && symbol.equals("ETH");
     }
 
     public BigDecimal intoDecimal(BigInteger amount) {
@@ -51,8 +51,8 @@ public class Token implements TokenId {
 
     public static Token createETH() {
         return new Token(
-                Address.DEFAULT.getValue(),
-                Address.DEFAULT.getValue(),
+                ZkSyncAddresses.ETH_ADDRESS,
+                ZkSyncAddresses.ETH_ADDRESS,
                 "ETH",
                 18);
     }

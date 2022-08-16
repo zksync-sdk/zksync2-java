@@ -19,8 +19,6 @@ import java.util.Collections;
 public class Create2 {
 
     private static final BigInteger MAX_BYTECODE_SIZE = BigInteger.valueOf(2).pow(16);
-
-    public static final String DEPLOYER_SYSTEM_CONTRACT_ADDRESS = "0x0000000000000000000000000000000000008006";
     public static final String CREATE2_PREFIX = Hash.sha3String("zksyncCreate2");
 
     public static Address computeL2Create2Address(Address sender, byte[] bytecode, byte[] constructor, byte[] salt) {

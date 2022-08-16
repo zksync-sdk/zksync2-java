@@ -3,6 +3,7 @@ package io.zksync.methods.request;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.utils.Create2;
+import io.zksync.utils.ZkSyncAddresses;
 import lombok.AllArgsConstructor;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.protocol.core.methods.response.AccessListObject;
@@ -56,7 +57,7 @@ public class Transaction {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
         String calldata = FunctionEncoder.encode(Create2.encodeCreate2(bytecodeBytes));
         Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
-        return new Transaction(from, Create2.DEPLOYER_SYSTEM_CONTRACT_ADDRESS, ergsPrice, ergsLimit, value, calldata, meta);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, value, calldata, meta);
     }
 
     public static Transaction createContractTransaction(
@@ -69,7 +70,7 @@ public class Transaction {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
         String calldata = FunctionEncoder.encode(Create2.encodeCreate2(bytecodeBytes));
         Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
-        return new Transaction(from, Create2.DEPLOYER_SYSTEM_CONTRACT_ADDRESS, ergsPrice, ergsLimit, null, calldata, meta);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldata, meta);
     }
 
     public static Transaction createFunctionCallTransaction(

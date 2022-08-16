@@ -11,7 +11,7 @@ import io.zksync.transaction.type.Transaction712;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.transaction.fee.ZkTransactionFeeProvider;
-import io.zksync.utils.Create2;
+import io.zksync.utils.ZkSyncAddresses;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthGetCode;
@@ -78,7 +78,7 @@ public class ZkSyncTransactionManager extends TransactionManager {
                     getNonce(),
                     gasPrice,
                     gasLimit,
-                    Create2.DEPLOYER_SYSTEM_CONTRACT_ADDRESS,
+                    ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS,
                     value,
                     data,
                     chainId,
