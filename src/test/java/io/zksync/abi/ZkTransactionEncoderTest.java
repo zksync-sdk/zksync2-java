@@ -59,7 +59,6 @@ public class ZkTransactionEncoderTest {
                 calldata,
                 CHAIN_ID,
                 new Eip712Meta(
-                        ETH.getL2Address(),
                         BigInteger.ZERO,
                         BigInteger.ZERO,
                         null,
@@ -87,7 +86,6 @@ public class ZkTransactionEncoderTest {
                 calldata,
                 CHAIN_ID,
                 new Eip712Meta(
-                        ETH.getL2Address(),
                         BigInteger.ZERO,
                         BigInteger.ZERO,
                         new byte[][]{bytecodeBytes},
@@ -114,7 +112,6 @@ public class ZkTransactionEncoderTest {
                 calldata,
                 CHAIN_ID,
                 new Eip712Meta(
-                        ETH.getL2Address(),
                         BigInteger.ZERO,
                         BigInteger.ZERO,
                         null,

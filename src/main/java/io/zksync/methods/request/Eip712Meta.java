@@ -17,17 +17,12 @@ import java.math.BigInteger;
 @Setter
 @Builder
 public class Eip712Meta {
-    private String feeToken;
     private BigInteger ergsPerPubdata;
     private BigInteger ergsPerStorage;
     private byte[][] factoryDeps;
     private AAParams aaParams;
 
     private PaymasterParams paymasterParams;
-
-    public String getFeeToken() {
-        return feeToken;
-    }
 
     public String getErgsPerPubdata() {
         return convert(ergsPerPubdata);

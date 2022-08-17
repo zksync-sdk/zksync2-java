@@ -26,7 +26,7 @@ public class TransactionRequestTest extends BaseTransactionTest {
         String result = Eip712Encoder.encodeType(transactionRequest.intoEip712Struct());
 
         assertEquals(
-                "TransactionRequest(uint8 txType,address to,uint256 value,bytes data,uint256 ergsLimit,uint256 ergsPerPubdataByteLimit,uint256 ergsPrice,uint256 nonce)",
+                "Transaction(uint8 txType,uint256 to,uint256 value,bytes data,uint256 ergsLimit,uint256 ergsPerPubdataByteLimit,uint256 ergsPrice,uint256 nonce)",
                 result);
     }
 
@@ -63,7 +63,6 @@ public class TransactionRequestTest extends BaseTransactionTest {
                 FunctionEncoder.encode(CounterContract.encodeIncrement(BigInteger.valueOf(42))),
                 42,
                 new Eip712Meta(
-                        FEE.getL2Address(),
                         BigInteger.ZERO,
                         BigInteger.ZERO,
                         null,

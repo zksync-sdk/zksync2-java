@@ -114,10 +114,6 @@ public class Transaction712 extends LegacyTransaction {
         return chainId;
     }
 
-    public String getFeeToken() {
-        return meta.getFeeToken();
-    }
-
     public BigInteger getErgsPerPubdata() {
         return meta.getErgsPerPubdataNumber();
     }

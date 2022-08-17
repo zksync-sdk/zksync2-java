@@ -19,6 +19,7 @@ import java.util.Collections;
 public class ContractDeployer {
 
     private static final BigInteger MAX_BYTECODE_SIZE = BigInteger.valueOf(2).pow(16);
+    public static final String CREATE_PREFIX = Hash.sha3String("zksyncCreate");
     public static final String CREATE2_PREFIX = Hash.sha3String("zksyncCreate2");
 
     public static Address computeL2Create2Address(Address sender, byte[] bytecode, byte[] constructor, byte[] salt) {
@@ -33,6 +34,23 @@ public class ContractDeployer {
             output.write(salt);
             output.write(bytecodeHash);
             output.write(constructorHash);
+
+            byte[] result = Hash.sha3(output.toByteArray());
+
+            return new Address(Numeric.toBigInt(ArrayUtils.subarray(result, 12, result.length)));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Address computeL2CreateAddress(Address sender, BigInteger nonce) {
+        byte[] senderBytes = Numeric.toBytesPadded(sender.toUint().getValue(), 32);
+        byte[] nonceBytes = Numeric.toBytesPadded(nonce, 32);
+
+        try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            output.write(Numeric.hexStringToByteArray(CREATE_PREFIX));
+            output.write(senderBytes);
+            output.write(nonceBytes);
 
             byte[] result = Hash.sha3(output.toByteArray());
 
@@ -77,7 +95,7 @@ public class ContractDeployer {
 
         return new Function(
                 "create",
-                Arrays.asList(new Bytes32(new byte[] {}), new Bytes32(bytecodeHash), new Uint256(0), DynamicBytes.DEFAULT),
+                Arrays.asList(new Bytes32(new byte[32]), new Bytes32(bytecodeHash), new Uint256(0), DynamicBytes.DEFAULT),
                 Collections.emptyList()
         );
     }

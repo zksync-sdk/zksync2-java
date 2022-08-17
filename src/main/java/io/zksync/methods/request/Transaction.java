@@ -51,12 +51,11 @@ public class Transaction {
             BigInteger ergsPrice,
             BigInteger ergsLimit,
             BigInteger value,
-            String feeToken,
             String bytecode
     ) {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
         String calldata = FunctionEncoder.encode(ContractDeployer.encodeCreate2(bytecodeBytes));
-        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
+        Eip712Meta meta = new Eip712Meta(BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
         return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, value, calldata, meta);
     }
 
@@ -64,12 +63,11 @@ public class Transaction {
             String from,
             BigInteger ergsPrice,
             BigInteger ergsLimit,
-            String feeToken,
             String bytecode
     ) {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
         String calldata = FunctionEncoder.encode(ContractDeployer.encodeCreate2(bytecodeBytes));
-        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
+        Eip712Meta meta = new Eip712Meta(BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
         return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldata, meta);
     }
 
@@ -78,12 +76,11 @@ public class Transaction {
             BigInteger ergsPrice,
             BigInteger ergsLimit,
             BigInteger value,
-            String feeToken,
             String bytecode
     ) {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
         String calldata = FunctionEncoder.encode(ContractDeployer.encodeCreate(bytecodeBytes));
-        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
+        Eip712Meta meta = new Eip712Meta(BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
         return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, value, calldata, meta);
     }
 
@@ -91,12 +88,11 @@ public class Transaction {
             String from,
             BigInteger ergsPrice,
             BigInteger ergsLimit,
-            String feeToken,
             String bytecode
     ) {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
         String calldata = FunctionEncoder.encode(ContractDeployer.encodeCreate(bytecodeBytes));
-        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
+        Eip712Meta meta = new Eip712Meta(BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
         return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldata, meta);
     }
 
@@ -106,11 +102,9 @@ public class Transaction {
             BigInteger ergsPrice,
             BigInteger ergsLimit,
             BigInteger value,
-            String feeToken,
             String data
     ) {
-
-        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, null, null, null);
+        Eip712Meta meta = new Eip712Meta(BigInteger.ZERO, BigInteger.ZERO, null, null, null);
         return new Transaction(from, to, ergsPrice, ergsLimit, value, data, meta);
     }
 
@@ -119,11 +113,10 @@ public class Transaction {
             String to,
             BigInteger ergsPrice,
             BigInteger ergsLimit,
-            String feeToken,
             String data
     ) {
 
-        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, null, null, null);
+        Eip712Meta meta = new Eip712Meta(BigInteger.ZERO, BigInteger.ZERO, null, null, null);
         return new Transaction(from, to, ergsPrice, ergsLimit, null, data, meta);
     }
 

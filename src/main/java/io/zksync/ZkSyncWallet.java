@@ -103,7 +103,6 @@ public class ZkSyncWallet {
                     BigInteger.ZERO,
                     BigInteger.ZERO,
                     txAmount,
-                    getFeeProvider().getFeeToken().getL2Address(),
                     calldata
             );
 
@@ -149,7 +148,6 @@ public class ZkSyncWallet {
                     l2Bridge,
                     BigInteger.ZERO,
                     BigInteger.ZERO,
-                    getFeeProvider().getFeeToken().getL2Address(),
                     calldata
             );
 
@@ -181,7 +179,6 @@ public class ZkSyncWallet {
                     signer.getAddress(),
                     BigInteger.ZERO,
                     BigInteger.ZERO,
-                    getFeeProvider().getFeeToken().getL2Address(),
                     Numeric.toHexString(bytecode)
             );
 
@@ -209,7 +206,6 @@ public class ZkSyncWallet {
                     contractAddress,
                     BigInteger.ZERO,
                     BigInteger.ZERO,
-                    feeProvider.getFeeToken().getL2Address(),
                     calldata
             );
 

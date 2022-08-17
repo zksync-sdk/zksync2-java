@@ -19,7 +19,9 @@ import io.zksync.transaction.fee.ZkTransactionFeeProvider;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.utils.ContractDeployer;
+import io.zksync.utils.ZkSyncAddresses;
 import io.zksync.wrappers.L2ETHBridge;
+import io.zksync.wrappers.NonceHolder;
 import org.junit.Before;
 import org.junit.Test;
 import org.web3j.abi.FunctionEncoder;
@@ -36,9 +38,11 @@ import org.web3j.protocol.core.methods.response.*;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.RawTransactionManager;
+import org.web3j.tx.ReadonlyTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.Transfer;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
@@ -136,6 +140,15 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
+    public void testGetDeploymentNonce() throws Exception {
+        NonceHolder nonceHolder = NonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, this.zksync, new ReadonlyTransactionManager(this.zksync, this.credentials.getAddress()), new DefaultGasProvider());
+
+        BigInteger nonce = nonceHolder.getDeploymentNonce(this.credentials.getAddress()).send();
+
+        System.out.printf("%s: %d\n", this.credentials.getAddress(), nonce);
+    }
+
+    @Test
     public void testGetTransactionReceipt() throws IOException {
         TransactionReceipt receipt = this.zksync
                 .ethGetTransactionReceipt("0xf53d38388cd8e5292683509c9a9f373e2c7d3766f41256b9cbf7d966552a46ff").send()
@@ -155,7 +168,6 @@ public class IntegrationZkSyncWeb3RpcTest {
                 credentials.getAddress(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
-                ETH.getL2Address(),
                 "0x"
         );
 
@@ -241,7 +253,6 @@ public class IntegrationZkSyncWeb3RpcTest {
                 tokenAddress,
                 BigInteger.ZERO,
                 BigInteger.ZERO,
-                ETH.getL2Address(),
                 calldata
         );
 
@@ -309,7 +320,6 @@ public class IntegrationZkSyncWeb3RpcTest {
                 l2EthBridge,
                 BigInteger.ZERO,
                 BigInteger.ZERO,
-                ETH.getL2Address(),
                 calldata
         );
 
@@ -363,7 +373,6 @@ public class IntegrationZkSyncWeb3RpcTest {
                 l2EthBridge,
                 BigInteger.ZERO,
                 BigInteger.ZERO,
-                ETH.getL2Address(),
                 calldata
         )).send();
 
@@ -377,7 +386,6 @@ public class IntegrationZkSyncWeb3RpcTest {
                 credentials.getAddress(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
-                ETH.getL2Address(),
                 "0x"
         );
 
@@ -396,7 +404,6 @@ public class IntegrationZkSyncWeb3RpcTest {
                 "0x79f73588fa338e685e9bbd7181b410f60895d2a3",
                 BigInteger.ZERO,
                 BigInteger.ZERO,
-                ETH.getL2Address(),
                 calldata
         )).send();
 
@@ -455,6 +462,65 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
+    public void testDeployContract_Create() throws IOException, TransactionException {
+        BigInteger nonce = this.zksync
+                .ethGetTransactionCount(this.credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
+                .getTransactionCount();
+
+        String precomputedAddress = ContractDeployer.computeL2CreateAddress(new Address(this.credentials.getAddress()), nonce).getValue();
+
+        io.zksync.methods.request.Transaction estimate = io.zksync.methods.request.Transaction.createContractTransaction(
+                credentials.getAddress(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
+                CounterContract.BINARY
+        );
+
+        EthEstimateGas estimateGas = zksync.ethEstimateGas(estimate).send();
+        EthGasPrice gasPrice = zksync.ethGasPrice(ETH.getL2Address()).send();
+
+        assertResponse(estimateGas);
+        assertResponse(gasPrice);
+
+        System.out.printf("Fee for transaction is: %d\n", estimateGas.getAmountUsed().multiply(gasPrice.getGasPrice()));
+
+        Transaction712 transaction = new Transaction712(
+                nonce,
+//                gasPrice.getGasPrice(),
+                BigInteger.ZERO,
+                estimateGas.getAmountUsed(),
+                estimate.getTo(),
+                estimate.getValueNumber(),
+                estimate.getData(),
+                chainId.longValue(),
+                estimate.getEip712Meta()
+        );
+
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, TransactionRequest.from(transaction))).join();
+        byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
+
+        EthSendTransaction sent = this.zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
+
+        assertResponse(sent);
+
+        TransactionReceipt receipt = this.processor.waitForTransactionReceipt(sent.getResult());
+
+        assertTrue(receipt::isStatusOK);
+
+        this.contractAddress = receipt.getContractAddress();
+        System.out.println("Deployed `CounterContract as: `" + this.contractAddress);
+        assertEquals(this.contractAddress.toLowerCase(), precomputedAddress.toLowerCase());
+
+        Transaction call = Transaction.createEthCallTransaction(
+                credentials.getAddress(),
+                contractAddress,
+                FunctionEncoder.encode(CounterContract.encodeGet())
+        );
+
+        zksync.ethCall(call, ZkBlockParameterName.COMMITTED).send();
+    }
+
+    @Test
     public void testDeployContract_Create2() throws IOException, TransactionException {
         BigInteger nonce = this.zksync
                 .ethGetTransactionCount(this.credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
@@ -466,7 +532,6 @@ public class IntegrationZkSyncWeb3RpcTest {
                 credentials.getAddress(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
-                ETH.getL2Address(),
                 CounterContract.BINARY
         );
 
@@ -537,7 +602,6 @@ public class IntegrationZkSyncWeb3RpcTest {
                 this.contractAddress,
                 BigInteger.ZERO,
                 BigInteger.ZERO,
-                ETH.getL2Address(),
                 calldata
         );
 
