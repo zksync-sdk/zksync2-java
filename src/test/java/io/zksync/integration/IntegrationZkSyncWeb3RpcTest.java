@@ -18,6 +18,7 @@ import io.zksync.transaction.manager.ZkSyncTransactionManager;
 import io.zksync.transaction.fee.ZkTransactionFeeProvider;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
+import io.zksync.utils.ContractDeployer;
 import io.zksync.wrappers.L2ETHBridge;
 import org.junit.Before;
 import org.junit.Test;
@@ -117,9 +118,9 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
-    public void testGetBalanceOfToken() throws IOException {
+    public void testGetBalanceOfNative() throws IOException {
         EthGetBalance getBalance = this.zksync
-                .ethGetBalance(this.credentials.getAddress(), DefaultBlockParameterName.LATEST, ETH.getL2Address())
+                .ethGetBalance(this.credentials.getAddress(), DefaultBlockParameterName.LATEST)
                 .send();
 
         System.out.printf("%s: %d\n", this.credentials.getAddress(), Numeric.toBigInt(getBalance.getResult()));
@@ -192,13 +193,30 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
+    public void testTransferNativeToSelfWeb3j_Legacy() throws Exception {
+        Transfer transfer = new Transfer(this.zksync, new RawTransactionManager(this.zksync, this.credentials, chainId.longValue()));
+
+        TransactionReceipt receipt = transfer.sendFunds(
+                credentials.getAddress(),
+                BigDecimal.valueOf(1),
+                Unit.ETHER,
+                BigInteger.ZERO,
+                BigInteger.valueOf(50_000L)
+        ).send();
+
+        assertTrue(receipt::isStatusOK);
+    }
+
+    @Test
     public void testTransferNativeToSelfWeb3j() throws Exception {
         Transfer transfer = new Transfer(this.zksync, new ZkSyncTransactionManager(this.zksync, this.signer, this.feeProvider));
 
         TransactionReceipt receipt = transfer.sendFunds(
                 credentials.getAddress(),
                 BigDecimal.valueOf(1),
-                Unit.ETHER
+                Unit.ETHER,
+                BigInteger.ZERO,
+                BigInteger.valueOf(50_000L)
         ).send();
 
         assertTrue(receipt::isStatusOK);
@@ -387,7 +405,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
     @Test
     public void testEstimateFee_DeployContract() throws IOException {
-        EthEstimateGas estimateGas = zksync.ethEstimateGas(io.zksync.methods.request.Transaction.createContractTransaction(
+        EthEstimateGas estimateGas = zksync.ethEstimateGas(io.zksync.methods.request.Transaction.create2ContractTransaction(
                 credentials.getAddress(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
@@ -437,12 +455,14 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
-    public void testDeployContract() throws IOException, TransactionException {
+    public void testDeployContract_Create2() throws IOException, TransactionException {
         BigInteger nonce = this.zksync
-                .ethGetTransactionCount(this.credentials.getAddress(), DefaultBlockParameterName.LATEST).send()
+                .ethGetTransactionCount(this.credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
                 .getTransactionCount();
 
-        io.zksync.methods.request.Transaction estimate = io.zksync.methods.request.Transaction.createContractTransaction(
+        String precomputedAddress = ContractDeployer.computeL2Create2Address(new Address(this.credentials.getAddress()), Numeric.hexStringToByteArray(CounterContract.BINARY), new byte[] {}, new byte[32]).getValue();
+
+        io.zksync.methods.request.Transaction estimate = io.zksync.methods.request.Transaction.create2ContractTransaction(
                 credentials.getAddress(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
@@ -483,6 +503,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         this.contractAddress = receipt.getContractAddress();
         System.out.println("Deployed `CounterContract as: `" + this.contractAddress);
+        assertEquals(this.contractAddress.toLowerCase(), precomputedAddress.toLowerCase());
 
         Transaction call = Transaction.createEthCallTransaction(
                 credentials.getAddress(),

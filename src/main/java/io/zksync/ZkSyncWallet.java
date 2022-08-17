@@ -6,15 +6,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
-import io.zksync.methods.request.Eip712Meta;
 import io.zksync.methods.request.Transaction;
 import io.zksync.protocol.exceptions.JsonRpcResponseException;
 import io.zksync.transaction.TransactionRequest;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
-import io.zksync.transaction.fee.Fee;
 import io.zksync.wrappers.ERC20;
-import io.zksync.wrappers.L2ERC20Bridge;
 import io.zksync.wrappers.L2ETHBridge;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.abi.FunctionEncoder;
@@ -180,7 +177,7 @@ public class ZkSyncWallet {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
 
             // TODO: Add using calldata as initializer
-            Transaction estimate = Transaction.createContractTransaction(
+            Transaction estimate = Transaction.create2ContractTransaction(
                     signer.getAddress(),
                     BigInteger.ZERO,
                     BigInteger.ZERO,

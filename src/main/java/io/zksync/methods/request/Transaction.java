@@ -2,7 +2,7 @@ package io.zksync.methods.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.zksync.transaction.type.Transaction712;
-import io.zksync.utils.Create2;
+import io.zksync.utils.ContractDeployer;
 import io.zksync.utils.ZkSyncAddresses;
 import lombok.AllArgsConstructor;
 import org.web3j.abi.FunctionEncoder;
@@ -46,6 +46,33 @@ public class Transaction {
         this.transactionType = (long) Transaction712.EIP_712_TX_TYPE;
     }
 
+    public static Transaction create2ContractTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            BigInteger value,
+            String feeToken,
+            String bytecode
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        String calldata = FunctionEncoder.encode(ContractDeployer.encodeCreate2(bytecodeBytes));
+        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, value, calldata, meta);
+    }
+
+    public static Transaction create2ContractTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            String feeToken,
+            String bytecode
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        String calldata = FunctionEncoder.encode(ContractDeployer.encodeCreate2(bytecodeBytes));
+        Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldata, meta);
+    }
+
     public static Transaction createContractTransaction(
             String from,
             BigInteger ergsPrice,
@@ -55,7 +82,7 @@ public class Transaction {
             String bytecode
     ) {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
-        String calldata = FunctionEncoder.encode(Create2.encodeCreate2(bytecodeBytes));
+        String calldata = FunctionEncoder.encode(ContractDeployer.encodeCreate(bytecodeBytes));
         Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
         return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, value, calldata, meta);
     }
@@ -68,7 +95,7 @@ public class Transaction {
             String bytecode
     ) {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
-        String calldata = FunctionEncoder.encode(Create2.encodeCreate2(bytecodeBytes));
+        String calldata = FunctionEncoder.encode(ContractDeployer.encodeCreate(bytecodeBytes));
         Eip712Meta meta = new Eip712Meta(feeToken, BigInteger.ZERO, BigInteger.ZERO, new byte[][] {bytecodeBytes}, null, null);
         return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldata, meta);
     }

@@ -16,7 +16,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class Create2 {
+public class ContractDeployer {
 
     private static final BigInteger MAX_BYTECODE_SIZE = BigInteger.valueOf(2).pow(16);
     public static final String CREATE2_PREFIX = Hash.sha3String("zksyncCreate2");
@@ -68,6 +68,16 @@ public class Create2 {
         return new Function(
             "create2",
                 Arrays.asList(new Bytes32(salt), new Bytes32(bytecodeHash), new Uint256(0), DynamicBytes.DEFAULT),
+                Collections.emptyList()
+        );
+    }
+
+    public static Function encodeCreate(byte[] bytecode) {
+        byte[] bytecodeHash = hashBytecode(bytecode);
+
+        return new Function(
+                "create",
+                Arrays.asList(new Bytes32(new byte[] {}), new Bytes32(bytecodeHash), new Uint256(0), DynamicBytes.DEFAULT),
                 Collections.emptyList()
         );
     }

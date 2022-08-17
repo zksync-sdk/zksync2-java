@@ -9,7 +9,8 @@ import java.util.Collections;
 import io.zksync.helper.CounterContract;
 import io.zksync.methods.request.Eip712Meta;
 import io.zksync.transaction.type.Transaction712;
-import io.zksync.utils.Create2;
+import io.zksync.utils.ContractDeployer;
+import io.zksync.utils.ZkSyncAddresses;
 import io.zksync.wrappers.L2ETHBridge;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,13 +76,13 @@ public class ZkTransactionEncoderTest {
     @Test
     public void testEncodeDeploy() {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(CounterContract.BINARY);
-        String calldata = FunctionEncoder.encode(Create2.encodeCreate2(bytecodeBytes));
+        String calldata = FunctionEncoder.encode(ContractDeployer.encodeCreate2(bytecodeBytes));
 
         Transaction712 transaction = new Transaction712(
                 BigInteger.ZERO,
                 GAS_PRICE,
                 GAS_LIMIT,
-                Create2.DEPLOYER_SYSTEM_CONTRACT_ADDRESS,
+                ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS,
                 BigInteger.ZERO,
                 calldata,
                 CHAIN_ID,

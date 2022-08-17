@@ -44,7 +44,7 @@ public class IntegrationZkSyncWalletTest {
 
     @Before
     public void setUp() {
-        ZkSync zksync = ZkSync.build(new HttpService("http://127.0.0.1:3050"));
+        ZkSync zksync = ZkSync.build(new HttpService("http://206.189.96.247:3050"));
         credentials = Credentials.create(ECKeyPair.create(BigInteger.ONE));
 
         BigInteger chainId = zksync.ethChainId().sendAsync().join().getChainId();
@@ -56,7 +56,7 @@ public class IntegrationZkSyncWalletTest {
 
     @Test
     public void sendTestMoney() {
-        Web3j web3j = Web3j.build(new HttpService("http://127.0.0.1:8545"));
+        Web3j web3j = Web3j.build(new HttpService("http://206.189.96.247:8545"));
 
         String account = web3j.ethAccounts().sendAsync().join().getAccounts().get(0);
 
@@ -70,7 +70,7 @@ public class IntegrationZkSyncWalletTest {
 
     @Test
     public void testDeposit() {
-        Web3j web3j = Web3j.build(new HttpService("http://127.0.0.1:8545"));
+        Web3j web3j = Web3j.build(new HttpService("http://206.189.96.247:8545"));
         TransactionManager manager = new RawTransactionManager(web3j, credentials);
         ContractGasProvider gasProvider = new DefaultGasProvider();
         TransactionReceipt receipt = EthereumProvider

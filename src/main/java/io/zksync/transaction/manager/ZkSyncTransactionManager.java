@@ -63,7 +63,7 @@ public class ZkSyncTransactionManager extends TransactionManager {
         if (constructor) {
             Assertions.verifyPrecondition(!isVanillaEVMByteCode(data), "ZkSync zkEVM does not support EVM bytecode");
             if (gasLimit == null) {
-                Transaction estimate = Transaction.createContractTransaction(
+                Transaction estimate = Transaction.create2ContractTransaction(
                         getFromAddress(),
                         BigInteger.ZERO,
                         BigInteger.ZERO,
