@@ -26,7 +26,7 @@ public class TransactionRequestTest extends BaseTransactionTest {
         String result = Eip712Encoder.encodeType(transactionRequest.intoEip712Struct());
 
         assertEquals(
-                "TransactionRequest(uint8 txType,address to,uint256 value,bytes data,address feeToken,uint256 ergsLimit,uint256 ergsPerPubdataByteLimit,uint256 ergsPrice,uint256 nonce)",
+                "TransactionRequest(uint8 txType,address to,uint256 value,bytes data,uint256 ergsLimit,uint256 ergsPerPubdataByteLimit,uint256 ergsPrice,uint256 nonce)",
                 result);
     }
 
@@ -35,7 +35,7 @@ public class TransactionRequestTest extends BaseTransactionTest {
         TransactionRequest transactionRequest = buildTransactionRequest();
         byte[] encoded = Eip712Encoder.encodeValue(transactionRequest.intoEip712Struct()).getValue();
 
-        assertEquals("0x1dd5e801453f3dd457e604f944b2077adce238857e751b2ca14f31c28f3f53c5",
+        assertEquals("0x8c1349f7824b3ccfd732378410f53504e02853633d851c900f11eea6a393b3d8",
                 Numeric.toHexString(encoded));
     }
 
@@ -45,7 +45,7 @@ public class TransactionRequestTest extends BaseTransactionTest {
         byte[] encoded = Eip712Encoder.typedDataToSignedBytes(Eip712Domain.defaultDomain(ZkSyncNetwork.Localhost),
                 transactionRequest);
 
-        assertEquals("0xb777de7a05b9d5caf010c980b071d6d3ea69e87fdbfee9e6170314601cc054d1",
+        assertEquals("0x3ca537c84fa3d7af9312ce299e2e43f70c9a12f35132882487886e698dde126d",
                 Numeric.toHexString(encoded));
     }
 

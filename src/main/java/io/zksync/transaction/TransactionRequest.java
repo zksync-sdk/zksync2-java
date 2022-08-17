@@ -19,7 +19,6 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class TransactionRequest implements Structurable {
-    // TODO: update according etc/system-contracts/contracts/TransactionHelper.sol
     static final String TRANSACTION_REQUEST_TYPE = "TransactionRequest";
 
     private String to;
@@ -27,7 +26,6 @@ public class TransactionRequest implements Structurable {
     private BigInteger value;
     private byte[] data;
     private BigInteger ergsLimit;
-    private String feeToken;
     private BigInteger ergsPerPubdata;
     private BigInteger ergsPrice;
 
@@ -38,7 +36,6 @@ public class TransactionRequest implements Structurable {
                 transaction.getValue(),
                 Numeric.hexStringToByteArray(transaction.getData()),
                 transaction.getGasLimit(),
-                transaction.getFeeToken(),
                 transaction.getErgsPerPubdata(),
                 transaction.getGasPrice()
         );
@@ -57,7 +54,6 @@ public class TransactionRequest implements Structurable {
         result.add(Pair.of("to", new Address(to)));
         result.add(Pair.of("value", value != null ? new Uint256(value) : Uint256.DEFAULT));
         result.add(Pair.of("data", data != null ? new DynamicBytes(data) : DynamicBytes.DEFAULT));
-        result.add(Pair.of("feeToken", new Address(feeToken)));
         result.add(Pair.of("ergsLimit", new Uint256(ergsLimit)));
         result.add(Pair.of("ergsPerPubdataByteLimit", new Uint256(ergsPerPubdata)));
         result.add(Pair.of("ergsPrice", new Uint256(ergsPrice)));
