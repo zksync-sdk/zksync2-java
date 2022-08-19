@@ -203,14 +203,14 @@ public class IntegrationZkSyncWeb3RpcTest {
         System.out.printf("Fee for transaction is: %d\n", estimateGas.getAmountUsed().multiply(gasPrice.getGasPrice()));
 
         Transaction712 transaction = new Transaction712(
+                chainId.longValue(),
                 nonce,
-//                gasPrice.getGasPrice(),
-                BigInteger.ZERO,
                 estimateGas.getAmountUsed(),
                 estimate.getTo(),
                 Convert.toWei(BigDecimal.valueOf(1), Unit.ETHER).toBigInteger(),
                 estimate.getData(),
-                chainId.longValue(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
                 estimate.getEip712Meta()
         );
 
@@ -288,14 +288,14 @@ public class IntegrationZkSyncWeb3RpcTest {
         System.out.printf("Fee for transaction is: %d\n", estimateGas.getAmountUsed().multiply(gasPrice.getGasPrice()));
 
         Transaction712 transaction = new Transaction712(
+                chainId.longValue(),
                 nonce,
-//                gasPrice.getGasPrice(),
-                BigInteger.ZERO,
                 estimateGas.getAmountUsed(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                chainId.longValue(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
                 estimate.getEip712Meta()
         );
 
@@ -355,14 +355,14 @@ public class IntegrationZkSyncWeb3RpcTest {
         System.out.printf("Fee for transaction is: %d\n", estimateGas.getAmountUsed().multiply(gasPrice.getGasPrice()));
 
         Transaction712 transaction = new Transaction712(
+                chainId.longValue(),
                 nonce,
-//                gasPrice.getGasPrice(),
-                BigInteger.ZERO,
                 estimateGas.getAmountUsed(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                chainId.longValue(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
                 estimate.getEip712Meta()
         );
 
@@ -506,14 +506,14 @@ public class IntegrationZkSyncWeb3RpcTest {
         System.out.printf("Fee for transaction is: %d\n", estimateGas.getAmountUsed().multiply(gasPrice.getGasPrice()));
 
         Transaction712 transaction = new Transaction712(
+                chainId.longValue(),
                 nonce,
-//                gasPrice.getGasPrice(),
-                BigInteger.ZERO,
                 estimateGas.getAmountUsed(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                chainId.longValue(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
                 estimate.getEip712Meta()
         );
 
@@ -565,14 +565,14 @@ public class IntegrationZkSyncWeb3RpcTest {
         System.out.printf("Fee for transaction is: %d\n", estimateGas.getAmountUsed().multiply(gasPrice.getGasPrice()));
 
         Transaction712 transaction = new Transaction712(
+                chainId.longValue(),
                 nonce,
-//                gasPrice.getGasPrice(),
-                BigInteger.ZERO,
                 estimateGas.getAmountUsed(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                chainId.longValue(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
                 estimate.getEip712Meta()
         );
 
@@ -635,14 +635,14 @@ public class IntegrationZkSyncWeb3RpcTest {
         System.out.printf("Fee for transaction is: %d\n", estimateGas.getAmountUsed().multiply(gasPrice.getGasPrice()));
 
         Transaction712 transaction = new Transaction712(
+                chainId.longValue(),
                 nonce,
-//                gasPrice.getGasPrice(),
-                BigInteger.ZERO,
                 estimateGas.getAmountUsed(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                chainId.longValue(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
                 estimate.getEip712Meta()
         );
 

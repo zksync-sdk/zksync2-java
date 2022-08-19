@@ -11,14 +11,12 @@ import io.zksync.transaction.type.Transaction712;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.transaction.fee.ZkTransactionFeeProvider;
-import io.zksync.utils.ZkSyncAddresses;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthGetCode;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.tx.TransactionManager;
-import org.web3j.utils.Assertions;
 import org.web3j.utils.Numeric;
 
 import java.io.IOException;
@@ -54,34 +52,12 @@ public class ZkSyncTransactionManager extends TransactionManager {
         gasPrice = BigInteger.ZERO; // TODO: Currently using zero cause fee calculation of the node doesn't work
         Eip712Meta meta = new Eip712Meta(
                 BigInteger.ZERO,
-                BigInteger.ZERO,
                 null,
                 null,
                 null
         );
         if (constructor) {
-            Assertions.verifyPrecondition(!isVanillaEVMByteCode(data), "ZkSync zkEVM does not support EVM bytecode");
-            if (gasLimit == null) {
-                Transaction estimate = Transaction.create2ContractTransaction(
-                        getFromAddress(),
-                        BigInteger.ZERO,
-                        BigInteger.ZERO,
-                        data
-                );
-                gasLimit = getFeeProvider().getGasLimit(estimate);
-                data = estimate.getData();
-                meta = estimate.getEip712Meta();
-            }
-            transaction = new Transaction712(
-                    getNonce(),
-                    gasPrice,
-                    gasLimit,
-                    ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS,
-                    value,
-                    data,
-                    chainId,
-                    meta
-            );
+            throw new UnsupportedOperationException("Not supported deploying with Contract wrapper");
         } else {
             if (gasLimit == null) {
                 Transaction estimate = Transaction.createFunctionCallTransaction(
@@ -94,13 +70,14 @@ public class ZkSyncTransactionManager extends TransactionManager {
                 gasLimit = getFeeProvider().getGasLimit(estimate);
             }
             transaction = new Transaction712(
+                    chainId,
                     getNonce(),
-                    gasPrice,
                     gasLimit,
                     to,
                     value,
                     data,
-                    chainId,
+                    BigInteger.ZERO,
+                    gasPrice,
                     meta
             );
         }

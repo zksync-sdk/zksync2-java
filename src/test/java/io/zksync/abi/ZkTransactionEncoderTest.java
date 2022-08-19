@@ -51,15 +51,15 @@ public class ZkTransactionEncoderTest {
         String calldata = FunctionEncoder.encode(withdraw);
 
         Transaction712 transaction = new Transaction712(
+                CHAIN_ID,
                 BigInteger.ZERO,
-                GAS_PRICE,
                 GAS_LIMIT,
                 BRIDGE_ADDRESS,
                 BigInteger.ZERO,
                 calldata,
-                CHAIN_ID,
+                GAS_PRICE,
+                GAS_PRICE,
                 new Eip712Meta(
-                        BigInteger.ZERO,
                         BigInteger.ZERO,
                         null,
                         null,
@@ -78,18 +78,18 @@ public class ZkTransactionEncoderTest {
         String calldata = FunctionEncoder.encode(ContractDeployer.encodeCreate2(bytecodeBytes));
 
         Transaction712 transaction = new Transaction712(
+                CHAIN_ID,
                 BigInteger.ZERO,
-                GAS_PRICE,
                 GAS_LIMIT,
                 ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS,
                 BigInteger.ZERO,
                 calldata,
-                CHAIN_ID,
+                GAS_PRICE,
+                GAS_PRICE,
                 new Eip712Meta(
                         BigInteger.ZERO,
-                        BigInteger.ZERO,
-                        new byte[][]{bytecodeBytes},
                         null,
+                        new byte[][]{bytecodeBytes},
                         null
                 )
         );
@@ -104,15 +104,15 @@ public class ZkTransactionEncoderTest {
         String calldata = FunctionEncoder.encode(CounterContract.encodeIncrement(BigInteger.valueOf(42L)));
 
         Transaction712 transaction = new Transaction712(
+                CHAIN_ID,
                 BigInteger.ZERO,
-                GAS_PRICE,
                 GAS_LIMIT,
                 "0xe1fab3efd74a77c23b426c302d96372140ff7d0c",
                 BigInteger.ZERO,
                 calldata,
-                CHAIN_ID,
+                GAS_PRICE,
+                GAS_PRICE,
                 new Eip712Meta(
-                        BigInteger.ZERO,
                         BigInteger.ZERO,
                         null,
                         null,

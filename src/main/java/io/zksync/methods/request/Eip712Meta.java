@@ -3,6 +3,7 @@ package io.zksync.methods.request;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.zksync.utils.ByteArraySerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -18,9 +19,8 @@ import java.math.BigInteger;
 @Builder
 public class Eip712Meta {
     private BigInteger ergsPerPubdata;
-    private BigInteger ergsPerStorage;
+    private byte[] customSignature;
     private byte[][] factoryDeps;
-    private AAParams aaParams;
 
     private PaymasterParams paymasterParams;
 
@@ -33,22 +33,14 @@ public class Eip712Meta {
         return ergsPerPubdata;
     }
 
-    public String getErgsPerStorage() {
-        return convert(ergsPerStorage);
-    }
-
-    @JsonIgnore
-    public BigInteger getErgsPerStorageNumber() {
-        return ergsPerStorage;
+    @JsonSerialize(using = ByteArraySerializer.class)
+    public byte[] getCustomSignature() {
+        return customSignature;
     }
 
     @JsonSerialize(using = io.zksync.utils.ByteArray2Serializer.class)
     public byte[][] getFactoryDeps() {
         return factoryDeps;
-    }
-
-    public AAParams getAaParams() {
-        return aaParams;
     }
 
     public PaymasterParams getPaymasterParams() {

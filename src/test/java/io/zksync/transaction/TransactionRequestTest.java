@@ -55,15 +55,15 @@ public class TransactionRequestTest extends BaseTransactionTest {
 
     private Transaction712 buildTransaction() {
         return new Transaction712(
+                42,
                 BigInteger.valueOf(NONCE),
-                BigInteger.ZERO,
                 BigInteger.valueOf(54321),
                 RECEIVER,
                 BigInteger.ZERO,
                 FunctionEncoder.encode(CounterContract.encodeIncrement(BigInteger.valueOf(42))),
-                42,
+                BigInteger.ZERO,
+                BigInteger.ZERO,
                 new Eip712Meta(
-                        BigInteger.ZERO,
                         BigInteger.ZERO,
                         null,
                         null,

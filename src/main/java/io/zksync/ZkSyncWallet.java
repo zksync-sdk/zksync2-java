@@ -265,13 +265,14 @@ public class ZkSyncWallet {
                     BigInteger gasPrice = getFeeProvider().getGasPrice();
 
                     Transaction712 prepared = new Transaction712(
+                            chainId,
                             nonce,
-                            BigInteger.ZERO,// TODO: Use gas price value
                             gas,
                             transaction.getTo(),
                             transaction.getValueNumber(),
                             transaction.getData(),
-                            chainId,
+                            BigInteger.ZERO, // TODO: make possible to provide these values by user
+                            BigInteger.ZERO,
                             transaction.getEip712Meta()
                     );
 
