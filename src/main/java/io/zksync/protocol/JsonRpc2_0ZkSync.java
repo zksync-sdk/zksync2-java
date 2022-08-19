@@ -7,12 +7,10 @@ import io.zksync.methods.request.Transaction;
 import io.zksync.methods.response.*;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3jService;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.JsonRpc2_0Web3j;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.response.EthEstimateGas;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
-import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthSendRawTransaction;
 
 import io.zksync.protocol.core.debug.ContractSourceDebugInfo;
@@ -34,16 +32,6 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     @Override
     public Request<?, ZksMainContract> zksMainContract() {
         return new Request<>("zks_getMainContract", Collections.emptyList(), web3jService, ZksMainContract.class);
-    }
-
-    @Override
-    public Request<?, EthGetBalance> ethGetBalance(String address, DefaultBlockParameter defaultBlockParameter,
-            String tokenAddress) {
-        return new Request<>(
-                "eth_getBalance",
-                Arrays.asList(address, defaultBlockParameter.getValue(), tokenAddress),
-                web3jService,
-                EthGetBalance.class);
     }
 
     @Override
@@ -73,14 +61,6 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     @Override
     public Request<?, ZksL1ChainId> zksL1ChainId() {
         return new Request<>("zks_L1ChainId", Collections.emptyList(), web3jService, ZksL1ChainId.class);
-    }
-
-    @Override
-    public Request<?, ZksSetContractDebugInfoResult> zksSetContractDebugInfo(String contractAddress,
-            ContractSourceDebugInfo contractDebugInfo) {
-        return new Request<>(
-                "zks_setContractDebugInfo", Arrays.asList(contractAddress, contractDebugInfo), web3jService,
-                ZksSetContractDebugInfoResult.class);
     }
 
     @Override

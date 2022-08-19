@@ -58,6 +58,9 @@ import io.zksync.wrappers.ERC20;
 
 public class IntegrationZkSyncWeb3RpcTest {
 
+    private static final String L1_NODE = "http://127.0.0.1:8545";
+    private static final String L2_NODE = "http://127.0.0.1:3050";
+
     private static final Token ETH = Token.createETH();
 
     ZkSync zksync;
@@ -74,7 +77,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
     @Before
     public void setUp() {
-        this.zksync = ZkSync.build(new HttpService("http://127.0.0.1:3050"));
+        this.zksync = ZkSync.build(new HttpService(L2_NODE));
         this.credentials = Credentials.create(ECKeyPair.create(BigInteger.ONE));
 
         chainId = this.zksync.ethChainId().sendAsync().join().getChainId();
@@ -85,7 +88,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         this.feeProvider = new DefaultTransactionFeeProvider(zksync, ETH);
 
-        this.contractAddress = "0x5bb4c6b82d3bcef0417c1e0152e7e1ba763e72c8";
+        this.contractAddress = "0x14ba05281495657b009103686f366d7761e7535b";
     }
 
     @Test
@@ -96,7 +99,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
     @Test
     public void sendTestMoney() {
-        Web3j web3j = Web3j.build(new HttpService("http://127.0.0.1:8545"));
+        Web3j web3j = Web3j.build(new HttpService(L1_NODE));
 
         String account = web3j.ethAccounts().sendAsync().join().getAccounts().get(0);
 
@@ -109,8 +112,18 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
+    public void testGetBalanceOfTokenL1() throws IOException {
+        Web3j web3j = Web3j.build(new HttpService(L1_NODE));
+        EthGetBalance getBalance = web3j
+                .ethGetBalance(this.credentials.getAddress(), DefaultBlockParameterName.LATEST)
+                .send();
+
+        System.out.printf("%s: %d\n", this.credentials.getAddress(), Numeric.toBigInt(getBalance.getResult()));
+    }
+
+    @Test
     public void testDeposit() throws IOException {
-        Web3j web3j = Web3j.build(new HttpService("http://127.0.0.1:8545"));
+        Web3j web3j = Web3j.build(new HttpService(L1_NODE));
         BigInteger chainId = web3j.ethChainId().send().getChainId();
         TransactionManager manager = new RawTransactionManager(web3j, credentials, chainId.longValue());
         ContractGasProvider gasProvider = new StaticGasProvider(Convert.toWei("1", Unit.GWEI).toBigInteger(), BigInteger.valueOf(555_000L));
@@ -151,10 +164,19 @@ public class IntegrationZkSyncWeb3RpcTest {
     @Test
     public void testGetTransactionReceipt() throws IOException {
         TransactionReceipt receipt = this.zksync
-                .ethGetTransactionReceipt("0xf53d38388cd8e5292683509c9a9f373e2c7d3766f41256b9cbf7d966552a46ff").send()
+                .ethGetTransactionReceipt("0x16e5b7f2445a3d0a1200da416254011da7486e4d67d2ca037395741fb86cd1b3").send()
                 .getResult();
 
         System.out.println(receipt);
+    }
+
+    @Test
+    public void testGetTransaction() throws IOException {
+        org.web3j.protocol.core.methods.response.Transaction receipt = this.zksync
+                .ethGetTransactionByHash("0x16e5b7f2445a3d0a1200da416254011da7486e4d67d2ca037395741fb86cd1b3").send()
+                .getResult();
+
+        System.out.println(receipt.getNonce());
     }
 
     @Test
@@ -186,7 +208,7 @@ public class IntegrationZkSyncWeb3RpcTest {
                 BigInteger.ZERO,
                 estimateGas.getAmountUsed(),
                 estimate.getTo(),
-                estimate.getValueNumber(),
+                Convert.toWei(BigDecimal.valueOf(1), Unit.ETHER).toBigInteger(),
                 estimate.getData(),
                 chainId.longValue(),
                 estimate.getEip712Meta()
@@ -416,7 +438,6 @@ public class IntegrationZkSyncWeb3RpcTest {
                 credentials.getAddress(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
-                ETH.getL2Address(),
                 CounterContract.BINARY
         )).send();
 

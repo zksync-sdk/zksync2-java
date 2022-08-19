@@ -78,20 +78,6 @@ public interface ZkSync extends Web3j {
      */
     Request<?, ZksL1ChainId> zksL1ChainId();
 
-    /**
-     * Get account's balance in Token.
-     * 
-     * @param address               Address of the account in hex format
-     * @param defaultBlockParameter Block number or block name
-     * @param tokenAddress          Address of the token in hex format
-     * @return Prepared get balance request
-     */
-    Request<?, EthGetBalance> ethGetBalance(
-            String address, DefaultBlockParameter defaultBlockParameter, String tokenAddress);
-
-    Request<?, ZksSetContractDebugInfoResult> zksSetContractDebugInfo(String contractAddress,
-            ContractSourceDebugInfo contractDebugInfo);
-
     Request<?, ZksContractDebugInfo> zksGetContractDebugInfo(String contractAddress);
 
     Request<?, ZksTransactionTrace> zksGetTransactionTrace(String transactionHash);

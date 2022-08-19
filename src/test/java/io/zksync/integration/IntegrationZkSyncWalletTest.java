@@ -85,7 +85,7 @@ public class IntegrationZkSyncWalletTest {
         BigInteger amount = Token.ETH.toBigInteger(0.5);
         BigInteger desiredFee = BigInteger.valueOf(10560L).multiply(BigInteger.valueOf(28572L)); // Only for test
         EthGetBalance balance = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getL2Address())
+                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED)
                 .send();
 
         assertResponse(balance);
@@ -95,7 +95,7 @@ public class IntegrationZkSyncWalletTest {
         assertTrue(receipt.isStatusOK());
 
         EthGetBalance balanceNew = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getL2Address())
+                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED)
                 .send();
 
         assertResponse(balanceNew);
@@ -108,7 +108,7 @@ public class IntegrationZkSyncWalletTest {
         BigInteger amount = Token.ETH.toBigInteger(0.5);
         BigInteger desiredFee = BigInteger.valueOf(10560L).multiply(BigInteger.valueOf(28572L)); // Only for test
         EthGetBalance balance = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getL2Address())
+                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED)
                 .send();
 
         assertResponse(balance);
@@ -118,7 +118,7 @@ public class IntegrationZkSyncWalletTest {
         assertTrue(receipt.isStatusOK());
 
         EthGetBalance balanceNew = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED, Token.ETH.getL2Address())
+                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED)
                 .send();
 
         assertResponse(balanceNew);

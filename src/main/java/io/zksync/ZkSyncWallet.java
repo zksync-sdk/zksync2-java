@@ -24,6 +24,8 @@ import org.web3j.protocol.core.RemoteCall;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
+import org.web3j.tx.ReadonlyTransactionManager;
+import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.tx.response.TransactionReceiptProcessor;
 import org.web3j.utils.Numeric;
 
@@ -236,8 +238,13 @@ public class ZkSyncWallet {
     }
 
     public RemoteCall<BigInteger> getBalance(String address, Token token, DefaultBlockParameter at) {
-        return new RemoteCall<>(() ->
-                this.zksync.ethGetBalance(address, at, token.getL2Address()).sendAsync().join().getBalance());
+        if (token.isETH()) {
+            return new RemoteCall<>(() ->
+                    this.zksync.ethGetBalance(address, at).sendAsync().join().getBalance());
+        } else {
+            ERC20 erc20 = ERC20.load(token.getL2Address(), this.zksync, new ReadonlyTransactionManager(this.zksync, getSigner().getAddress()), new DefaultGasProvider());
+            return erc20.balanceOf(address);
+        }
     }
 
     public RemoteCall<BigInteger> getNonce(DefaultBlockParameter at) {
