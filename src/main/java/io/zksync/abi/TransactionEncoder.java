@@ -7,7 +7,6 @@ import java.util.List;
 import io.zksync.crypto.eip712.Eip712Domain;
 import io.zksync.crypto.signer.EthSigner;
 import io.zksync.crypto.signer.PrivateKeyEthSigner;
-import io.zksync.transaction.TransactionRequest;
 import io.zksync.transaction.type.Transaction712;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Sign;
@@ -30,7 +29,7 @@ public class TransactionEncoder extends org.web3j.crypto.TransactionEncoder {
         );
     }
 
-    public static Sign.SignatureData signMessage(TransactionRequest transactionRequest, Eip712Domain domain, Credentials credentials) {
+    public static Sign.SignatureData signMessage(Transaction712 transactionRequest, Eip712Domain domain, Credentials credentials) {
         EthSigner signer = new PrivateKeyEthSigner(credentials, domain);
         String signature = signer.signTypedData(domain, transactionRequest).join();
         return getSignatureData(signature);

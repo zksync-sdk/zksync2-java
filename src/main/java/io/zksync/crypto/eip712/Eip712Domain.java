@@ -49,7 +49,7 @@ public class Eip712Domain implements Structurable {
     private Address verifyingContract;
 
     @Override
-    public String getType() {
+    public String getTypeName() {
         return "EIP712Domain";
     }
 

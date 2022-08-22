@@ -7,7 +7,7 @@ import org.web3j.abi.datatypes.Type;
 
 public interface Structurable {
     
-    String getType();
+    String getTypeName();
 
     List<Pair<String, Type<?>>> eip712types();
 

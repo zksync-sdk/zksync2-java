@@ -18,7 +18,7 @@ public class Person implements Structurable {
     }
 
     @Override
-    public String getType() {
+    public String getTypeName() {
         return "Person";
     }
 

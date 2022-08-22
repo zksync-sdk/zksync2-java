@@ -1,6 +1,15 @@
 package io.zksync.transaction.type;
 
+import io.zksync.crypto.eip712.Structurable;
 import io.zksync.methods.request.Eip712Meta;
+import org.apache.commons.lang3.tuple.Pair;
+import org.web3j.abi.datatypes.DynamicArray;
+import org.web3j.abi.datatypes.DynamicBytes;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.generated.Bytes32;
+import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.abi.datatypes.generated.Uint8;
+import org.web3j.crypto.Hash;
 import org.web3j.crypto.Sign;
 import org.web3j.crypto.transaction.type.Transaction1559;
 import org.web3j.crypto.transaction.type.TransactionType;
@@ -17,14 +26,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Transaction712 extends Transaction1559 {
-
+public class Transaction712 extends Transaction1559 implements Structurable {
+    static final String TRANSACTION_TYPE = "Transaction";
     public static final byte EIP_712_TX_TYPE = (byte) 0x71;
+    private final String from;
     private final Eip712Meta meta;
 
-    public Transaction712(long chainId, BigInteger nonce, BigInteger gasLimit, String to, BigInteger value, String data, BigInteger maxPriorityFeePerGas, BigInteger maxFeePerGas, Eip712Meta meta) {
+    public Transaction712(long chainId, BigInteger nonce, BigInteger gasLimit, String to, BigInteger value, String data, BigInteger maxPriorityFeePerGas, BigInteger maxFeePerGas, String from, Eip712Meta meta) {
         super(chainId, nonce, gasLimit, to, value, data, maxPriorityFeePerGas, maxFeePerGas);
-
+        this.from = from;
         this.meta = meta;
     }
 
@@ -95,7 +105,7 @@ public class Transaction712 extends Transaction1559 {
 
         List<RlpType> paymasterParams;
 
-        if (getMeta().getPaymasterParams() != null) {
+        if (getMeta().getPaymasterParams() != null && getPaymaster() != null && getPaymasterInput() != null) {
             paymasterParams = Arrays.asList(
                     RlpString.create(Numeric.hexStringToByteArray(getMeta().getPaymasterParams().getPaymaster())),
                     RlpString.create(getMeta().getPaymasterParams().getPaymasterInput())
@@ -121,9 +131,54 @@ public class Transaction712 extends Transaction1559 {
         return meta;
     }
 
+    public String getPaymaster() {
+        return getMeta().getPaymasterParams().getPaymaster();
+    }
+
+    public byte[] getPaymasterInput() {
+        return getMeta().getPaymasterParams().getPaymasterInput();
+    }
+
     @Override
     public TransactionType getType() {
         // NOTE: Transaction type encoded manually in `asRlpValues`
         return TransactionType.LEGACY;
+    }
+
+    @Override
+    public String getTypeName() {
+        return TRANSACTION_TYPE;
+    }
+
+    @Override
+    public List<Pair<String, Type<?>>> eip712types() {
+        List<Pair<String, Type<?>>> result = new ArrayList<>(8);
+
+        result.add(Pair.of("txType", new Uint8(Transaction712.EIP_712_TX_TYPE)));
+        result.add(Pair.of("from", new Uint256(Numeric.toBigInt(from))));
+        result.add(Pair.of("to", getTo() != null ? new Uint256(Numeric.toBigInt(getTo())) : Uint256.DEFAULT));
+        result.add(Pair.of("ergsLimit", new Uint256(getGasLimit())));
+        result.add(Pair.of("ergsPerPubdataByteLimit", new Uint256(getErgsPerPubdata())));
+        result.add(Pair.of("maxFeePerErg", new Uint256(getMaxFeePerGas())));
+        result.add(Pair.of("maxPriorityFeePerErg", new Uint256(getMaxPriorityFeePerGas())));
+        result.add(Pair.of("paymaster", getPaymaster() != null ? new Uint256(Numeric.toBigInt(getPaymaster())) : Uint256.DEFAULT));
+        result.add(Pair.of("nonce", new Uint256(getNonce())));
+        result.add(Pair.of("value", getValue() != null ? new Uint256(getValue()) : Uint256.DEFAULT));
+        result.add(Pair.of("data", getData() != null ? new DynamicBytes(Numeric.hexStringToByteArray(getData())) : DynamicBytes.DEFAULT));
+        result.add(Pair.of("factoryDeps", getFactoryDepsHashes()));
+        result.add(Pair.of("paymasterInput", getPaymasterInput() != null ? new DynamicBytes(getPaymasterInput()) : DynamicBytes.DEFAULT));
+
+        return result;
+    }
+
+    private DynamicArray<Bytes32> getFactoryDepsHashes() {
+        if (getFactoryDeps() != null) {
+            return new DynamicArray<>(Bytes32.class, Arrays.stream(getFactoryDeps())
+                    .map(Hash::sha3)
+                    .map(Bytes32::new)
+                    .collect(Collectors.toList()));
+        } else {
+            return new DynamicArray<>(Bytes32.class, Collections.emptyList());
+        }
     }
 }

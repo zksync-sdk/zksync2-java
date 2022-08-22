@@ -28,7 +28,7 @@ public class Mail implements Structurable {
     }
 
     @Override
-    public String getType() {
+    public String getTypeName() {
         return "Mail";
     }
 

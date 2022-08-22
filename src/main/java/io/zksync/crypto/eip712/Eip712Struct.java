@@ -18,7 +18,7 @@ public class Eip712Struct implements Type<Structurable>, Comparable<Eip712Struct
 
     @Override
     public String getTypeAsString() {
-        return structure.getType();
+        return structure.getTypeName();
     }
 
     @Override
@@ -27,7 +27,7 @@ public class Eip712Struct implements Type<Structurable>, Comparable<Eip712Struct
     }
 
     public String encodeType() {
-        return structure.getType() +
+        return structure.getTypeName() +
             "(" +
             structure.eip712types().stream().map((entry) -> entry.getValue().getTypeAsString() + " " + entry.getKey()).collect(Collectors.joining(",")) +
             ")";

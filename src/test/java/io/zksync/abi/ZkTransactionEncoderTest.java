@@ -59,6 +59,7 @@ public class ZkTransactionEncoderTest {
                 calldata,
                 GAS_PRICE,
                 GAS_PRICE,
+                credentials.getAddress(),
                 new Eip712Meta(
                         BigInteger.ZERO,
                         null,
@@ -86,6 +87,7 @@ public class ZkTransactionEncoderTest {
                 calldata,
                 GAS_PRICE,
                 GAS_PRICE,
+                credentials.getAddress(),
                 new Eip712Meta(
                         BigInteger.ZERO,
                         null,
@@ -112,6 +114,7 @@ public class ZkTransactionEncoderTest {
                 calldata,
                 GAS_PRICE,
                 GAS_PRICE,
+                credentials.getAddress(),
                 new Eip712Meta(
                         BigInteger.ZERO,
                         null,

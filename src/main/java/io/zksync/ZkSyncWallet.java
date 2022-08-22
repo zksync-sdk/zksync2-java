@@ -8,7 +8,6 @@ import java.util.concurrent.CompletableFuture;
 
 import io.zksync.methods.request.Transaction;
 import io.zksync.protocol.exceptions.JsonRpcResponseException;
-import io.zksync.transaction.TransactionRequest;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.wrappers.ERC20;
@@ -273,10 +272,11 @@ public class ZkSyncWallet {
                             transaction.getData(),
                             BigInteger.ZERO, // TODO: make possible to provide these values by user
                             BigInteger.ZERO,
+                            transaction.getFrom(),
                             transaction.getEip712Meta()
                     );
 
-                    String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, TransactionRequest.from(prepared))).join();
+                    String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, prepared)).join();
                     byte[] signed = TransactionEncoder.encode(prepared, TransactionEncoder.getSignatureData(signature));
 
                     return this.zksync.ethSendRawTransaction(Numeric.toHexString(signed))

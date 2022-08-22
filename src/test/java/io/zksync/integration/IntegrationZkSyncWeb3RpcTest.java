@@ -1,25 +1,22 @@
 package io.zksync.integration;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-
 import io.zksync.abi.TransactionEncoder;
+import io.zksync.crypto.signer.EthSigner;
+import io.zksync.crypto.signer.PrivateKeyEthSigner;
 import io.zksync.helper.CounterContract;
 import io.zksync.methods.response.*;
+import io.zksync.protocol.ZkSync;
+import io.zksync.protocol.core.Token;
 import io.zksync.protocol.core.ZkBlockParameterName;
-import io.zksync.transaction.TransactionRequest;
-import io.zksync.transaction.manager.ZkSyncTransactionManager;
+import io.zksync.protocol.provider.EthereumProvider;
+import io.zksync.transaction.fee.DefaultTransactionFeeProvider;
 import io.zksync.transaction.fee.ZkTransactionFeeProvider;
+import io.zksync.transaction.manager.ZkSyncTransactionManager;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.utils.ContractDeployer;
 import io.zksync.utils.ZkSyncAddresses;
+import io.zksync.wrappers.ERC20;
 import io.zksync.wrappers.L2ETHBridge;
 import io.zksync.wrappers.NonceHolder;
 import org.junit.Before;
@@ -45,16 +42,17 @@ import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.utils.Convert;
-import org.web3j.utils.Numeric;
 import org.web3j.utils.Convert.Unit;
+import org.web3j.utils.Numeric;
 
-import io.zksync.crypto.signer.EthSigner;
-import io.zksync.crypto.signer.PrivateKeyEthSigner;
-import io.zksync.protocol.ZkSync;
-import io.zksync.protocol.core.Token;
-import io.zksync.protocol.provider.EthereumProvider;
-import io.zksync.transaction.fee.DefaultTransactionFeeProvider;
-import io.zksync.wrappers.ERC20;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class IntegrationZkSyncWeb3RpcTest {
 
@@ -104,8 +102,8 @@ public class IntegrationZkSyncWeb3RpcTest {
         String account = web3j.ethAccounts().sendAsync().join().getAccounts().get(0);
 
         EthSendTransaction sent = web3j.ethSendTransaction(
-                Transaction.createEtherTransaction(account, null, Convert.toWei("1", Unit.GWEI).toBigInteger(), BigInteger.valueOf(21_000L),
-                        this.credentials.getAddress(), Convert.toWei("1000000", Unit.ETHER).toBigInteger()))
+                        Transaction.createEtherTransaction(account, null, Convert.toWei("1", Unit.GWEI).toBigInteger(), BigInteger.valueOf(21_000L),
+                                this.credentials.getAddress(), Convert.toWei("1000000", Unit.ETHER).toBigInteger()))
                 .sendAsync().join();
 
         assertResponse(sent);
@@ -211,10 +209,11 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getData(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
+                credentials.getAddress(),
                 estimate.getEip712Meta()
         );
 
-        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, TransactionRequest.from(transaction))).join();
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
         EthSendTransaction sent = this.zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
@@ -296,10 +295,11 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getData(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
+                credentials.getAddress(),
                 estimate.getEip712Meta()
         );
 
-        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, TransactionRequest.from(transaction))).join();
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
         EthSendTransaction sent = this.zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
@@ -363,10 +363,11 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getData(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
+                credentials.getAddress(),
                 estimate.getEip712Meta()
         );
 
-        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, TransactionRequest.from(transaction))).join();
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
         EthSendTransaction sent = this.zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
@@ -514,10 +515,11 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getData(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
+                credentials.getAddress(),
                 estimate.getEip712Meta()
         );
 
-        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, TransactionRequest.from(transaction))).join();
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
         EthSendTransaction sent = this.zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
@@ -547,7 +549,7 @@ public class IntegrationZkSyncWeb3RpcTest {
                 .ethGetTransactionCount(this.credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
                 .getTransactionCount();
 
-        String precomputedAddress = ContractDeployer.computeL2Create2Address(new Address(this.credentials.getAddress()), Numeric.hexStringToByteArray(CounterContract.BINARY), new byte[] {}, new byte[32]).getValue();
+        String precomputedAddress = ContractDeployer.computeL2Create2Address(new Address(this.credentials.getAddress()), Numeric.hexStringToByteArray(CounterContract.BINARY), new byte[]{}, new byte[32]).getValue();
 
         io.zksync.methods.request.Transaction estimate = io.zksync.methods.request.Transaction.create2ContractTransaction(
                 credentials.getAddress(),
@@ -573,10 +575,11 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getData(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
+                credentials.getAddress(),
                 estimate.getEip712Meta()
         );
 
-        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, TransactionRequest.from(transaction))).join();
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
         EthSendTransaction sent = this.zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
@@ -643,10 +646,11 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getData(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
+                credentials.getAddress(),
                 estimate.getEip712Meta()
         );
 
-        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, TransactionRequest.from(transaction))).join();
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
         EthSendTransaction sent = this.zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();

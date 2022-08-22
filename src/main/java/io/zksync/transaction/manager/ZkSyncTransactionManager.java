@@ -5,7 +5,6 @@ import io.zksync.crypto.signer.EthSigner;
 import io.zksync.methods.request.Eip712Meta;
 import io.zksync.methods.request.Transaction;
 import io.zksync.protocol.exceptions.JsonRpcResponseException;
-import io.zksync.transaction.TransactionRequest;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.protocol.ZkSync;
@@ -78,11 +77,12 @@ public class ZkSyncTransactionManager extends TransactionManager {
                     data,
                     BigInteger.ZERO,
                     gasPrice,
+                    getFromAddress(),
                     meta
             );
         }
 
-        String signature = getSigner().getDomain().thenCompose(domain -> getSigner().signTypedData(domain, TransactionRequest.from(transaction))).join();
+        String signature = getSigner().getDomain().thenCompose(domain -> getSigner().signTypedData(domain, transaction)).join();
         byte[] signed = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
         EthSendTransaction response = zkSync.ethSendRawTransaction(Numeric.toHexString(signed)).send();

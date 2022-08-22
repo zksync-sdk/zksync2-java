@@ -4,6 +4,7 @@ import io.zksync.crypto.eip712.Eip712Domain;
 import io.zksync.crypto.eip712.Eip712Encoder;
 import io.zksync.helper.CounterContract;
 import io.zksync.methods.request.Eip712Meta;
+import io.zksync.methods.request.PaymasterParams;
 import io.zksync.protocol.core.Token;
 import io.zksync.protocol.core.ZkSyncNetwork;
 import io.zksync.transaction.type.Transaction712;
@@ -15,14 +16,15 @@ import java.math.BigInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TransactionRequestTest extends BaseTransactionTest {
+public class Transaction712Test extends BaseTransactionTest {
 
     private static final Token FEE = BaseTransactionTest.FEE_TOKEN;
+    private static final String SENDER = "0x1234512345123451234512345123451234512345";
     private static final String RECEIVER = "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC";
 
     @Test
     public void testEncodeToEIP712TypeString() {
-        TransactionRequest transactionRequest = buildTransactionRequest();
+        Transaction712 transactionRequest = buildTransaction();
         String result = Eip712Encoder.encodeType(transactionRequest.intoEip712Struct());
 
         assertEquals(
@@ -32,7 +34,7 @@ public class TransactionRequestTest extends BaseTransactionTest {
 
     @Test
     public void testSerializeToEIP712EncodedValue() {
-        TransactionRequest transactionRequest = buildTransactionRequest();
+        Transaction712 transactionRequest = buildTransaction();
         byte[] encoded = Eip712Encoder.encodeValue(transactionRequest.intoEip712Struct()).getValue();
 
         assertEquals("0x8c1349f7824b3ccfd732378410f53504e02853633d851c900f11eea6a393b3d8",
@@ -41,16 +43,12 @@ public class TransactionRequestTest extends BaseTransactionTest {
 
     @Test
     public void testSerializeToEIP712Message() {
-        TransactionRequest transactionRequest = buildTransactionRequest();
+        Transaction712 transactionRequest = buildTransaction();
         byte[] encoded = Eip712Encoder.typedDataToSignedBytes(Eip712Domain.defaultDomain(ZkSyncNetwork.Localhost),
                 transactionRequest);
 
         assertEquals("0x3ca537c84fa3d7af9312ce299e2e43f70c9a12f35132882487886e698dde126d",
                 Numeric.toHexString(encoded));
-    }
-
-    private TransactionRequest buildTransactionRequest() {
-        return TransactionRequest.from(buildTransaction());
     }
 
     private Transaction712 buildTransaction() {
@@ -63,11 +61,12 @@ public class TransactionRequestTest extends BaseTransactionTest {
                 FunctionEncoder.encode(CounterContract.encodeIncrement(BigInteger.valueOf(42))),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
+                SENDER,
                 new Eip712Meta(
                         BigInteger.ZERO,
                         null,
                         null,
-                        null
+                        new PaymasterParams()
                 )
         );
     }
