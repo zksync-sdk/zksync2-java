@@ -132,11 +132,11 @@ public class Transaction712 extends Transaction1559 implements Structurable {
     }
 
     public String getPaymaster() {
-        return getMeta().getPaymasterParams().getPaymaster();
+        return getMeta() != null ? getMeta().getPaymasterParams().getPaymaster() : null;
     }
 
     public byte[] getPaymasterInput() {
-        return getMeta().getPaymasterParams().getPaymasterInput();
+        return getMeta() != null ? getMeta().getPaymasterParams().getPaymasterInput() : null;
     }
 
     @Override
