@@ -88,7 +88,5 @@ public interface ZkSync extends Web3j {
 
     Request<?, ZksMessageProof> zksGetL2ToL1MsgProof(Integer block, String sender, String message, @Nullable Long l2LogPosition);
 
-    Request<?, EthGasPrice> ethGasPrice(String tokenAddress);
-
     Request<?, EthEstimateGas> ethEstimateGas(Transaction transaction);
 }

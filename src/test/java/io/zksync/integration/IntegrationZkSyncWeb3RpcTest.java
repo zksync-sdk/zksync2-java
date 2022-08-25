@@ -194,7 +194,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         EthEstimateGas estimateGas = zksync.ethEstimateGas(estimate).send();
 
-        EthGasPrice gasPrice = zksync.ethGasPrice(ETH.getL2Address()).send();
+        EthGasPrice gasPrice = zksync.ethGasPrice().send();
 
         assertResponse(estimateGas);
         assertResponse(gasPrice);
@@ -280,7 +280,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         EthEstimateGas estimateGas = zksync.ethEstimateGas(estimate).send();
 
-        EthGasPrice gasPrice = zksync.ethGasPrice(ETH.getL2Address()).send();
+        EthGasPrice gasPrice = zksync.ethGasPrice().send();
 
         assertResponse(estimateGas);
         assertResponse(gasPrice);
@@ -348,7 +348,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         EthEstimateGas estimateGas = zksync.ethEstimateGas(estimate).send();
 
-        EthGasPrice gasPrice = zksync.ethGasPrice(ETH.getL2Address()).send();
+        EthGasPrice gasPrice = zksync.ethGasPrice().send();
 
         assertResponse(estimateGas);
         assertResponse(gasPrice);
@@ -500,7 +500,7 @@ public class IntegrationZkSyncWeb3RpcTest {
         );
 
         EthEstimateGas estimateGas = zksync.ethEstimateGas(estimate).send();
-        EthGasPrice gasPrice = zksync.ethGasPrice(ETH.getL2Address()).send();
+        EthGasPrice gasPrice = zksync.ethGasPrice().send();
 
         assertResponse(estimateGas);
         assertResponse(gasPrice);
@@ -563,7 +563,7 @@ public class IntegrationZkSyncWeb3RpcTest {
         );
 
         EthEstimateGas estimateGas = zksync.ethEstimateGas(estimate).send();
-        EthGasPrice gasPrice = zksync.ethGasPrice(ETH.getL2Address()).send();
+        EthGasPrice gasPrice = zksync.ethGasPrice().send();
 
         assertResponse(estimateGas);
         assertResponse(gasPrice);
@@ -623,7 +623,7 @@ public class IntegrationZkSyncWeb3RpcTest {
         );
 
         EthEstimateGas estimateGas = zksync.ethEstimateGas(estimate).send();
-        EthGasPrice gasPrice = zksync.ethGasPrice(ETH.getL2Address()).send();
+        EthGasPrice gasPrice = zksync.ethGasPrice().send();
 
         assertResponse(estimateGas);
         assertResponse(gasPrice);
@@ -694,7 +694,7 @@ public class IntegrationZkSyncWeb3RpcTest {
         );
 
         EthEstimateGas estimateGas = zksync.ethEstimateGas(estimate).send();
-        EthGasPrice gasPrice = zksync.ethGasPrice(ETH.getL2Address()).send();
+        EthGasPrice gasPrice = zksync.ethGasPrice().send();
 
         assertResponse(estimateGas);
         assertResponse(gasPrice);

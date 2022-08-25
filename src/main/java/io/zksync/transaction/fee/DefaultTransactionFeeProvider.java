@@ -35,12 +35,12 @@ public class DefaultTransactionFeeProvider implements ZkTransactionFeeProvider {
 
     @Override
     public BigInteger getGasPrice(String contractFunc) {
-        return zksync.ethGasPrice(feeToken.getL2Address()).sendAsync().join().getGasPrice();
+        return zksync.ethGasPrice().sendAsync().join().getGasPrice();
     }
 
     @Override
     public BigInteger getGasPrice() {
-        return zksync.ethGasPrice(feeToken.getL2Address()).sendAsync().join().getGasPrice();
+        return zksync.ethGasPrice().sendAsync().join().getGasPrice();
     }
 
     @Override

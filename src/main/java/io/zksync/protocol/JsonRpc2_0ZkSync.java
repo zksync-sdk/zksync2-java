@@ -91,12 +91,6 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     }
 
     @Override
-    public Request<?, EthGasPrice> ethGasPrice(String tokenAddress) {
-        return new Request<>(
-                "eth_gasPrice", Collections.singletonList(tokenAddress), web3jService, EthGasPrice.class);
-    }
-
-    @Override
     public Request<?, EthEstimateGas> ethEstimateGas(Transaction transaction) {
         return new Request<>(
                 "eth_estimateGas", Collections.singletonList(transaction), web3jService, EthEstimateGas.class);
