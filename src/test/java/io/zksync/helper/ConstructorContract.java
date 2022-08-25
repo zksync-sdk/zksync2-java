@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Collections;
 
 import io.zksync.abi.ZkFunctionEncoder;
 import org.web3j.abi.FunctionEncoder;
@@ -76,11 +77,17 @@ public class ConstructorContract extends Contract {
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public static byte[] encodeConstructor(BigInteger a, BigInteger b, Boolean shouldRevert) {
-        String calldata = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(a),
+    public static Function encodeGet() {
+        return new Function(FUNC_GET,
+                Collections.emptyList(),
+                Collections.singletonList(new TypeReference<Uint256>() {
+                }));
+    }
+
+    public static String encodeConstructor(BigInteger a, BigInteger b, Boolean shouldRevert) {
+        return FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(a),
                 new org.web3j.abi.datatypes.generated.Uint256(b),
                 new org.web3j.abi.datatypes.Bool(shouldRevert)));
-        return ZkFunctionEncoder.encodeConstructor(Numeric.hexStringToByteArray(calldata));
     }
 
     @Deprecated

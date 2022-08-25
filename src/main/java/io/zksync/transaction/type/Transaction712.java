@@ -43,35 +43,33 @@ public class Transaction712 extends Transaction1559 implements Structurable {
     public List<RlpType> asRlpValues(Sign.SignatureData signatureData) {
         List<RlpType> result = new ArrayList<>();
 
-        result.add(RlpString.create(getNonce()));
+        result.add(RlpString.create(getNonce())); // 0
 
         // add maxPriorityFeePerGas and maxFeePerGas if this is an EIP-1559 transaction
-        result.add(RlpString.create(getMaxPriorityFeePerGas()));
-        result.add(RlpString.create(getMaxFeePerGas()));// GasPrice
+        result.add(RlpString.create(getMaxPriorityFeePerGas())); // 1
+        result.add(RlpString.create(getMaxFeePerGas()));// GasPrice // 2
 
-        result.add(RlpString.create(getGasLimit()));
+        result.add(RlpString.create(getGasLimit())); // 3
 
         // an empty to address (contract creation) should not be encoded as a numeric 0 value
         String to = getTo();
         if (to != null && to.length() > 0) {
             // addresses that start with zeros should be encoded with the zeros included, not
             // as numeric values
-            result.add(RlpString.create(Numeric.hexStringToByteArray(to)));
+            result.add(RlpString.create(Numeric.hexStringToByteArray(to))); // 4
         } else {
-            result.add(RlpString.create(""));
+            result.add(RlpString.create("")); // 4
         }
 
-        result.add(RlpString.create(getValue()));
+        result.add(RlpString.create(getValue())); // 5
 
         // value field will already be hex encoded, so we need to convert into binary first
         byte[] data = Numeric.hexStringToByteArray(getData());
-        result.add(RlpString.create(data));
-
-        // access list
-        result.add(new RlpList());
+        result.add(RlpString.create(data)); // 6
 
         if (signatureData != null) {
-            result.add(RlpString.create(Sign.getRecId(signatureData, getChainId()))); // 7
+            byte[] v = signatureData.getV()[0] == (byte) 0 ? new byte[] {} : signatureData.getV();
+            result.add(RlpString.create(v)); //7
             result.add(RlpString.create(Bytes.trimLeadingZeroes(signatureData.getR()))); // 8
             result.add(RlpString.create(Bytes.trimLeadingZeroes(signatureData.getS()))); // 9
         }
@@ -80,7 +78,7 @@ public class Transaction712 extends Transaction1559 implements Structurable {
 
         result.add(RlpString.create(getChainId())); // 10
 
-        result.add(RlpString.create("")); // From (currently empty) // 11
+        result.add(RlpString.create(Numeric.hexStringToByteArray(getFrom()))); // 11
 
         BigInteger ergsPerPubdata = getErgsPerPubdata();
         result.add(RlpString.create(ergsPerPubdata)); //12
@@ -119,6 +117,10 @@ public class Transaction712 extends Transaction1559 implements Structurable {
         return result;
     }
 
+    public String getFrom() {
+        return from;
+    }
+
     public BigInteger getErgsPerPubdata() {
         return meta.getErgsPerPubdataNumber();
     }
@@ -132,11 +134,11 @@ public class Transaction712 extends Transaction1559 implements Structurable {
     }
 
     public String getPaymaster() {
-        return getMeta() != null ? getMeta().getPaymasterParams().getPaymaster() : null;
+        return getMeta() != null && getMeta().getPaymasterParams() != null ? getMeta().getPaymasterParams().getPaymaster() : null;
     }
 
     public byte[] getPaymasterInput() {
-        return getMeta() != null ? getMeta().getPaymasterParams().getPaymasterInput() : null;
+        return getMeta() != null && getMeta().getPaymasterParams() != null ? getMeta().getPaymasterParams().getPaymasterInput() : null;
     }
 
     @Override
@@ -155,7 +157,7 @@ public class Transaction712 extends Transaction1559 implements Structurable {
         List<Pair<String, Type<?>>> result = new ArrayList<>(8);
 
         result.add(Pair.of("txType", new Uint8(Transaction712.EIP_712_TX_TYPE)));
-        result.add(Pair.of("from", new Uint256(Numeric.toBigInt(from))));
+        result.add(Pair.of("from", new Uint256(Numeric.toBigInt(getFrom()))));
         result.add(Pair.of("to", getTo() != null ? new Uint256(Numeric.toBigInt(getTo())) : Uint256.DEFAULT));
         result.add(Pair.of("ergsLimit", new Uint256(getGasLimit())));
         result.add(Pair.of("ergsPerPubdataByteLimit", new Uint256(getErgsPerPubdata())));

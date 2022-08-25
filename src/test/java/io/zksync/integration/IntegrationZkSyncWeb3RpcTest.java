@@ -3,6 +3,7 @@ package io.zksync.integration;
 import io.zksync.abi.TransactionEncoder;
 import io.zksync.crypto.signer.EthSigner;
 import io.zksync.crypto.signer.PrivateKeyEthSigner;
+import io.zksync.helper.ConstructorContract;
 import io.zksync.helper.CounterContract;
 import io.zksync.methods.response.*;
 import io.zksync.protocol.ZkSync;
@@ -208,7 +209,7 @@ public class IntegrationZkSyncWeb3RpcTest {
                 Convert.toWei(BigDecimal.valueOf(1), Unit.ETHER).toBigInteger(),
                 estimate.getData(),
                 BigInteger.ZERO,
-                BigInteger.ZERO,
+                gasPrice.getGasPrice(),
                 credentials.getAddress(),
                 estimate.getEip712Meta()
         );
@@ -233,7 +234,7 @@ public class IntegrationZkSyncWeb3RpcTest {
                 credentials.getAddress(),
                 BigDecimal.valueOf(1),
                 Unit.ETHER,
-                BigInteger.ZERO,
+                Convert.toWei("3", Unit.GWEI).toBigInteger(),
                 BigInteger.valueOf(50_000L)
         ).send();
 
@@ -538,6 +539,69 @@ public class IntegrationZkSyncWeb3RpcTest {
                 credentials.getAddress(),
                 contractAddress,
                 FunctionEncoder.encode(CounterContract.encodeGet())
+        );
+
+        zksync.ethCall(call, ZkBlockParameterName.COMMITTED).send();
+    }
+
+    @Test
+    public void testDeployContractWithConstructor_Create() throws IOException, TransactionException {
+        BigInteger nonce = this.zksync
+                .ethGetTransactionCount(this.credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
+                .getTransactionCount();
+
+        String precomputedAddress = ContractDeployer.computeL2CreateAddress(new Address(this.credentials.getAddress()), nonce).getValue();
+
+        String constructor = ConstructorContract.encodeConstructor(BigInteger.valueOf(42), BigInteger.valueOf(43), false);
+
+        io.zksync.methods.request.Transaction estimate = io.zksync.methods.request.Transaction.createContractTransaction(
+                credentials.getAddress(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
+                ConstructorContract.BINARY,
+                constructor
+        );
+
+        EthEstimateGas estimateGas = zksync.ethEstimateGas(estimate).send();
+        EthGasPrice gasPrice = zksync.ethGasPrice(ETH.getL2Address()).send();
+
+        assertResponse(estimateGas);
+        assertResponse(gasPrice);
+
+        System.out.printf("Fee for transaction is: %d\n", estimateGas.getAmountUsed().multiply(gasPrice.getGasPrice()));
+
+        Transaction712 transaction = new Transaction712(
+                chainId.longValue(),
+                nonce,
+                estimateGas.getAmountUsed(),
+                estimate.getTo(),
+                estimate.getValueNumber(),
+                estimate.getData(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
+                credentials.getAddress(),
+                estimate.getEip712Meta()
+        );
+
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
+        byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
+
+        EthSendTransaction sent = this.zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
+
+        assertResponse(sent);
+
+        TransactionReceipt receipt = this.processor.waitForTransactionReceipt(sent.getResult());
+
+        assertTrue(receipt::isStatusOK);
+
+        this.contractAddress = receipt.getContractAddress();
+        System.out.println("Deployed `ConstructorContract as: `" + this.contractAddress);
+        assertEquals(this.contractAddress.toLowerCase(), precomputedAddress.toLowerCase());
+
+        Transaction call = Transaction.createEthCallTransaction(
+                credentials.getAddress(),
+                contractAddress,
+                FunctionEncoder.encode(ConstructorContract.encodeGet())
         );
 
         zksync.ethCall(call, ZkBlockParameterName.COMMITTED).send();

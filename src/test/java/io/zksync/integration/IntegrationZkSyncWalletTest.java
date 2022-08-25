@@ -158,8 +158,8 @@ public class IntegrationZkSyncWalletTest {
         assertResponse(code);
         assertEquals("0x", code.getCode());
 
-        byte[] constructor = ConstructorContract.encodeConstructor(BigInteger.valueOf(42), BigInteger.valueOf(43), false);
-        TransactionReceipt receipt = wallet.deploy(Numeric.hexStringToByteArray(ConstructorContract.BINARY), constructor).send();
+        String constructor = ConstructorContract.encodeConstructor(BigInteger.valueOf(42), BigInteger.valueOf(43), false);
+        TransactionReceipt receipt = wallet.deploy(Numeric.hexStringToByteArray(ConstructorContract.BINARY), Numeric.hexStringToByteArray(constructor)).send();
 
         assertTrue(receipt.isStatusOK());
 

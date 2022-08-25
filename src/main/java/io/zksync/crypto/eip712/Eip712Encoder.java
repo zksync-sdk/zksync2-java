@@ -8,11 +8,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.BytesType;
-import org.web3j.abi.datatypes.NumericType;
-import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.crypto.Hash;
 import org.web3j.utils.Numeric;
@@ -29,6 +25,11 @@ public class Eip712Encoder {
         } else if (value instanceof NumericType) {
             NumericType nt = (NumericType) value;
             return new Bytes32(Numeric.toBytesPadded(nt.getValue(), 32));
+        } else if (value instanceof DynamicArray) {
+            List<Type<?>> members = ((DynamicArray<Type<?>>) value).getValue();
+            ByteBuffer bytes = ByteBuffer.allocate(members.size() * 32);
+            members.stream().map(Eip712Encoder::encodeValue).forEach(bytes32 -> bytes.put(bytes32.getValue()));
+            return new Bytes32(Hash.sha3(bytes.array()));
         } else if (value instanceof BytesType) {
             BytesType bt = (BytesType) value;
             byte[] bytes = Hash.sha3(bt.getValue());
@@ -51,7 +52,7 @@ public class Eip712Encoder {
             }
             return new Bytes32(Hash.sha3(bytes.array()));
         } else {
-            throw new IllegalArgumentException("Unsupported ethereum type");
+            throw new IllegalArgumentException(String.format("Unsupported ethereum type: \"%s\"", value.getTypeAsString()));
         }
     }
 

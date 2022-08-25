@@ -71,6 +71,20 @@ public class Transaction {
         return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldata, meta);
     }
 
+    public static Transaction create2ContractTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            String bytecode,
+            String calldata
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        byte[] calldataBytes = Numeric.hexStringToByteArray(calldata);
+        String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate2(bytecodeBytes, calldataBytes));
+        Eip712Meta meta = new Eip712Meta(BigInteger.ZERO, null, new byte[][] {bytecodeBytes}, null);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldataCreate, meta);
+    }
+
     public static Transaction createContractTransaction(
             String from,
             BigInteger ergsPrice,
@@ -94,6 +108,20 @@ public class Transaction {
         String calldata = FunctionEncoder.encode(ContractDeployer.encodeCreate(bytecodeBytes));
         Eip712Meta meta = new Eip712Meta(BigInteger.ZERO, null, new byte[][] {bytecodeBytes}, null);
         return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldata, meta);
+    }
+
+    public static Transaction createContractTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            String bytecode,
+            String calldata
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        byte[] calldataBytes = Numeric.hexStringToByteArray(calldata);
+        String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate(bytecodeBytes, calldataBytes));
+        Eip712Meta meta = new Eip712Meta(BigInteger.ZERO, null, new byte[][] {bytecodeBytes}, null);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldataCreate, meta);
     }
 
     public static Transaction createFunctionCallTransaction(
