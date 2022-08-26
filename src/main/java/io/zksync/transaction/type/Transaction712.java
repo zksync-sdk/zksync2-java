@@ -8,7 +8,6 @@ import org.web3j.abi.datatypes.DynamicBytes;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Sign;
 import org.web3j.crypto.transaction.type.Transaction1559;
@@ -16,9 +15,10 @@ import org.web3j.crypto.transaction.type.TransactionType;
 import org.web3j.rlp.RlpList;
 import org.web3j.rlp.RlpString;
 import org.web3j.rlp.RlpType;
-import org.web3j.utils.Bytes;
 import org.web3j.utils.Numeric;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,14 +67,11 @@ public class Transaction712 extends Transaction1559 implements Structurable {
         byte[] data = Numeric.hexStringToByteArray(getData());
         result.add(RlpString.create(data)); // 6
 
-        if (signatureData != null) {
-            byte[] v = signatureData.getV()[0] == (byte) 0 ? new byte[] {} : signatureData.getV();
-            result.add(RlpString.create(v)); //7
-            result.add(RlpString.create(Bytes.trimLeadingZeroes(signatureData.getR()))); // 8
-            result.add(RlpString.create(Bytes.trimLeadingZeroes(signatureData.getS()))); // 9
-        }
-
         // ZkSync part
+
+        result.add(RlpString.create(getChainId())); //7
+        result.add(RlpString.create("")); // 8
+        result.add(RlpString.create("")); // 9
 
         result.add(RlpString.create(getChainId())); // 10
 
@@ -98,7 +95,16 @@ public class Transaction712 extends Transaction1559 implements Structurable {
         if (getMeta().getCustomSignature() != null) {
             result.add(RlpString.create(getMeta().getCustomSignature())); // 14
         } else {
-            result.add(RlpString.create("")); // 14
+            final ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+            try {
+                output.write(signatureData.getR());
+                output.write(signatureData.getS());
+                output.write(signatureData.getV());
+            } catch (IOException e) {
+                throw new IllegalStateException("Error when creating ETH signature", e);
+            }
+            result.add(RlpString.create(output.toByteArray())); // 14
         }
 
         List<RlpType> paymasterParams;
@@ -154,9 +160,9 @@ public class Transaction712 extends Transaction1559 implements Structurable {
 
     @Override
     public List<Pair<String, Type<?>>> eip712types() {
-        List<Pair<String, Type<?>>> result = new ArrayList<>(8);
+        List<Pair<String, Type<?>>> result = new ArrayList<>(13);
 
-        result.add(Pair.of("txType", new Uint8(Transaction712.EIP_712_TX_TYPE)));
+        result.add(Pair.of("txType", new Uint256(Transaction712.EIP_712_TX_TYPE)));
         result.add(Pair.of("from", new Uint256(Numeric.toBigInt(getFrom()))));
         result.add(Pair.of("to", getTo() != null ? new Uint256(Numeric.toBigInt(getTo())) : Uint256.DEFAULT));
         result.add(Pair.of("ergsLimit", new Uint256(getGasLimit())));

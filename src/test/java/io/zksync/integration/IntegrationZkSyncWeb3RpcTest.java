@@ -83,7 +83,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         this.signer = new PrivateKeyEthSigner(credentials, chainId.longValue());
 
-        this.processor = new ZkSyncTransactionReceiptProcessor(this.zksync, 200, 10);
+        this.processor = new ZkSyncTransactionReceiptProcessor(this.zksync, 200, 100);
 
         this.feeProvider = new DefaultTransactionFeeProvider(zksync, ETH);
 
@@ -208,7 +208,7 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getTo(),
                 Convert.toWei(BigDecimal.valueOf(1), Unit.ETHER).toBigInteger(),
                 estimate.getData(),
-                BigInteger.ZERO,
+                BigInteger.valueOf(100000000L),
                 gasPrice.getGasPrice(),
                 credentials.getAddress(),
                 estimate.getEip712Meta()
@@ -514,8 +514,8 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                BigInteger.ZERO,
-                BigInteger.ZERO,
+                BigInteger.valueOf(100000000L),
+                gasPrice.getGasPrice(),
                 credentials.getAddress(),
                 estimate.getEip712Meta()
         );
