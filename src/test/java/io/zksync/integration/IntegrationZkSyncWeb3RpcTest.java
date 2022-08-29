@@ -294,8 +294,8 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                BigInteger.ZERO,
-                BigInteger.ZERO,
+                BigInteger.valueOf(100000000L),
+                gasPrice.getGasPrice(),
                 credentials.getAddress(),
                 estimate.getEip712Meta()
         );
@@ -362,8 +362,8 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                BigInteger.ZERO,
-                BigInteger.ZERO,
+                BigInteger.valueOf(100000000L),
+                gasPrice.getGasPrice(),
                 credentials.getAddress(),
                 estimate.getEip712Meta()
         );
@@ -577,8 +577,8 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                BigInteger.ZERO,
-                BigInteger.ZERO,
+                BigInteger.valueOf(100000000L),
+                gasPrice.getGasPrice(),
                 credentials.getAddress(),
                 estimate.getEip712Meta()
         );
@@ -637,8 +637,8 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                BigInteger.ZERO,
-                BigInteger.ZERO,
+                BigInteger.valueOf(100000000L),
+                gasPrice.getGasPrice(),
                 credentials.getAddress(),
                 estimate.getEip712Meta()
         );
@@ -708,8 +708,8 @@ public class IntegrationZkSyncWeb3RpcTest {
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                BigInteger.ZERO,
-                BigInteger.ZERO,
+                BigInteger.valueOf(100000000L),
+                gasPrice.getGasPrice(),
                 credentials.getAddress(),
                 estimate.getEip712Meta()
         );

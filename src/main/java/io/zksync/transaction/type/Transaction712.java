@@ -182,11 +182,23 @@ public class Transaction712 extends Transaction1559 implements Structurable {
     private DynamicArray<Bytes32> getFactoryDepsHashes() {
         if (getFactoryDeps() != null) {
             return new DynamicArray<>(Bytes32.class, Arrays.stream(getFactoryDeps())
-                    .map(Hash::sha3)
+                    .map(this::hashBytecode)
                     .map(Bytes32::new)
                     .collect(Collectors.toList()));
         } else {
             return new DynamicArray<>(Bytes32.class, Collections.emptyList());
         }
+    }
+
+    private byte[] hashBytecode(byte[] bytecode) {
+        byte[] hash = Hash.sha256(bytecode);
+
+        BigInteger bytecodeLen = BigInteger.valueOf(bytecode.length).divide(BigInteger.valueOf(32));
+
+        byte[] lenBytes = Numeric.toBytesPadded(bytecodeLen, 2);
+
+        System.arraycopy(lenBytes, 0, hash, 0, lenBytes.length);
+
+        return hash;
     }
 }
