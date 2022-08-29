@@ -18,7 +18,7 @@ import io.zksync.transaction.type.Transaction712;
 import io.zksync.utils.ContractDeployer;
 import io.zksync.utils.ZkSyncAddresses;
 import io.zksync.wrappers.ERC20;
-import io.zksync.wrappers.L2ETHBridge;
+import io.zksync.wrappers.IL2Bridge;
 import io.zksync.wrappers.NonceHolder;
 import org.junit.Before;
 import org.junit.Test;
@@ -330,7 +330,7 @@ public class IntegrationZkSyncWeb3RpcTest {
                 .getTransactionCount();
         String l2EthBridge = zksync.zksGetBridgeContracts().send().getResult().getL2EthDefaultBridge();
         final Function withdraw = new Function(
-                L2ETHBridge.FUNC_WITHDRAW,
+                IL2Bridge.FUNC_WITHDRAW,
                 Arrays.asList(new Address(credentials.getAddress()),
                         new Address(ETH.getL2Address()),
                         new Uint256(ETH.toBigInteger(1))),
@@ -384,7 +384,7 @@ public class IntegrationZkSyncWeb3RpcTest {
     public void testEstimateGas_Withdraw() throws IOException {
         String l2EthBridge = zksync.zksGetBridgeContracts().send().getResult().getL2EthDefaultBridge();
         final Function withdraw = new Function(
-                L2ETHBridge.FUNC_WITHDRAW,
+                IL2Bridge.FUNC_WITHDRAW,
                 Arrays.asList(new Address(credentials.getAddress()),
                         new Address(ETH.getL2Address()),
                         new Uint256(ETH.toBigInteger(1))),

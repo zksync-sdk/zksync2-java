@@ -6,8 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import io.zksync.protocol.core.BridgeAddresses;
 import io.zksync.protocol.exceptions.JsonRpcResponseException;
-import io.zksync.wrappers.L1ERC20Bridge;
-import io.zksync.wrappers.L1EthBridge;
+import io.zksync.wrappers.IL1Bridge;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.TransactionManager;
@@ -88,8 +87,8 @@ public interface EthereumProvider {
             .thenApply(response -> {
                 if (!response.hasError()) {
                     BridgeAddresses bridgeAddresses = response.getResult();
-                    L1ERC20Bridge erc20Bridge = L1ERC20Bridge.load(bridgeAddresses.getL1Erc20DefaultBridge(), ethereum, transactionManager, gasProvider);
-                    L1EthBridge ethBridge = L1EthBridge.load(bridgeAddresses.getL1EthDefaultBridge(), ethereum, transactionManager, gasProvider);
+                    IL1Bridge erc20Bridge = IL1Bridge.load(bridgeAddresses.getL1Erc20DefaultBridge(), ethereum, transactionManager, gasProvider);
+                    IL1Bridge ethBridge = IL1Bridge.load(bridgeAddresses.getL1EthDefaultBridge(), ethereum, transactionManager, gasProvider);
                     return new DefaultEthereumProvider(ethereum, transactionManager, gasProvider, null, erc20Bridge, ethBridge);
                 } else {
                     throw new JsonRpcResponseException(response);

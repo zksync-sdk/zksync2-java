@@ -11,7 +11,7 @@ import io.zksync.protocol.exceptions.JsonRpcResponseException;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.wrappers.ERC20;
-import io.zksync.wrappers.L2ETHBridge;
+import io.zksync.wrappers.IL2Bridge;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Address;
@@ -129,7 +129,7 @@ public class ZkSyncWallet {
         Token tokenToUse = token == null ? Token.ETH : token;
 
         Function function = new Function(
-                L2ETHBridge.FUNC_WITHDRAW,
+                IL2Bridge.FUNC_WITHDRAW,
                 Arrays.asList(new Address(to),
                         new Address(tokenToUse.getL2Address()),
                         new Uint256(amount)),

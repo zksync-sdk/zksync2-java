@@ -32,8 +32,8 @@ public class DefaultEthereumProvider implements EthereumProvider {
     private final TransactionManager transactionManager;
     private final ContractGasProvider gasProvider;
     private final ZkSyncContract contract;
-    private final L1ERC20Bridge l1ERC20Bridge;
-    private final L1EthBridge l1EthBridge;
+    private final IL1Bridge l1ERC20Bridge;
+    private final IL1Bridge l1EthBridge;
 
     public CompletableFuture<BigInteger> getGasPrice() {
         return web3j.ethGasPrice()
