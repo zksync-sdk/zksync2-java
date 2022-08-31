@@ -71,10 +71,11 @@ public class DefaultEthereumProvider implements EthereumProvider {
 
     @Override
     public CompletableFuture<TransactionReceipt> deposit(Token token, BigInteger amount, String userAddress) {
+        BigInteger tips = BigInteger.ZERO;
         if (token.isETH()) {
-            return l1EthBridge.deposit(userAddress, Address.DEFAULT.getValue(), amount).sendAsync();
+            return l1EthBridge.deposit(userAddress, Address.DEFAULT.getValue(), amount, amount.add(tips)).sendAsync();
         } else {
-            return l1ERC20Bridge.deposit(userAddress, token.getL1Address(), amount).sendAsync();
+            return l1ERC20Bridge.deposit(userAddress, token.getL1Address(), amount, tips).sendAsync();
         }
     }
 

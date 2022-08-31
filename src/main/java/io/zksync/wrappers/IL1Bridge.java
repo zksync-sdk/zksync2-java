@@ -209,14 +209,14 @@ public class IL1Bridge extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> deposit(String _l2Receiver, String _l1Token, BigInteger _amount) {
+    public RemoteFunctionCall<TransactionReceipt> deposit(String _l2Receiver, String _l1Token, BigInteger _amount, BigInteger _amountValue) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
                 FUNC_DEPOSIT, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_l2Receiver), 
                 new org.web3j.abi.datatypes.Address(_l1Token), 
                 new org.web3j.abi.datatypes.generated.Uint256(_amount)), 
                 Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
+        return executeRemoteCallTransaction(function, _amountValue);
     }
 
     public RemoteFunctionCall<TransactionReceipt> finalizeWithdrawal(BigInteger _l2BlockNumber, BigInteger _l2MessageIndex, byte[] _message, List<byte[]> _merkleProof) {
