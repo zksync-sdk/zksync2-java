@@ -107,7 +107,44 @@ public class ContractDeployer {
 
         return new Function(
                 "create",
-                Arrays.asList(new Bytes32(new byte[32]), new Bytes32(bytecodeHash), new Uint256(0), DynamicBytes.DEFAULT),
+                Arrays.asList(new Bytes32(new byte[32]), new Bytes32(bytecodeHash), new Uint256(0), new DynamicBytes(calldata)),
+                Collections.emptyList()
+        );
+    }
+
+    public static Function encodeCreate2Account(byte[] bytecode) {
+        return encodeCreate2Account(bytecode, new byte[] {}, new byte[32]);
+    }
+
+    public static Function encodeCreate2Account(byte[] bytecode, byte[] calldata) {
+        return encodeCreate2Account(bytecode, calldata, new byte[32]);
+    }
+
+    public static Function encodeCreate2Account(byte[] bytecode, byte[] calldata, byte[] salt) {
+        Assertions.verifyPrecondition(salt.length == 32, "Salt length must be 32 bytes");
+        byte[] bytecodeHash = hashBytecode(bytecode);
+
+        return new Function(
+                "create2Account",
+                Arrays.asList(new Bytes32(salt), new Bytes32(bytecodeHash), new Uint256(0), new DynamicBytes(calldata)),
+                Collections.emptyList()
+        );
+    }
+
+    public static Function encodeCreateAccount(byte[] bytecode) {
+        return encodeCreateAccount(bytecode, new byte[] {}, new byte[32]);
+    }
+
+    public static Function encodeCreateAccount(byte[] bytecode, byte[] calldata) {
+        return encodeCreateAccount(bytecode, calldata, new byte[32]);
+    }
+
+    public static Function encodeCreateAccount(byte[] bytecode, byte[] calldata, byte[] salt) {
+        byte[] bytecodeHash = hashBytecode(bytecode);
+
+        return new Function(
+                "createAccount",
+                Arrays.asList(new Bytes32(new byte[32]), new Bytes32(bytecodeHash), new Uint256(0), new DynamicBytes(calldata)),
                 Collections.emptyList()
         );
     }

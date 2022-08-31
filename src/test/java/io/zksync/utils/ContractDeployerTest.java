@@ -1,10 +1,9 @@
 package io.zksync.utils;
 
 import io.zksync.helper.CounterContract;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.web3j.abi.datatypes.Address;
-import org.web3j.crypto.Hash;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
