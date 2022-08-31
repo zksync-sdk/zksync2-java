@@ -21,15 +21,15 @@ public class Eip712Domain implements Structurable {
     public static final String VERSION = "2";
 
     public static Eip712Domain defaultDomain(ZkSyncNetwork chainId) {
-        return new Eip712Domain(new Utf8String(NAME), new Utf8String(VERSION), new Uint256(chainId.getChainId()), Address.DEFAULT);
+        return new Eip712Domain(new Utf8String(NAME), new Utf8String(VERSION), new Uint256(chainId.getChainId()), null);
     }
 
     public static Eip712Domain defaultDomain(Long chainId) {
-        return new Eip712Domain(new Utf8String(NAME), new Utf8String(VERSION), new Uint256(chainId), Address.DEFAULT);
+        return new Eip712Domain(new Utf8String(NAME), new Utf8String(VERSION), new Uint256(chainId), null);
     }
 
     public Eip712Domain(String name, String version, Long chainId) {
-        this(new Utf8String(name), new Utf8String(version), new Uint256(chainId), Address.DEFAULT);
+        this(new Utf8String(name), new Utf8String(version), new Uint256(chainId), null);
     }
 
     public Eip712Domain(String name, String version, ZkSyncNetwork chainId, String address) {
@@ -59,6 +59,7 @@ public class Eip712Domain implements Structurable {
             add(Pair.of("name", name));
             add(Pair.of("version", version));
             add(Pair.of("chainId", chainId));
+            if (verifyingContract != null) add(Pair.of("verifyingContract", verifyingContract));
         }};
     }
 
