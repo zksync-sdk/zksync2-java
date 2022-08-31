@@ -10,8 +10,8 @@ import io.zksync.protocol.core.Token;
 import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.protocol.provider.EthereumProvider;
 import io.zksync.transaction.manager.ZkSyncTransactionManager;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.crypto.ContractUtils;
 import org.web3j.crypto.Credentials;
@@ -39,11 +39,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class IntegrationZkSyncWalletTest {
 
-    private ZkSyncWallet wallet;
-    private Credentials credentials;
+    private static ZkSyncWallet wallet;
+    private static Credentials credentials;
 
-    @Before
-    public void setUp() {
+    @BeforeAll
+    public static void setUp() {
         ZkSync zksync = ZkSync.build(new HttpService("http://206.189.96.247:3050"));
         credentials = Credentials.create(ECKeyPair.create(BigInteger.ONE));
 
@@ -51,7 +51,7 @@ public class IntegrationZkSyncWalletTest {
 
         EthSigner signer = new PrivateKeyEthSigner(credentials, chainId.longValue());
 
-        this.wallet = new ZkSyncWallet(zksync, signer, Token.ETH);
+        wallet = new ZkSyncWallet(zksync, signer, Token.ETH);
     }
 
     @Test
@@ -62,7 +62,7 @@ public class IntegrationZkSyncWalletTest {
 
         EthSendTransaction sent = web3j.ethSendTransaction(
                         Transaction.createEtherTransaction(account, null, BigInteger.ZERO, BigInteger.valueOf(21_000L),
-                                this.credentials.getAddress(), Convert.toWei("1000", Convert.Unit.ETHER).toBigInteger()))
+                                credentials.getAddress(), Convert.toWei("1000", Convert.Unit.ETHER).toBigInteger()))
                 .sendAsync().join();
 
         assertResponse(sent);
@@ -85,7 +85,7 @@ public class IntegrationZkSyncWalletTest {
         BigInteger amount = Token.ETH.toBigInteger(0.5);
         BigInteger desiredFee = BigInteger.valueOf(10560L).multiply(BigInteger.valueOf(28572L)); // Only for test
         EthGetBalance balance = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED)
+                .ethGetBalance(credentials.getAddress(), ZkBlockParameterName.COMMITTED)
                 .send();
 
         assertResponse(balance);
@@ -95,7 +95,7 @@ public class IntegrationZkSyncWalletTest {
         assertTrue(receipt.isStatusOK());
 
         EthGetBalance balanceNew = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED)
+                .ethGetBalance(credentials.getAddress(), ZkBlockParameterName.COMMITTED)
                 .send();
 
         assertResponse(balanceNew);
@@ -108,17 +108,17 @@ public class IntegrationZkSyncWalletTest {
         BigInteger amount = Token.ETH.toBigInteger(0.5);
         BigInteger desiredFee = BigInteger.valueOf(10560L).multiply(BigInteger.valueOf(28572L)); // Only for test
         EthGetBalance balance = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED)
+                .ethGetBalance(credentials.getAddress(), ZkBlockParameterName.COMMITTED)
                 .send();
 
         assertResponse(balance);
 
-        TransactionReceipt receipt = wallet.withdraw(this.credentials.getAddress(), amount).send();
+        TransactionReceipt receipt = wallet.withdraw(credentials.getAddress(), amount).send();
 
         assertTrue(receipt.isStatusOK());
 
         EthGetBalance balanceNew = wallet.getZksync()
-                .ethGetBalance(this.credentials.getAddress(), ZkBlockParameterName.COMMITTED)
+                .ethGetBalance(credentials.getAddress(), ZkBlockParameterName.COMMITTED)
                 .send();
 
         assertResponse(balanceNew);
@@ -130,7 +130,7 @@ public class IntegrationZkSyncWalletTest {
     public void testDeploy() throws Exception {
 
         BigInteger nonce = wallet.getNonce().send();
-        String contractAddress = ContractUtils.generateContractAddress(this.credentials.getAddress(), nonce);
+        String contractAddress = ContractUtils.generateContractAddress(credentials.getAddress(), nonce);
 
         EthGetCode code = wallet.getZksync().ethGetCode(contractAddress, DefaultBlockParameterName.PENDING).send();
 
@@ -151,7 +151,7 @@ public class IntegrationZkSyncWalletTest {
     public void testDeployWithConstructor() throws Exception {
 
         BigInteger nonce = wallet.getNonce().send();
-        String contractAddress = ContractUtils.generateContractAddress(this.credentials.getAddress(), nonce);
+        String contractAddress = ContractUtils.generateContractAddress(credentials.getAddress(), nonce);
 
         EthGetCode code = wallet.getZksync().ethGetCode(contractAddress, DefaultBlockParameterName.PENDING).send();
 

@@ -2,19 +2,20 @@ package io.zksync.transaction.type;
 
 import io.zksync.crypto.eip712.Structurable;
 import io.zksync.methods.request.Eip712Meta;
+import io.zksync.utils.ContractDeployer;
 import org.apache.commons.lang3.tuple.Pair;
 import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.DynamicBytes;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.crypto.Hash;
 import org.web3j.crypto.Sign;
 import org.web3j.crypto.transaction.type.Transaction1559;
 import org.web3j.crypto.transaction.type.TransactionType;
 import org.web3j.rlp.RlpList;
 import org.web3j.rlp.RlpString;
 import org.web3j.rlp.RlpType;
+import org.web3j.utils.Assertions;
 import org.web3j.utils.Numeric;
 
 import java.io.ByteArrayOutputStream;
@@ -41,6 +42,7 @@ public class Transaction712 extends Transaction1559 implements Structurable {
 
     @Override
     public List<RlpType> asRlpValues(Sign.SignatureData signatureData) {
+        Assertions.verifyPrecondition(signatureData != null || getMeta().getCustomSignature() != null, "One of `signatureData` and `meta.customSignature` MUST be set");
         List<RlpType> result = new ArrayList<>();
 
         result.add(RlpString.create(getNonce())); // 0
@@ -182,23 +184,11 @@ public class Transaction712 extends Transaction1559 implements Structurable {
     private DynamicArray<Bytes32> getFactoryDepsHashes() {
         if (getFactoryDeps() != null) {
             return new DynamicArray<>(Bytes32.class, Arrays.stream(getFactoryDeps())
-                    .map(this::hashBytecode)
+                    .map(ContractDeployer::hashBytecode)
                     .map(Bytes32::new)
                     .collect(Collectors.toList()));
         } else {
             return new DynamicArray<>(Bytes32.class, Collections.emptyList());
         }
-    }
-
-    private byte[] hashBytecode(byte[] bytecode) {
-        byte[] hash = Hash.sha256(bytecode);
-
-        BigInteger bytecodeLen = BigInteger.valueOf(bytecode.length).divide(BigInteger.valueOf(32));
-
-        byte[] lenBytes = Numeric.toBytesPadded(bytecodeLen, 2);
-
-        System.arraycopy(lenBytes, 0, hash, 0, lenBytes.length);
-
-        return hash;
     }
 }

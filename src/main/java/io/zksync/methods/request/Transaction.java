@@ -85,6 +85,80 @@ public class Transaction {
         return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldataCreate, meta);
     }
 
+    public static Transaction create2ContractTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            String bytecode,
+            String calldata,
+            String customSignature
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        byte[] calldataBytes = Numeric.hexStringToByteArray(calldata);
+        byte[] customSignatureBytes = Numeric.hexStringToByteArray(customSignature);
+        String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate2(bytecodeBytes, calldataBytes));
+        Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), customSignatureBytes, new byte[][] {bytecodeBytes}, null);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldataCreate, meta);
+    }
+
+    public static Transaction create2ContractTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            String bytecode,
+            String calldata,
+            String customSignature,
+            PaymasterParams paymasterParams
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        byte[] calldataBytes = Numeric.hexStringToByteArray(calldata);
+        byte[] customSignatureBytes = Numeric.hexStringToByteArray(customSignature);
+        String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate2(bytecodeBytes, calldataBytes));
+        Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), customSignatureBytes, new byte[][] {bytecodeBytes}, paymasterParams);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldataCreate, meta);
+    }
+
+    public static Transaction create2AccountTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            String bytecode
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        String calldata = FunctionEncoder.encode(ContractDeployer.encodeCreate2Account(bytecodeBytes));
+        Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), null, new byte[][] {bytecodeBytes}, null);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldata, meta);
+    }
+
+    public static Transaction create2AccountTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            String bytecode,
+            String calldata
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        byte[] calldataBytes = Numeric.hexStringToByteArray(calldata);
+        String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate2Account(bytecodeBytes, calldataBytes));
+        Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), null, new byte[][] {bytecodeBytes}, null);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldataCreate, meta);
+    }
+    public static Transaction create2AccountTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            String bytecode,
+            String calldata,
+            byte[] salt
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        byte[] calldataBytes = Numeric.hexStringToByteArray(calldata);
+        String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate2Account(bytecodeBytes, calldataBytes, salt));
+        Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), null, new byte[][] {bytecodeBytes}, null);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldataCreate, meta);
+    }
+
+
     public static Transaction createContractTransaction(
             String from,
             BigInteger ergsPrice,
@@ -146,6 +220,20 @@ public class Transaction {
 
         Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), null, null, null);
         return new Transaction(from, to, ergsPrice, ergsLimit, null, data, meta);
+    }
+
+    public static Transaction createFunctionCallTransaction(
+            String from,
+            String to,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            BigInteger value,
+            String data,
+            String customSignature,
+            PaymasterParams paymasterParams
+    ) {
+        Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), Numeric.hexStringToByteArray(customSignature), null, paymasterParams);
+        return new Transaction(from, to, ergsPrice, ergsLimit, value, data, meta);
     }
 
     public static org.web3j.protocol.core.methods.request.Transaction createEthCallTransaction(String from, String to, String data) {
