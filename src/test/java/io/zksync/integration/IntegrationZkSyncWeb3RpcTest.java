@@ -186,7 +186,7 @@ public class IntegrationZkSyncWeb3RpcTest {
 
         io.zksync.methods.request.Transaction estimate = io.zksync.methods.request.Transaction.createFunctionCallTransaction(
                 credentials.getAddress(),
-                "0xc513d436b5ac85a36cc4f6956ec11b500693aabd",
+                credentials.getAddress(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
                 "0x"
