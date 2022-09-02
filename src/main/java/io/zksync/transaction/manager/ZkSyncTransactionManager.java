@@ -48,9 +48,8 @@ public class ZkSyncTransactionManager extends TransactionManager {
         if (gasPrice == null) {
             gasPrice = getFeeProvider().getGasPrice();
         }
-        gasPrice = BigInteger.ZERO; // TODO: Currently using zero cause fee calculation of the node doesn't work
         Eip712Meta meta = new Eip712Meta(
-                BigInteger.ZERO,
+                BigInteger.valueOf(160000L),
                 null,
                 null,
                 null
@@ -75,7 +74,7 @@ public class ZkSyncTransactionManager extends TransactionManager {
                     to,
                     value,
                     data,
-                    BigInteger.ZERO,
+                    BigInteger.valueOf(100000000L),
                     gasPrice,
                     getFromAddress(),
                     meta

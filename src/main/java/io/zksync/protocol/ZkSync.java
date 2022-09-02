@@ -5,17 +5,9 @@ import io.zksync.methods.response.*;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.response.EthEstimateGas;
-import org.web3j.protocol.core.methods.response.EthGasPrice;
-import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthSendRawTransaction;
-
-import io.zksync.protocol.core.debug.ContractSourceDebugInfo;
-
-import java.util.Arrays;
-import java.util.Collections;
 
 public interface ZkSync extends Web3j {
     static ZkSync build(Web3jService web3jService) {
@@ -56,14 +48,6 @@ public interface ZkSync extends Web3j {
     Request<?, ZksTokens> zksGetConfirmedTokens(Integer from, Short limit);
 
     /**
-     * Check if token is liquid.
-     * 
-     * @param tokenAddress Address of the token in hex format
-     * @return Prepared is token liquid request
-     */
-    Request<?, ZksIsTokenLiquid> zksIsTokenLiquid(String tokenAddress);
-
-    /**
      * Get price of the token in USD.
      * 
      * @param tokenAddress Address of the token in hex format
@@ -89,4 +73,6 @@ public interface ZkSync extends Web3j {
     Request<?, ZksMessageProof> zksGetL2ToL1MsgProof(Integer block, String sender, String message, @Nullable Long l2LogPosition);
 
     Request<?, EthEstimateGas> ethEstimateGas(Transaction transaction);
+
+    Request<?, ZksTestnetPaymasterAddress> zksGetTestnetPaymaster();
 }

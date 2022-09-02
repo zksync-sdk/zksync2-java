@@ -10,10 +10,7 @@ import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.JsonRpc2_0Web3j;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.response.EthEstimateGas;
-import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.EthSendRawTransaction;
-
-import io.zksync.protocol.core.debug.ContractSourceDebugInfo;
 
 public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
 
@@ -44,12 +41,6 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     public Request<?, ZksTokens> zksGetConfirmedTokens(Integer from, Short limit) {
         return new Request<>(
                 "zks_getConfirmedTokens", Arrays.asList(from, limit), web3jService, ZksTokens.class);
-    }
-
-    @Override
-    public Request<?, ZksIsTokenLiquid> zksIsTokenLiquid(String tokenAddress) {
-        return new Request<>(
-                "zks_isTokenLiquid", Collections.singletonList(tokenAddress), web3jService, ZksIsTokenLiquid.class);
     }
 
     @Override
@@ -94,5 +85,10 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     public Request<?, EthEstimateGas> ethEstimateGas(Transaction transaction) {
         return new Request<>(
                 "eth_estimateGas", Collections.singletonList(transaction), web3jService, EthEstimateGas.class);
+    }
+
+    @Override
+    public Request<?, ZksTestnetPaymasterAddress> zksGetTestnetPaymaster() {
+        return new Request<>("zks_getTestnetPaymaster", Collections.emptyList(), web3jService, ZksTestnetPaymasterAddress.class);
     }
 }

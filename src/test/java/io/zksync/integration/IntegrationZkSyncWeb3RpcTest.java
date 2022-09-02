@@ -52,6 +52,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -753,14 +754,6 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
-    public void testIsTokenLiquid() throws IOException {
-        ZksIsTokenLiquid response = zksync.zksIsTokenLiquid(ETH.getL2Address()).send();
-
-        assertResponse(response);
-        assertTrue(response.getResult());
-    }
-
-    @Test
     public void testGetTokenPrice() throws IOException {
         ZksTokenPrice response = zksync.zksGetTokenPrice(ETH.getL2Address()).send();
 
@@ -777,6 +770,13 @@ public class IntegrationZkSyncWeb3RpcTest {
     @Test
     public void testGetBridgeAddresses() throws IOException {
         ZksBridgeAddresses response = zksync.zksGetBridgeContracts().send();
+
+        assertResponse(response);
+    }
+
+    @Test
+    public void testGetTestnetPaymaster() throws IOException {
+        ZksTestnetPaymasterAddress response = zksync.zksGetTestnetPaymaster().send();
 
         assertResponse(response);
     }

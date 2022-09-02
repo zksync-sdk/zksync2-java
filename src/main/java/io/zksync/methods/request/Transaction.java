@@ -91,6 +91,21 @@ public class Transaction {
             BigInteger ergsLimit,
             String bytecode,
             String calldata,
+            byte[] salt
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        byte[] calldataBytes = Numeric.hexStringToByteArray(calldata);
+        String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate2(bytecodeBytes, calldataBytes, salt));
+        Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), null, new byte[][] {bytecodeBytes}, null);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldataCreate, meta);
+    }
+
+    public static Transaction create2ContractTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            String bytecode,
+            String calldata,
             String customSignature
     ) {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
