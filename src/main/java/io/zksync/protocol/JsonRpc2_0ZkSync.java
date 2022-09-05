@@ -10,7 +10,6 @@ import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.JsonRpc2_0Web3j;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.response.EthEstimateGas;
-import org.web3j.protocol.core.methods.response.EthSendRawTransaction;
 
 public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
 
@@ -29,12 +28,6 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     @Override
     public Request<?, ZksMainContract> zksMainContract() {
         return new Request<>("zks_getMainContract", Collections.emptyList(), web3jService, ZksMainContract.class);
-    }
-
-    @Override
-    public Request<?, EthSendRawTransaction> zksGetL1WithdrawalTx(String transactionHash) {
-        return new Request<>(
-                "zks_getL1WithdrawalTx", Collections.singletonList(transactionHash), web3jService, EthSendRawTransaction.class);
     }
 
     @Override

@@ -13,30 +13,25 @@ import java.math.BigInteger;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 public class Fee {
 
     @JsonIgnore
     private Uint256 ergsLimit;
 
     @JsonIgnore
-    private Uint256 ergsPriceLimit;
+    private Uint256 maxFeePerErg;
 
     @JsonIgnore
-    private Address feeToken;
+    private Uint256 maxPriorityFeePerErg;
 
     @JsonIgnore
     private Uint256 ergsPerPubdataLimit;
 
-    public Fee(Address feeToken) {
-        this.feeToken = feeToken;
+    public Fee() {
         this.ergsLimit = Uint256.DEFAULT;
-        this.ergsPriceLimit = Uint256.DEFAULT;
+        this.maxFeePerErg = Uint256.DEFAULT;
+        this.maxPriorityFeePerErg = Uint256.DEFAULT;
         this.ergsPerPubdataLimit = Uint256.DEFAULT;
-    }
-
-    public Fee(String feeToken) {
-        this(new Address(feeToken));
     }
 
     public BigInteger getErgsLimitNumber() {
@@ -53,25 +48,29 @@ public class Fee {
     }
 
     public BigInteger getErgsPriceLimitNumber() {
-        return ergsPriceLimit.getValue();
+        return maxFeePerErg.getValue();
     }
 
-    public void setErgsPriceLimit(BigInteger ergsPriceLimit) {
-        this.ergsPriceLimit = new Uint256(ergsPriceLimit);
+    public void setMaxFeePerErg(BigInteger maxFeePerErg) {
+        this.maxFeePerErg = new Uint256(maxFeePerErg);
     }
 
-    @JsonSetter("ergs_price_limit")
-    public void setErgsPriceLimit(String ergsPriceLimit) {
-        this.ergsPriceLimit = new Uint256(Numeric.toBigInt(ergsPriceLimit));
+    @JsonSetter("max_fee_per_erg")
+    public void setMaxFeePerErg(String ergsPriceLimit) {
+        this.maxFeePerErg = new Uint256(Numeric.toBigInt(ergsPriceLimit));
     }
 
-    public String getFeeTokenString() {
-        return feeToken.getValue();
+    public BigInteger getMaxPriorityFeePerErgNumber() {
+        return maxPriorityFeePerErg.getValue();
     }
 
-    @JsonSetter("fee_token")
-    public void setFeeToken(String feeToken) {
-        this.feeToken = new Address(feeToken);
+    public void setMaxPriorityFeePerErg(BigInteger maxPriorityFeePerErg) {
+        this.maxPriorityFeePerErg = new Uint256(maxPriorityFeePerErg);
+    }
+
+    @JsonSetter("max_priority_fee_per_erg")
+    public void setMaxPriorityFeePerErg(String maxPriorityFeePerErg) {
+        this.maxPriorityFeePerErg = new Uint256(Numeric.toBigInt(maxPriorityFeePerErg));
     }
 
     public BigInteger getErgsPerPubdataLimitNumber() {

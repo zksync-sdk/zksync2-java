@@ -31,14 +31,6 @@ public interface ZkSync extends Web3j {
     Request<?, ZksMainContract> zksMainContract();
 
     /**
-     * Get hash of the withdrawal transaction in the L1 Ethereum chain.
-     * 
-     * @param transactionHash Hash of the withdrawal transaction in L2 in hex format
-     * @return Prepared get withdraw transaction hash request
-     */
-    Request<?, EthSendRawTransaction> zksGetL1WithdrawalTx(String transactionHash);
-
-    /**
      * Get list of the tokens supported by ZkSync.
      * 
      * @param from  Offset of tokens
