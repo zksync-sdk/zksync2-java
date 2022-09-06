@@ -1,5 +1,6 @@
 package io.zksync.methods.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.utils.ContractDeployer;
@@ -276,14 +277,17 @@ public class Transaction {
         return convert(value);
     }
 
+    @JsonIgnore
     public BigInteger getGasNumber() {
         return gas;
     }
 
+    @JsonIgnore
     public BigInteger getGasPriceNumber() {
         return gasPrice;
     }
 
+    @JsonIgnore
     public BigInteger getValueNumber() {
         return value;
     }

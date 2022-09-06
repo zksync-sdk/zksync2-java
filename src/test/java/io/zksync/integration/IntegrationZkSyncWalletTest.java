@@ -11,8 +11,8 @@ import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.protocol.provider.EthereumProvider;
 import io.zksync.transaction.manager.ZkSyncTransactionManager;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.web3j.abi.datatypes.Address;
 import org.web3j.crypto.ContractUtils;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -37,6 +37,7 @@ import java.math.BigInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled
 public class IntegrationZkSyncWalletTest {
 
     private static ZkSyncWallet wallet;
@@ -44,7 +45,7 @@ public class IntegrationZkSyncWalletTest {
 
     @BeforeAll
     public static void setUp() {
-        ZkSync zksync = ZkSync.build(new HttpService("http://206.189.96.247:3050"));
+        ZkSync zksync = ZkSync.build(new HttpService(L2_NODE));
         credentials = Credentials.create(ECKeyPair.create(BigInteger.ONE));
 
         BigInteger chainId = zksync.ethChainId().sendAsync().join().getChainId();
@@ -56,7 +57,7 @@ public class IntegrationZkSyncWalletTest {
 
     @Test
     public void sendTestMoney() {
-        Web3j web3j = Web3j.build(new HttpService("http://206.189.96.247:8545"));
+        Web3j web3j = Web3j.build(new HttpService(L1_NODE));
 
         String account = web3j.ethAccounts().sendAsync().join().getAccounts().get(0);
 
@@ -70,7 +71,7 @@ public class IntegrationZkSyncWalletTest {
 
     @Test
     public void testDeposit() {
-        Web3j web3j = Web3j.build(new HttpService("http://206.189.96.247:8545"));
+        Web3j web3j = Web3j.build(new HttpService(L1_NODE));
         TransactionManager manager = new RawTransactionManager(web3j, credentials);
         ContractGasProvider gasProvider = new DefaultGasProvider();
         TransactionReceipt receipt = EthereumProvider
@@ -90,7 +91,7 @@ public class IntegrationZkSyncWalletTest {
 
         assertResponse(balance);
 
-        TransactionReceipt receipt = wallet.transfer(new Address(BigInteger.ONE).getValue(), amount).send();
+        TransactionReceipt receipt = wallet.transfer(credentials.getAddress(), amount).send();
 
         assertTrue(receipt.isStatusOK());
 
@@ -123,7 +124,7 @@ public class IntegrationZkSyncWalletTest {
 
         assertResponse(balanceNew);
 
-        assertEquals(balance.getBalance().subtract(amount).subtract(desiredFee), balanceNew.getBalance());
+        assertEquals(balanceNew.getBalance(), balance.getBalance().subtract(amount).subtract(desiredFee));
     }
 
     @Test

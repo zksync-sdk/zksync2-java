@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariables;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.crypto.Hash;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -31,6 +33,10 @@ import java.nio.charset.Charset;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@EnabledIfEnvironmentVariables({
+        @EnabledIfEnvironmentVariable(named = "ZKSYNC2_JAVA_CI_L1_NODE_URL", matches = "http*"),
+        @EnabledIfEnvironmentVariable(named = "ZKSYNC2_JAVA_CI_L2_NODE_URL", matches = "http*"),
+})
 public class CustomPaymasterTest extends BaseIntegrationEnv {
 
     private static final byte[] SALT = Hash.sha3("TestPaymaster".getBytes(Charset.defaultCharset()));

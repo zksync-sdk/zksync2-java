@@ -1,5 +1,6 @@
 package io.zksync.integration;
 
+import io.zksync.ZkSyncWallet;
 import io.zksync.crypto.signer.EthSigner;
 import io.zksync.crypto.signer.PrivateKeyEthSigner;
 import io.zksync.protocol.ZkSync;
@@ -8,6 +9,8 @@ import io.zksync.protocol.provider.EthereumProvider;
 import io.zksync.transaction.fee.DefaultTransactionFeeProvider;
 import io.zksync.transaction.fee.ZkTransactionFeeProvider;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariables;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.protocol.Web3j;
@@ -27,11 +30,15 @@ import java.math.BigInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@EnabledIfEnvironmentVariables({
+        @EnabledIfEnvironmentVariable(named = "ZKSYNC2_JAVA_CI_L1_NODE_URL", matches = "http*"),
+        @EnabledIfEnvironmentVariable(named = "ZKSYNC2_JAVA_CI_L2_NODE_URL", matches = "http*"),
+})
 public class BaseIntegrationEnv {
-    private static final String L1_NODE = "http://127.0.0.1:8545";
-    private static final String L2_NODE = "http://127.0.0.1:3050";
+    public static final Token ETH = Token.ETH;
 
-    public static final Token ETH = Token.createETH();
+    private final String L1_NODE;
+    private final String L2_NODE;
 
     protected final Web3j l1Web3;
     protected final ZkSync zksync;
@@ -44,10 +51,15 @@ public class BaseIntegrationEnv {
 
     protected final BigInteger chainId;
 
+    protected final ZkSyncWallet wallet;
+
     protected BaseIntegrationEnv() {
+        L1_NODE = System.getenv("ZKSYNC2_JAVA_CI_L1_NODE_URL");
+        L2_NODE = System.getenv("ZKSYNC2_JAVA_CI_L2_NODE_URL");
+
         this.l1Web3 = Web3j.build(new HttpService(L1_NODE));
         this.zksync = ZkSync.build(new HttpService(L2_NODE));
-        this.credentials = Credentials.create(ECKeyPair.create(BigInteger.ONE));
+        this.credentials = Credentials.create("543b4b129b397dd460fe417276a0f6b83ae65f0d6d747ec1ea310e7adca2dc49");
 
         chainId = this.zksync.ethChainId().sendAsync().join().getChainId();
 
@@ -56,6 +68,8 @@ public class BaseIntegrationEnv {
         this.processor = new ZkSyncTransactionReceiptProcessor(this.zksync, 200, 100);
 
         this.feeProvider = new DefaultTransactionFeeProvider(zksync, ETH);
+
+        this.wallet = new ZkSyncWallet(zksync, signer, ETH);
     }
 
     protected void sendTestMoney() {

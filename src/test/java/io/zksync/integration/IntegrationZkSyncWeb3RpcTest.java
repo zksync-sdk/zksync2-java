@@ -21,6 +21,7 @@ import io.zksync.wrappers.ERC20;
 import io.zksync.wrappers.IL2Bridge;
 import io.zksync.wrappers.NonceHolder;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Address;
@@ -56,6 +57,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled
 public class IntegrationZkSyncWeb3RpcTest {
 
     private static final String L1_NODE = "http://127.0.0.1:8545";
@@ -130,6 +132,22 @@ public class IntegrationZkSyncWeb3RpcTest {
         TransactionReceipt receipt = EthereumProvider
                 .load(zksync, web3j, manager, gasProvider).join()
                 .deposit(ETH, Convert.toWei("100", Unit.ETHER).toBigInteger(), credentials.getAddress()).join();
+
+        System.out.println(receipt);
+    }
+
+    @Test
+    public void testDepositToken() throws IOException {
+        Token usdc = new Token("0xd35cceead182dcee0f148ebac9447da2c4d449c4", "0x72c4f199cb8784425542583d345e7c00d642e345", "USDC", 6);
+        Web3j web3j = Web3j.build(new HttpService(L1_NODE));
+        BigInteger chainId = web3j.ethChainId().send().getChainId();
+        TransactionManager manager = new RawTransactionManager(web3j, credentials, chainId.longValue());
+        ContractGasProvider gasProvider = new StaticGasProvider(Convert.toWei("1", Unit.GWEI).toBigInteger(), BigInteger.valueOf(555_000L));
+        EthereumProvider provider = EthereumProvider.load(zksync, web3j, manager, gasProvider).join();
+        TransactionReceipt approveReceipt = provider.approveDeposits(usdc, Optional.of(usdc.toBigInteger(10000000000L))).join();
+        System.out.println(approveReceipt);
+
+        TransactionReceipt receipt = provider.deposit(usdc, usdc.toBigInteger(10000000000L), credentials.getAddress()).join();
 
         System.out.println(receipt);
     }
@@ -420,6 +438,22 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
+    public void testEstimateFee_TransferNative() throws IOException {
+        io.zksync.methods.request.Transaction estimate = io.zksync.methods.request.Transaction.createFunctionCallTransaction(
+                credentials.getAddress(),
+                credentials.getAddress(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
+                "0x"
+        );
+
+        ZksEstimateFee estimateGas = zksync.zksEstimateFee(estimate).send();
+
+        assertResponse(estimateGas);
+        System.out.println(estimateGas.getRawResponse());
+    }
+
+    @Test
     public void testEstimateGas_Execute() throws IOException {
         Function transfer = ERC20.encodeTransfer("0xe1fab3efd74a77c23b426c302d96372140ff7d0c", BigInteger.valueOf(1L));
         String calldata = FunctionEncoder.encode(transfer);
@@ -436,8 +470,20 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
-    public void testEstimateFee_DeployContract() throws IOException {
+    public void testEstimateGas_DeployContract() throws IOException {
         EthEstimateGas estimateGas = zksync.ethEstimateGas(io.zksync.methods.request.Transaction.create2ContractTransaction(
+                credentials.getAddress(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
+                CounterContract.BINARY
+        )).send();
+
+        assertResponse(estimateGas);
+    }
+
+    @Test
+    public void testEstimateFee_DeployContract() throws IOException {
+        ZksEstimateFee estimateGas = zksync.zksEstimateFee(io.zksync.methods.request.Transaction.create2ContractTransaction(
                 credentials.getAddress(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
@@ -489,7 +535,7 @@ public class IntegrationZkSyncWeb3RpcTest {
     public void testDeployContract_Create() throws IOException, TransactionException {
         BigInteger nonce = zksync
                 .ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
-                .getTransactionCount();
+                .getTransactionCount(); // TODO: get nonce from holder contract
 
         String precomputedAddress = ContractDeployer.computeL2CreateAddress(new Address(credentials.getAddress()), nonce).getValue();
 
@@ -777,6 +823,13 @@ public class IntegrationZkSyncWeb3RpcTest {
     @Test
     public void testGetTestnetPaymaster() throws IOException {
         ZksTestnetPaymasterAddress response = zksync.zksGetTestnetPaymaster().send();
+
+        assertResponse(response);
+    }
+
+    @Test
+    public void testGetMainContract() throws IOException {
+        ZksMainContract response = zksync.zksMainContract().send();
 
         assertResponse(response);
     }
