@@ -5,6 +5,7 @@ import io.zksync.crypto.signer.EthSigner;
 import io.zksync.crypto.signer.PrivateKeyEthSigner;
 import io.zksync.helper.ConstructorContract;
 import io.zksync.helper.CounterContract;
+import io.zksync.helper.Import;
 import io.zksync.methods.response.*;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.Token;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Uint256;
@@ -36,10 +38,7 @@ import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.*;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.protocol.http.HttpService;
-import org.web3j.tx.RawTransactionManager;
-import org.web3j.tx.ReadonlyTransactionManager;
-import org.web3j.tx.TransactionManager;
-import org.web3j.tx.Transfer;
+import org.web3j.tx.*;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
@@ -50,10 +49,8 @@ import org.web3j.utils.Numeric;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.security.SecureRandom;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -592,12 +589,16 @@ public class IntegrationZkSyncWeb3RpcTest {
     }
 
     @Test
-    public void testDeployContractWithConstructor_Create() throws IOException, TransactionException {
+    public void testDeployContractWithConstructor_Create() throws Exception {
         BigInteger nonce = zksync
                 .ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
                 .getTransactionCount();
 
-        String precomputedAddress = ContractDeployer.computeL2CreateAddress(new Address(credentials.getAddress()), nonce).getValue();
+        NonceHolder nonceHolder = NonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, zksync, new ReadonlyTransactionManager(zksync, credentials.getAddress()), new DefaultGasProvider());
+
+        BigInteger deploymentNonce = nonceHolder.getDeploymentNonce(credentials.getAddress()).send();
+
+        String precomputedAddress = ContractDeployer.computeL2CreateAddress(new Address(credentials.getAddress()), deploymentNonce).getValue();
 
         String constructor = ConstructorContract.encodeConstructor(BigInteger.valueOf(42), BigInteger.valueOf(43), false);
 
@@ -651,7 +652,8 @@ public class IntegrationZkSyncWeb3RpcTest {
                 FunctionEncoder.encode(ConstructorContract.encodeGet())
         );
 
-        zksync.ethCall(call, ZkBlockParameterName.COMMITTED).send();
+        EthCall ethCall = zksync.ethCall(call, ZkBlockParameterName.COMMITTED).send();
+        assertResponse(ethCall);
     }
 
     @Test
@@ -660,13 +662,17 @@ public class IntegrationZkSyncWeb3RpcTest {
                 .ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
                 .getTransactionCount();
 
-        String precomputedAddress = ContractDeployer.computeL2Create2Address(new Address(credentials.getAddress()), Numeric.hexStringToByteArray(CounterContract.BINARY), new byte[]{}, new byte[32]).getValue();
+        byte[] salt = SecureRandom.getSeed(32);
+
+        String precomputedAddress = ContractDeployer.computeL2Create2Address(new Address(credentials.getAddress()), Numeric.hexStringToByteArray(CounterContract.BINARY), new byte[]{}, salt).getValue();
 
         io.zksync.methods.request.Transaction estimate = io.zksync.methods.request.Transaction.create2ContractTransaction(
                 credentials.getAddress(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
-                CounterContract.BINARY
+                CounterContract.BINARY,
+                "0x",
+                salt
         );
 
         EthEstimateGas estimateGas = zksync.ethEstimateGas(estimate).send();
@@ -711,9 +717,152 @@ public class IntegrationZkSyncWeb3RpcTest {
                 FunctionEncoder.encode(CounterContract.encodeGet())
         );
 
-        zksync.ethCall(call, ZkBlockParameterName.COMMITTED).send();
+        EthCall ethCall = zksync.ethCall(call, ZkBlockParameterName.COMMITTED).send();
+        assertResponse(ethCall);
     }
 
+    @Test
+    public void testDeployContractWithDeps_Create() throws Exception {
+        BigInteger nonce = zksync
+                .ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
+                .getTransactionCount();
+
+        NonceHolder nonceHolder = NonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, zksync, new ReadonlyTransactionManager(zksync, credentials.getAddress()), new DefaultGasProvider());
+
+        BigInteger deploymentNonce = nonceHolder.getDeploymentNonce(credentials.getAddress()).send();
+
+        String precomputedAddress = ContractDeployer.computeL2CreateAddress(new Address(credentials.getAddress()), deploymentNonce).getValue();
+
+        io.zksync.methods.request.Transaction estimate = io.zksync.methods.request.Transaction.createContractTransaction(
+                credentials.getAddress(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
+                Import.BINARY,
+                Collections.singletonList(Import.FOO_BINARY),
+                "0x"
+        );
+
+        EthEstimateGas estimateGas = zksync.ethEstimateGas(estimate).send();
+        EthGasPrice gasPrice = zksync.ethGasPrice().send();
+
+        assertResponse(estimateGas);
+        assertResponse(gasPrice);
+
+        System.out.printf("Fee for transaction is: %d\n", estimateGas.getAmountUsed().multiply(gasPrice.getGasPrice()));
+
+        Transaction712 transaction = new Transaction712(
+                chainId.longValue(),
+                nonce,
+                estimateGas.getAmountUsed(),
+                estimate.getTo(),
+                estimate.getValueNumber(),
+                estimate.getData(),
+                BigInteger.valueOf(100000000L),
+                gasPrice.getGasPrice(),
+                credentials.getAddress(),
+                estimate.getEip712Meta()
+        );
+
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
+        byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
+
+        EthSendTransaction sent = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
+
+        assertResponse(sent);
+
+        TransactionReceipt receipt = processor.waitForTransactionReceipt(sent.getResult());
+
+        assertTrue(receipt::isStatusOK);
+
+        String contractAddress = ContractDeployer.extractContractAddress(receipt).getValue();
+        System.out.println("Deployed `Import as: `" + contractAddress);
+        assertEquals(contractAddress.toLowerCase(), precomputedAddress.toLowerCase());
+
+        Function getFooName = Import.encodeGetFooName();
+
+        Transaction call = Transaction.createEthCallTransaction(
+                null,
+                contractAddress,
+                FunctionEncoder.encode(getFooName)
+        );
+
+        EthCall ethCall = zksync.ethCall(call, ZkBlockParameterName.COMMITTED).send();
+        assertResponse(ethCall);
+
+        String fooName = (String) FunctionReturnDecoder.decode(ethCall.getValue(), getFooName.getOutputParameters()).get(0).getValue();
+        assertEquals("Foo", fooName);
+    }
+
+    @Test
+    public void testDeployContractWithDeps_Create2() throws IOException, TransactionException {
+        BigInteger nonce = zksync
+                .ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
+                .getTransactionCount();
+
+        byte[] salt = SecureRandom.getSeed(32);
+
+        String precomputedAddress = ContractDeployer.computeL2Create2Address(new Address(credentials.getAddress()), Numeric.hexStringToByteArray(Import.BINARY), new byte[]{}, salt).getValue();
+
+        io.zksync.methods.request.Transaction estimate = io.zksync.methods.request.Transaction.create2ContractTransaction(
+                credentials.getAddress(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
+                Import.BINARY,
+                Collections.singletonList(Import.FOO_BINARY),
+                "0x",
+                salt
+        );
+
+        EthEstimateGas estimateGas = zksync.ethEstimateGas(estimate).send();
+        EthGasPrice gasPrice = zksync.ethGasPrice().send();
+
+        assertResponse(estimateGas);
+        assertResponse(gasPrice);
+
+        System.out.printf("Fee for transaction is: %d\n", estimateGas.getAmountUsed().multiply(gasPrice.getGasPrice()));
+
+        Transaction712 transaction = new Transaction712(
+                chainId.longValue(),
+                nonce,
+                estimateGas.getAmountUsed(),
+                estimate.getTo(),
+                estimate.getValueNumber(),
+                estimate.getData(),
+                BigInteger.valueOf(100000000L),
+                gasPrice.getGasPrice(),
+                credentials.getAddress(),
+                estimate.getEip712Meta()
+        );
+
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
+        byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
+
+        EthSendTransaction sent = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
+
+        assertResponse(sent);
+
+        TransactionReceipt receipt = processor.waitForTransactionReceipt(sent.getResult());
+
+        assertTrue(receipt::isStatusOK);
+
+        String contractAddress = ContractDeployer.extractContractAddress(receipt).getValue();
+        System.out.println("Deployed `Import as: `" + contractAddress);
+        assertEquals(contractAddress.toLowerCase(), precomputedAddress.toLowerCase());
+
+        Function getFooName = Import.encodeGetFooName();
+
+        Transaction call = Transaction.createEthCallTransaction(
+                null,
+                contractAddress,
+                FunctionEncoder.encode(getFooName)
+        );
+
+        EthCall ethCall = zksync.ethCall(call, ZkBlockParameterName.COMMITTED).send();
+        assertResponse(ethCall);
+
+        String fooName = (String) FunctionReturnDecoder.decode(ethCall.getValue(), getFooName.getOutputParameters()).get(0).getValue();
+        assertEquals("Foo", fooName);
+    }
 
     @Test
     public void testExecuteContract() throws IOException, TransactionException {

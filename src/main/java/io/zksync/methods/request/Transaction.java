@@ -11,6 +11,7 @@ import org.web3j.protocol.core.methods.response.AccessListObject;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
+import java.util.List;
 
 /**
  * Transaction request object used the below methods.
@@ -98,6 +99,27 @@ public class Transaction {
         byte[] calldataBytes = Numeric.hexStringToByteArray(calldata);
         String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate2(bytecodeBytes, calldataBytes, salt));
         Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), null, new byte[][] {bytecodeBytes}, null);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldataCreate, meta);
+    }
+
+    public static Transaction create2ContractTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            String bytecode,
+            List<String> deps,
+            String calldata,
+            byte[] salt
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        byte[] calldataBytes = Numeric.hexStringToByteArray(calldata);
+        byte[][] factoryDeps = new byte[deps.size() + 1][];
+        for (int i = 0; i < deps.size(); i ++) {
+            factoryDeps[i] = Numeric.hexStringToByteArray(deps.get(i));
+        }
+        factoryDeps[deps.size()] = bytecodeBytes;
+        String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate2(bytecodeBytes, calldataBytes, salt));
+        Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), null, factoryDeps, null);
         return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldataCreate, meta);
     }
 
@@ -211,6 +233,26 @@ public class Transaction {
         byte[] calldataBytes = Numeric.hexStringToByteArray(calldata);
         String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate(bytecodeBytes, calldataBytes));
         Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), null, new byte[][] {bytecodeBytes}, null);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldataCreate, meta);
+    }
+
+    public static Transaction createContractTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            String bytecode,
+            List<String> deps,
+            String calldata
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        byte[] calldataBytes = Numeric.hexStringToByteArray(calldata);
+        byte[][] factoryDeps = new byte[deps.size() + 1][];
+        for (int i = 0; i < deps.size(); i ++) {
+            factoryDeps[i] = Numeric.hexStringToByteArray(deps.get(i));
+        }
+        factoryDeps[deps.size()] = bytecodeBytes;
+        String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate(bytecodeBytes, calldataBytes));
+        Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), null, factoryDeps, null);
         return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, ergsPrice, ergsLimit, null, calldataCreate, meta);
     }
 
