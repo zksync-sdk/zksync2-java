@@ -1,12 +1,17 @@
 package io.zksync.utils;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.web3j.abi.EventValues;
+import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.DynamicBytes;
+import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Hash;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.tx.Contract;
 import org.web3j.utils.Assertions;
 import org.web3j.utils.Numeric;
 
@@ -15,6 +20,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ContractDeployer {
 
@@ -58,6 +66,17 @@ public class ContractDeployer {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Address extractContractAddress(TransactionReceipt receipt) {
+        Event contractDeployed = new Event("ContractDeployed", Arrays.asList(new TypeReference<Address>(true) {}, new TypeReference<Bytes32>(true) {}, new TypeReference<Address>(true) {}));
+
+        EventValues deployedEvent = receipt.getLogs().stream()
+                .map(log -> Contract.staticExtractEventParameters(contractDeployed, log))
+                .filter(Objects::nonNull)
+                .reduce((ignore, last) -> last).orElseThrow(() -> new IllegalArgumentException("Receipt does not have any `ContractDeployed` event"));
+
+        return (Address) deployedEvent.getIndexedValues().get(2);
     }
 
     public static byte[] hashBytecode(byte[] bytecode) {
