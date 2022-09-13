@@ -5,10 +5,17 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import org.web3j.protocol.core.DefaultBlockParameter;
 
 public enum ZkBlockParameterName implements DefaultBlockParameter {
+    /**
+     * Alias for BlockNumber::Latest
+     */
     COMMITTED("committed"),
+
+    /**
+     * Last block that was finalized on L1
+     */
     FINALIZED("finalized");
 
-    private String name;
+    private final String name;
 
     ZkBlockParameterName(String name) {
         this.name = name;

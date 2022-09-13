@@ -71,14 +71,38 @@ public class ZkSyncWallet {
         this(zksync, new PrivateKeyEthSigner(credentials, chainId));
     }
 
+    /**
+     * Transfer coins
+     *
+     * @param to Receiver address
+     * @param amount Amount of funds to be transferred in minimal denomination (in Wei)
+     * @return Prepared remote call of transaction
+     */
     public RemoteCall<TransactionReceipt> transfer(String to, BigInteger amount) {
         return transfer(to, amount, null, null);
     }
 
+    /**
+     * Transfer coins or tokens
+     *
+     * @param to Receiver address
+     * @param amount Amount of funds to be transferred in minimal denomination
+     * @param token Token object supported by ZkSync
+     * @return Prepared remote call of transaction
+     */
     public RemoteCall<TransactionReceipt> transfer(String to, BigInteger amount, Token token) {
         return transfer(to, amount, token, null);
     }
 
+    /**
+     * Transfer coins or tokens
+     *
+     * @param to Receiver address
+     * @param amount Amount of funds to be transferred in minimal denomination
+     * @param token Token object supported by ZkSync
+     * @param nonce Custom nonce value of the wallet
+     * @return Prepared remote call of transaction
+     */
     public RemoteCall<TransactionReceipt> transfer(String to, BigInteger amount, @Nullable Token token, @Nullable BigInteger nonce) {
         Token tokenToUse = token == null ? Token.ETH : token;
         String calldata;
@@ -117,14 +141,38 @@ public class ZkSyncWallet {
         });
     }
 
+    /**
+     * Withdraw native coins to L1 chain
+     *
+     * @param to Address of the wallet in L1 to that funds will be withdrawn
+     * @param amount Amount of the funds to be withdrawn
+     * @return Prepared remote call of transaction
+     */
     public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount) {
         return withdraw(to, amount, null, null);
     }
 
+    /**
+     * Withdraw native coins or tokens to L1 chain
+     *
+     * @param to Address of the wallet in L1 to that funds will be withdrawn
+     * @param amount Amount of the funds to be withdrawn
+     * @param token Token object supported by ZkSync
+     * @return Prepared remote call of transaction
+     */
     public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount, Token token) {
         return withdraw(to, amount, token, null);
     }
 
+    /**
+     * Withdraw native coins to L1 chain
+     *
+     * @param to Address of the wallet in L1 to that funds will be withdrawn
+     * @param amount Amount of the funds to be withdrawn
+     * @param token Token object supported by ZkSync
+     * @param nonce Custom nonce value of the wallet
+     * @return Prepared remote call of transaction
+     */
     public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount, @Nullable Token token, @Nullable BigInteger nonce) {
         Token tokenToUse = token == null ? Token.ETH : token;
 
@@ -162,25 +210,46 @@ public class ZkSyncWallet {
         });
     }
 
+    /**
+     * Deploy new smart-contract into chain (this method uses create2, see <a href="https://eips.ethereum.org/EIPS/eip-1014">EIP-1014</a>)
+     *
+     * @param bytecode Compiled bytecode of the contract
+     * @return Prepared remote call of transaction
+     */
     public RemoteCall<TransactionReceipt> deploy(byte[] bytecode) {
         return deploy(bytecode, null, null);
     }
 
+    /**
+     * Deploy new smart-contract into chain (this method uses create2, see <a href="https://eips.ethereum.org/EIPS/eip-1014">EIP-1014</a>)
+     *
+     * @param bytecode Compiled bytecode of the contract
+     * @param calldata Encoded constructor parameter of contract
+     * @return Prepared remote call of transaction
+     */
     public RemoteCall<TransactionReceipt> deploy(byte[] bytecode, byte[] calldata) {
         return deploy(bytecode, calldata, null);
     }
 
+    /**
+     * Deploy new smart-contract into chain (this method uses create2, see <a href="https://eips.ethereum.org/EIPS/eip-1014">EIP-1014</a>)
+     *
+     * @param bytecode Compiled bytecode of the contract
+     * @param calldata Encoded constructor parameter of contract
+     * @param nonce Custom nonce value of the wallet
+     * @return Prepared remote call of transaction
+     */
     public RemoteCall<TransactionReceipt> deploy(byte[] bytecode, @Nullable byte[] calldata,
                                                  @Nullable BigInteger nonce) {
         return new RemoteCall<>(() -> {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
 
-            // TODO: Add using calldata as initializer
             Transaction estimate = Transaction.create2ContractTransaction(
                     signer.getAddress(),
                     BigInteger.ZERO,
                     BigInteger.ZERO,
-                    Numeric.toHexString(bytecode)
+                    Numeric.toHexString(bytecode),
+                    calldata != null ? Numeric.toHexString(calldata) : "0x"
             );
 
             EthSendTransaction sent = estimateAndSend(estimate, nonceToUse).join();
@@ -193,10 +262,25 @@ public class ZkSyncWallet {
         });
     }
 
+    /**
+     * Execute function of deployed contract
+     *
+     * @param contractAddress Address of deployed contract
+     * @param function Prepared function call with or without parameters
+     * @return Prepared remote call of transaction
+     */
     public RemoteCall<TransactionReceipt> execute(String contractAddress, Function function) {
         return execute(contractAddress, function, null);
     }
 
+    /**
+     * Execute function of deployed contract
+     *
+     * @param contractAddress Address of deployed contract
+     * @param function Prepared function call with or without parameters
+     * @param nonce Custom nonce value of the wallet
+     * @return Prepared remote call of transaction
+     */
     public RemoteCall<TransactionReceipt> execute(String contractAddress, Function function, @Nullable BigInteger nonce) {
         return new RemoteCall<>(() -> {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
@@ -220,22 +304,55 @@ public class ZkSyncWallet {
         });
     }
 
+    /**
+     * Get balance of wallet in native coin (wallet address gets from {@link EthSigner})
+     *
+     * @return Prepared get balance call
+     */
     public RemoteCall<BigInteger> getBalance() {
         return getBalance(signer.getAddress(), Token.ETH, ZkBlockParameterName.COMMITTED);
     }
 
+    /**
+     * Get balance of wallet in {@link Token} (wallet address gets from {@link EthSigner})
+     *
+     * @param token Token object supported by ZkSync
+     * @return Prepared get balance call
+     */
     public RemoteCall<BigInteger> getBalance(Token token) {
         return getBalance(signer.getAddress(), token, ZkBlockParameterName.COMMITTED);
     }
 
+    /**
+     * Get balance of wallet in native coin
+     *
+     * @param address Address of the wallet
+     * @return Prepared get balance call
+     */
     public RemoteCall<BigInteger> getBalance(String address) {
         return getBalance(address, Token.ETH, ZkBlockParameterName.COMMITTED);
     }
 
+    /**
+     * Get balance of wallet in {@link Token}
+     *
+     * @param address Address of the wallet
+     * @param token Token object supported by ZkSync
+     * @return Prepared get balance call
+     */
     public RemoteCall<BigInteger> getBalance(String address, Token token) {
         return getBalance(address, token, ZkBlockParameterName.COMMITTED);
     }
 
+    /**
+     * Get balance of wallet by address in {@link Token} at block {@link DefaultBlockParameter}
+     * also see {@link org.web3j.protocol.core.DefaultBlockParameterName}, {@link org.web3j.protocol.core.DefaultBlockParameterNumber}, {@link ZkBlockParameterName}
+     *
+     * @param address Wallet address
+     * @param token Token object supported by ZkSync
+     * @param at Block variant
+     * @return Prepared get balance call
+     */
     public RemoteCall<BigInteger> getBalance(String address, Token token, DefaultBlockParameter at) {
         if (token.isETH()) {
             return new RemoteCall<>(() ->
@@ -246,12 +363,22 @@ public class ZkSyncWallet {
         }
     }
 
+    /**
+     * Get nonce for wallet at block {@link DefaultBlockParameter} (wallet address gets from {@link EthSigner})
+     * also see {@link org.web3j.protocol.core.DefaultBlockParameterName}, {@link org.web3j.protocol.core.DefaultBlockParameterNumber}, {@link ZkBlockParameterName}
+     * @param at Block variant
+     * @return Prepared get nonce call
+     */
     public RemoteCall<BigInteger> getNonce(DefaultBlockParameter at) {
         return new RemoteCall<>(() -> this.zksync
                 .ethGetTransactionCount(signer.getAddress(), at).sendAsync().join()
                 .getTransactionCount());
     }
 
+    /**
+     * Get nonce for wallet at block `COMMITTED` {@link ZkBlockParameterName} (wallet address gets from {@link EthSigner})
+     * @return Prepared get nonce call
+     */
     public RemoteCall<BigInteger> getNonce() {
         return getNonce(ZkBlockParameterName.COMMITTED);
     }
