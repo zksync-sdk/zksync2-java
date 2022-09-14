@@ -107,6 +107,15 @@ public class IL2Bridge extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
+    public static Function encodeWithdraw(String _l1Receiver, String _l2Token, BigInteger _amount) {
+        return new Function(
+                FUNC_WITHDRAW,
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_l1Receiver),
+                        new org.web3j.abi.datatypes.Address(_l2Token),
+                        new org.web3j.abi.datatypes.generated.Uint256(_amount)),
+                Collections.<TypeReference<?>>emptyList());
+    }
+
     @Deprecated
     public static IL2Bridge load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
         return new IL2Bridge(contractAddress, web3j, credentials, gasPrice, gasLimit);
