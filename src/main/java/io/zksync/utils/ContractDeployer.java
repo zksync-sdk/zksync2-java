@@ -30,6 +30,15 @@ public class ContractDeployer {
     public static final String CREATE_PREFIX = Hash.sha3String("zksyncCreate");
     public static final String CREATE2_PREFIX = Hash.sha3String("zksyncCreate2");
 
+    /**
+     * Compute contract address according <a href="https://eips.ethereum.org/EIPS/eip-1014">EIP-1014</a>
+     *
+     * @param sender Address of a source of a transaction
+     * @param bytecode Compiled bytecode of the contract
+     * @param constructor Encoded constructor parameters
+     * @param salt 32 bytes salt
+     * @return Computed address of a contract
+     */
     public static Address computeL2Create2Address(Address sender, byte[] bytecode, byte[] constructor, byte[] salt) {
         Assertions.verifyPrecondition(salt.length == 32, "Salt length must be 32 bytes");
         byte[] senderBytes = Numeric.toBytesPadded(sender.toUint().getValue(), 32);
@@ -51,6 +60,13 @@ public class ContractDeployer {
         }
     }
 
+    /**
+     * Compute contract address
+     *
+     * @param sender Address of a source of a transaction
+     * @param nonce Deployment nonce (see {@link io.zksync.wrappers.NonceHolder})
+     * @return Computed address of a contract
+     */
     public static Address computeL2CreateAddress(Address sender, BigInteger nonce) {
         byte[] senderBytes = Numeric.toBytesPadded(sender.toUint().getValue(), 32);
         byte[] nonceBytes = Numeric.toBytesPadded(nonce, 32);
@@ -68,6 +84,12 @@ public class ContractDeployer {
         }
     }
 
+    /**
+     * Extract correct deployed contract address from transaction receipt
+     *
+     * @param receipt Transaction receipt
+     * @return Address of the deployed contract
+     */
     public static Address extractContractAddress(TransactionReceipt receipt) {
         Event contractDeployed = new Event("ContractDeployed", Arrays.asList(new TypeReference<Address>(true) {}, new TypeReference<Bytes32>(true) {}, new TypeReference<Address>(true) {}));
 
@@ -79,6 +101,12 @@ public class ContractDeployer {
         return (Address) deployedEvent.getIndexedValues().get(2);
     }
 
+    /**
+     * Generates SHA-256 digest for the given bytecode.
+     *
+     * @param bytecode Compiled bytecode of the contract
+     * @return The hash value for the given input
+     */
     public static byte[] hashBytecode(byte[] bytecode) {
         byte[] bytecodeHash = Hash.sha256(bytecode);
 
@@ -94,14 +122,35 @@ public class ContractDeployer {
         return bytecodeHash;
     }
 
+    /**
+     * Encode `create2` deployment function of default factory contract
+     *
+     * @param bytecode Compiled bytecode of the contract
+     * @return Encoded contract function
+     */
     public static Function encodeCreate2(byte[] bytecode) {
         return encodeCreate2(bytecode, new byte[] {}, new byte[32]);
     }
 
+    /**
+     * Encode `create2` deployment function of default factory contract
+     *
+     * @param bytecode Compiled bytecode of the contract
+     * @param calldata Encoded constructor parameters
+     * @return Encoded contract function
+     */
     public static Function encodeCreate2(byte[] bytecode, byte[] calldata) {
         return encodeCreate2(bytecode, calldata, new byte[32]);
     }
 
+    /**
+     * Encode `create2` deployment function of default factory contract
+     *
+     * @param bytecode Compiled bytecode of the contract
+     * @param calldata Encoded constructor parameters
+     * @param salt 32 bytes salt
+     * @return Encoded contract function
+     */
     public static Function encodeCreate2(byte[] bytecode, byte[] calldata, byte[] salt) {
         Assertions.verifyPrecondition(salt.length == 32, "Salt length must be 32 bytes");
         byte[] bytecodeHash = hashBytecode(bytecode);
@@ -113,14 +162,35 @@ public class ContractDeployer {
         );
     }
 
+    /**
+     * Encode `create` deployment function of default factory contract
+     *
+     * @param bytecode Compiled bytecode of the contract
+     * @return Encoded contract function
+     */
     public static Function encodeCreate(byte[] bytecode) {
         return encodeCreate(bytecode, new byte[] {}, new byte[32]);
     }
 
+    /**
+     * Encode `create` deployment function of default factory contract
+     *
+     * @param bytecode Compiled bytecode of the contract
+     * @param calldata Encoded constructor parameters
+     * @return Encoded contract function
+     */
     public static Function encodeCreate(byte[] bytecode, byte[] calldata) {
         return encodeCreate(bytecode, calldata, new byte[32]);
     }
 
+    /**
+     * Encode `create` deployment function of default factory contract
+     *
+     * @param bytecode Compiled bytecode of the contract
+     * @param calldata Encoded constructor parameters
+     * @param salt 32 bytes salt
+     * @return Encoded contract function
+     */
     public static Function encodeCreate(byte[] bytecode, byte[] calldata, byte[] salt) {
         byte[] bytecodeHash = hashBytecode(bytecode);
 
@@ -131,14 +201,35 @@ public class ContractDeployer {
         );
     }
 
+    /**
+     * Encode `create2` deployment custom account function of default factory contract (see <a href="https://eips.ethereum.org/EIPS/eip-4337">EIP-4337</a>)
+     *
+     * @param bytecode Compiled bytecode of the Custom Account contract
+     * @return Encoded contract function
+     */
     public static Function encodeCreate2Account(byte[] bytecode) {
         return encodeCreate2Account(bytecode, new byte[] {}, new byte[32]);
     }
 
+    /**
+     * Encode `create2` deployment custom account function of default factory contract (see <a href="https://eips.ethereum.org/EIPS/eip-4337">EIP-4337</a>)
+     *
+     * @param bytecode Compiled bytecode of the Custom Account contract
+     * @param calldata Encoded constructor parameters
+     * @return Encoded contract function
+     */
     public static Function encodeCreate2Account(byte[] bytecode, byte[] calldata) {
         return encodeCreate2Account(bytecode, calldata, new byte[32]);
     }
 
+    /**
+     * Encode `create2` deployment custom account function of default factory contract (see <a href="https://eips.ethereum.org/EIPS/eip-4337">EIP-4337</a>)
+     *
+     * @param bytecode Compiled bytecode of the Custom Account contract
+     * @param calldata Encoded constructor parameters
+     * @param salt 32 bytes salt
+     * @return Encoded contract function
+     */
     public static Function encodeCreate2Account(byte[] bytecode, byte[] calldata, byte[] salt) {
         Assertions.verifyPrecondition(salt.length == 32, "Salt length must be 32 bytes");
         byte[] bytecodeHash = hashBytecode(bytecode);
@@ -150,14 +241,35 @@ public class ContractDeployer {
         );
     }
 
+    /**
+     * Encode `create` deployment custom account function of default factory contract (see <a href="https://eips.ethereum.org/EIPS/eip-4337">EIP-4337</a>)
+     *
+     * @param bytecode Compiled bytecode of the Custom Account contract
+     * @return Encoded contract function
+     */
     public static Function encodeCreateAccount(byte[] bytecode) {
         return encodeCreateAccount(bytecode, new byte[] {}, new byte[32]);
     }
 
+    /**
+     * Encode `create` deployment custom account function of default factory contract (see <a href="https://eips.ethereum.org/EIPS/eip-4337">EIP-4337</a>)
+     *
+     * @param bytecode Compiled bytecode of the Custom Account contract
+     * @param calldata Encoded constructor parameters
+     * @return Encoded contract function
+     */
     public static Function encodeCreateAccount(byte[] bytecode, byte[] calldata) {
         return encodeCreateAccount(bytecode, calldata, new byte[32]);
     }
 
+    /**
+     * Encode `create` deployment custom account function of default factory contract (see <a href="https://eips.ethereum.org/EIPS/eip-4337">EIP-4337</a>)
+     *
+     * @param bytecode Compiled bytecode of the Custom Account contract
+     * @param calldata Encoded constructor parameters
+     * @param salt 32 bytes salt
+     * @return Encoded contract function
+     */
     public static Function encodeCreateAccount(byte[] bytecode, byte[] calldata, byte[] salt) {
         byte[] bytecodeHash = hashBytecode(bytecode);
 
