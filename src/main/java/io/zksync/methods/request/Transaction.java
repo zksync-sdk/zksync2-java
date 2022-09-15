@@ -19,6 +19,7 @@ import java.util.List;
  * <ol>
  *   <li>eth_call
  *   <li>eth_estimateGas
+ *   <li>zks_estimateFee
  * </ol>
  */
 @AllArgsConstructor
