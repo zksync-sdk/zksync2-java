@@ -15,12 +15,21 @@ ZkSync 2 Java SDK
 
 ## Dependency
 
-For connecting ZkSync library just add the following dependency to your build file.
+For connecting ZkSync2 library just add the following dependency to your build file.
 
 Maven `pom.xml`
 
 ```xml
-
+<project>
+  ...
+  <dependencies>
+    <dependency>
+      <groupId>io.zksync</groupId>
+      <artifactId>zksync2</artifactId>
+      <version>0.0.1</version>
+    </dependency>
+  </dependencies>
+</project>
 ```
 
 Gradle `build.gradle`
@@ -65,6 +74,8 @@ public class Main {
 ```
 
 ## Transactions
+
+ZkSync2 supports Ethereum's `Legacy` and `EIP-1155` transaction except deploying contract.
 
 ### EIP712
 
@@ -114,6 +125,87 @@ public class Main {
                 binary,
                 "0x",
                 salt
+        );
+
+        Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
+
+        Eip712Meta meta = estimate.getEip712Meta();
+        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+
+        Transaction712 transaction = new Transaction712(
+                chainId.longValue(),
+                nonce,
+                fee.getErgsLimitNumber(),
+                estimate.getTo(),
+                estimate.getValueNumber(),
+                estimate.getData(),
+                fee.getMaxPriorityFeePerErgNumber(),
+                fee.getErgsPriceLimitNumber(),
+                signer.getAddress(),
+                meta
+        );
+
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
+        byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
+
+        String sentTransactionHash = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send().getTransactionHash();
+
+        // You can check transaction status as the same way as in Web3
+        TransactionReceipt receipt = zksync.ethGetTransactionReceipt(sentTransactionHash).send().getTransactionReceipt();
+    }
+}
+```
+
+### Deploy contract (Create)
+
+Code:
+
+```java
+import io.zksync.abi.TransactionEncoder;
+import io.zksync.crypto.signer.EthSigner;
+import io.zksync.methods.request.Eip712Meta;
+import io.zksync.methods.request.Transaction;
+import io.zksync.protocol.ZkSync;
+import io.zksync.protocol.core.ZkBlockParameterName;
+import io.zksync.transaction.fee.Fee;
+import io.zksync.transaction.type.Transaction712;
+import io.zksync.utils.ContractDeployer;
+import io.zksync.utils.ZkSyncAddresses;
+import io.zksync.wrappers.NonceHolder;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.tx.ReadonlyTransactionManager;
+import org.web3j.tx.gas.DefaultGasProvider;
+import org.web3j.utils.Numeric;
+
+import java.math.BigInteger;
+
+public class Main {
+    public static void main(String... args) {
+        ZkSync zksync; // Initialize client
+        EthSigner signer; // Initialize signer
+
+        String binary = "0x<bytecode_of_the_contract>";
+
+        BigInteger chainId = zksync.ethChainId().send().getChainId();
+
+        NonceHolder nonceHolder = NonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, zksync, new ReadonlyTransactionManager(zksync, signer.getAddress()), new DefaultGasProvider());
+
+        BigInteger deploymentNonce = nonceHolder.getDeploymentNonce(signer.getAddress()).send();
+
+        // Here we can precompute contract address before its deploying
+        String precomputedAddress = ContractDeployer.computeL2CreateAddress(new Address(signer.getAddress()), deploymentNonce).getValue();
+
+        BigInteger nonce = zksync
+                .ethGetTransactionCount(signer.getAddress(), ZkBlockParameterName.COMMITTED).send()
+                .getTransactionCount();
+
+        Transaction estimate = Transaction.createContractTransaction(
+                signer.getAddress(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
+                binary,
+                "0x"
         );
 
         Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
