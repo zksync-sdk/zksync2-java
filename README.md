@@ -73,6 +73,23 @@ public class Main {
 }
 ```
 
+## ZkSync wallet
+
+```java
+import io.zksync.crypto.signer.EthSigner;
+import io.zksync.protocol.ZkSync;
+import io.zksync.protocol.core.Token;
+
+public class Main {
+    public static void main(String ...args) {
+        ZkSync zksync; // Initialize client
+        EthSigner signer; // Initialize signer
+
+        ZkSyncWallet wallet = new ZkSyncWallet(zksync, signer, Token.ETH);
+    }
+}
+```
+
 ## Transactions
 
 ZkSync2 supports Ethereum's `Legacy` and `EIP-1155` transaction except deploying contract.
