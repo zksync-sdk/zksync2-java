@@ -10,8 +10,10 @@ import io.zksync.methods.request.Transaction;
 import io.zksync.protocol.exceptions.JsonRpcResponseException;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
+import io.zksync.utils.ZkSyncAddresses;
 import io.zksync.wrappers.ERC20;
 import io.zksync.wrappers.IL2Bridge;
+import io.zksync.wrappers.IL2Messenger;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Address;
@@ -381,6 +383,33 @@ public class ZkSyncWallet {
      */
     public RemoteCall<BigInteger> getNonce() {
         return getNonce(ZkBlockParameterName.COMMITTED);
+    }
+
+    public RemoteCall<TransactionReceipt> sendMessageToL1(byte[] message) {
+        return sendMessageToL1(message, null);
+    }
+
+    public RemoteCall<TransactionReceipt> sendMessageToL1(byte[] message, @Nullable BigInteger nonce) {
+        return new RemoteCall<>(() -> {
+            BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
+            String calldata = FunctionEncoder.encode(IL2Messenger.encodeSendToL1(message));
+
+            Transaction estimate = Transaction.createFunctionCallTransaction(
+                    signer.getAddress(),
+                    ZkSyncAddresses.MESSENGER_ADDRESS,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    calldata
+            );
+
+            EthSendTransaction sent = estimateAndSend(estimate, nonceToUse).join();
+
+            try {
+                return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
+            } catch (IOException | TransactionException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private CompletableFuture<EthSendTransaction> estimateAndSend(Transaction transaction, BigInteger nonce) {

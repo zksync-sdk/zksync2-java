@@ -57,9 +57,11 @@ public class BaseIntegrationEnv {
         L1_NODE = System.getenv("ZKSYNC2_JAVA_CI_L1_NODE_URL");
         L2_NODE = System.getenv("ZKSYNC2_JAVA_CI_L2_NODE_URL");
 
+        final String privateKey = System.getenv("ZKSYNC2_JAVA_CI_PRIVATE_KEY");
+
         this.l1Web3 = Web3j.build(new HttpService(L1_NODE));
         this.zksync = ZkSync.build(new HttpService(L2_NODE));
-        this.credentials = Credentials.create("543b4b129b397dd460fe417276a0f6b83ae65f0d6d747ec1ea310e7adca2dc49");
+        this.credentials = privateKey != null ? Credentials.create(privateKey) : Credentials.create(ECKeyPair.create(BigInteger.ONE));
 
         chainId = this.zksync.ethChainId().sendAsync().join().getChainId();
 

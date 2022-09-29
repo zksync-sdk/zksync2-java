@@ -5,17 +5,23 @@ import io.zksync.crypto.signer.EthSigner;
 import io.zksync.crypto.signer.PrivateKeyEthSigner;
 import io.zksync.helper.ConstructorContract;
 import io.zksync.helper.CounterContract;
+import io.zksync.methods.response.ZkTransactionReceipt;
 import io.zksync.protocol.ZkSync;
+import io.zksync.protocol.core.L2ToL1MessageProof;
 import io.zksync.protocol.core.Token;
 import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.protocol.provider.EthereumProvider;
 import io.zksync.transaction.manager.ZkSyncTransactionManager;
+import io.zksync.utils.Messenger;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.web3j.abi.datatypes.Address;
 import org.web3j.crypto.ContractUtils;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.Hash;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.Response;
@@ -33,12 +39,18 @@ import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @Disabled
 public class IntegrationZkSyncWalletTest {
+
+    private static final String L1_NODE = "http://127.0.0.1:8545";
+    private static final String L2_NODE = "http://127.0.0.1:3050";
 
     private static ZkSyncWallet wallet;
     private static Credentials credentials;
@@ -70,9 +82,11 @@ public class IntegrationZkSyncWalletTest {
     }
 
     @Test
-    public void testDeposit() {
+    public void testDeposit() throws IOException {
         Web3j web3j = Web3j.build(new HttpService(L1_NODE));
-        TransactionManager manager = new RawTransactionManager(web3j, credentials);
+        BigInteger chainId = web3j.ethChainId().send().getChainId();
+        TransactionManager manager = new RawTransactionManager(web3j, credentials, chainId.longValue());
+
         ContractGasProvider gasProvider = new DefaultGasProvider();
         TransactionReceipt receipt = EthereumProvider
                 .load(wallet.getZksync(), web3j, manager, gasProvider).join()
@@ -193,6 +207,24 @@ public class IntegrationZkSyncWalletTest {
 
         BigInteger after = contract.get().send();
         assertEquals(BigInteger.TEN, after);
+    }
+
+    @Test
+    public void testSendMessageL2ToL1() throws Exception {
+        String someMessage = "Some message from ZkSync2j client";
+        byte[] messageBytes = someMessage.getBytes(StandardCharsets.UTF_8);
+
+        TransactionReceipt receipt = wallet.sendMessageToL1(messageBytes).send();
+
+        TimeUnit.SECONDS.sleep(5);
+
+        ZkTransactionReceipt zkReceipt = wallet.getZksync().zksGetTransactionReceipt(receipt.getTransactionHash()).send().getTransactionReceipt().get();
+
+        L2ToL1MessageProof proof = wallet.getZksync().zksGetL2ToL1MsgProof(zkReceipt.getBlockNumber().intValue(), wallet.getSigner().getAddress(), Numeric.toHexString(Hash.sha3(messageBytes)), null).send().getResult();
+
+        byte[] messageHash = Messenger.getHashedMessage(new Address(wallet.getSigner().getAddress()), messageBytes, zkReceipt.getL1BatchTxIndex());
+
+        Assertions.assertTrue(Messenger.verifyMessage(proof, messageHash));
     }
 
     private void assertResponse(Response<?> response) {

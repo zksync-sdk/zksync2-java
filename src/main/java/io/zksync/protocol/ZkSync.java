@@ -98,4 +98,14 @@ public interface ZkSync extends Web3j {
      * @return Prepared get paymaster request
      */
     Request<?, ZksTestnetPaymasterAddress> zksGetTestnetPaymaster();
+
+    /**
+     * Get transaction receipt.
+     * The same as eth_getTransactionReceipt but with additional fields belong to L2ToL1 messenger
+     * See {@link io.zksync.utils.Messenger}
+     *
+     * @param transactionHash Hash of the executed transaction hash with sent message
+     * @return Prepared get transaction receipt request
+     */
+    Request<?, ZksGetTransactionReceipt> zksGetTransactionReceipt(String transactionHash);
 }
