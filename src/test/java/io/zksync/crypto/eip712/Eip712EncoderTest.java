@@ -66,6 +66,13 @@ public class Eip712EncoderTest {
     }
 
     @Test
+    public void testEncodeDomainType() {
+        final String result = Eip712Encoder.encodeType(domain.intoEip712Struct());
+
+        assertEquals("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)", result);
+    }
+
+    @Test
     public void testEncodeDomainMemberValues() {
         {
             final byte[] data = Eip712Encoder.encodeValue(domain.getName()).getValue();
