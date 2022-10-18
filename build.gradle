@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'io.zksync'
-version System.getenv('VERSION')
+version = System.getenv('VERSION')
 sourceCompatibility = '1.8'
 
 configurations {
@@ -58,7 +58,7 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:git://github.com/zksync-sdk/zksync-java'
+                    connection = 'scm:git:git://github.com/zksync-sdk/zksync2-java'
                     url = 'https://github.com/zksync-sdk/zksync2-java'
                 }
             }
