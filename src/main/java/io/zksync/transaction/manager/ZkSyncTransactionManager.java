@@ -102,7 +102,7 @@ public class ZkSyncTransactionManager extends TransactionManager {
     public String sendCall(String to, String data, DefaultBlockParameter defaultBlockParameter) throws IOException {
         EthCall ethCall =
                 zkSync.ethCall(
-                                Transaction.createEthCallTransaction(getFromAddress(), to, data),
+                                org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(getFromAddress(), to, data),
                                 defaultBlockParameter)
                         .send();
 

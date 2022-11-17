@@ -1,39 +1,45 @@
 package io.zksync.integration;
 
 import io.zksync.ZkSyncWallet;
+import io.zksync.abi.TransactionEncoder;
 import io.zksync.crypto.signer.EthSigner;
 import io.zksync.crypto.signer.PrivateKeyEthSigner;
+import io.zksync.methods.request.Eip712Meta;
+import io.zksync.methods.response.ZksEstimateFee;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.Token;
 import io.zksync.protocol.provider.EthereumProvider;
 import io.zksync.transaction.fee.DefaultTransactionFeeProvider;
+import io.zksync.transaction.fee.Fee;
 import io.zksync.transaction.fee.ZkTransactionFeeProvider;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
+import io.zksync.transaction.type.Transaction712;
+import io.zksync.utils.ContractDeployer;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariables;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.Response;
 import org.web3j.protocol.core.methods.request.Transaction;
+import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.utils.Convert;
+import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@EnabledIfEnvironmentVariables({
-        @EnabledIfEnvironmentVariable(named = "ZKSYNC2_JAVA_CI_L1_NODE_URL", matches = "http*"),
-        @EnabledIfEnvironmentVariable(named = "ZKSYNC2_JAVA_CI_L2_NODE_URL", matches = "http*"),
-})
 public class BaseIntegrationEnv {
     public static final Token ETH = Token.ETH;
 
@@ -107,20 +113,56 @@ public class BaseIntegrationEnv {
         assertFalse(response::hasError);
     }
 
-    protected void assertContractDeployResponse(Response<TransactionReceipt> response) {
-        if (response.hasError()) {
-            System.out.println(response.getError().getMessage());
-            System.out.println(response.getError().getData());
-        } else {
-            System.out.println(response.getResult());
-        }
-
-        assertFalse(response::hasError);
-        assertNotNull(response.getResult().getContractAddress());
+    protected void assertContractDeployResponse(TransactionReceipt response) {
+        assertNotNull(response.getContractAddress());
     }
 
-    protected void assertContractDeployResponse(Response<TransactionReceipt> response, String expected) {
+    protected void assertContractDeployResponse(TransactionReceipt response, String expected) {
         assertContractDeployResponse(response);
-        assertEquals(response.getResult().getContractAddress(), expected);
+        String correctContractAddress = ContractDeployer.extractContractAddress(response).getValue();
+        assertEquals(correctContractAddress, expected);
+    }
+
+    protected TransactionReceipt submitTransaction(io.zksync.methods.request.Transaction estimate) throws IOException, TransactionException {
+        BigInteger nonce = zksync
+                .ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
+                .getTransactionCount();
+        ZksEstimateFee estimateFee = zksync.zksEstimateFee(estimate).send();
+
+        EthGasPrice gasPrice = zksync.ethGasPrice().send();
+
+        assertResponse(estimateFee);
+        assertResponse(gasPrice);
+
+        Fee fee = estimateFee.getResult();
+
+        Eip712Meta meta = estimate.getEip712Meta();
+        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+
+        Transaction712 transaction = new Transaction712(
+                chainId.longValue(),
+                nonce,
+                fee.getErgsLimitNumber(),
+                estimate.getTo(),
+                estimate.getValueNumber(),
+                estimate.getData(),
+                fee.getMaxPriorityFeePerErgNumber(),
+                fee.getErgsPriceLimitNumber(),
+                credentials.getAddress(),
+                meta
+        );
+
+        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
+        byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
+
+        EthSendTransaction sent = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
+
+        assertResponse(sent);
+
+        TransactionReceipt receipt = processor.waitForTransactionReceipt(sent.getResult());
+
+        assertTrue(receipt::isStatusOK);
+
+        return receipt;
     }
 }

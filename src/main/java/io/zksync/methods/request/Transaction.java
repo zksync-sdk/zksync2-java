@@ -49,6 +49,17 @@ public class Transaction {
         this.transactionType = (long) Transaction712.EIP_712_TX_TYPE;
     }
 
+    public static Transaction createEtherTransaction(
+            String from,
+            BigInteger ergsPrice,
+            BigInteger ergsLimit,
+            String to,
+            BigInteger value) {
+
+        Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), null, null, null);
+        return new Transaction(from, to, ergsPrice, ergsLimit, value, "0x", meta);
+    }
+
     public static Transaction create2ContractTransaction(
             String from,
             BigInteger ergsPrice,
@@ -293,11 +304,6 @@ public class Transaction {
     ) {
         Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), Numeric.hexStringToByteArray(customSignature), null, paymasterParams);
         return new Transaction(from, to, ergsPrice, ergsLimit, value, data, meta);
-    }
-
-    public static org.web3j.protocol.core.methods.request.Transaction createEthCallTransaction(String from, String to, String data) {
-
-        return org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(from, to, data);
     }
 
     public String getFrom() {
