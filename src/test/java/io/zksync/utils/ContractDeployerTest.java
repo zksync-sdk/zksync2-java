@@ -12,7 +12,7 @@ public class ContractDeployerTest {
 
     @Test
     public void computeL2Create2AddressActual() {
-        String expected = "0x14ba05281495657b009103686f366d7761e7535b";
+        String expected = "0x0790aff699b38f40929840469a72fb40e9763716";
         byte[] salt = new byte[32];
 
         Address result = ContractDeployer.computeL2Create2Address(new Address("0xa909312acfc0ed4370b8bd20dfe41c8ff6595194"), Numeric.hexStringToByteArray(CounterContract.BINARY), new byte[] {}, salt);
@@ -31,7 +31,7 @@ public class ContractDeployerTest {
 
     @Test
     public void hashBytecode() {
-        String expected = "0x00379c09b5568d43b0ac6533a2672ee836815530b412f082f0b2e69915aa50fc";
+        String expected = "0x010000517112c421df08d7b49e4dc1312f4ee62268ee4f5683b11d9e2d33525a";
 
         byte[] result = ContractDeployer.hashBytecode(Numeric.hexStringToByteArray(CounterContract.BINARY));
         String resultHex = Numeric.toHexString(result);

@@ -34,6 +34,13 @@ public class Fee {
         this.ergsPerPubdataLimit = Uint256.DEFAULT;
     }
 
+    public Fee(BigInteger ergsLimit, BigInteger maxFeePerErg, BigInteger maxPriorityFeePerErg, BigInteger ergsPerPubdataLimit) {
+        this.ergsLimit = new Uint256(ergsLimit);
+        this.maxFeePerErg = new Uint256(maxFeePerErg);
+        this.maxPriorityFeePerErg = new Uint256(maxPriorityFeePerErg);
+        this.ergsPerPubdataLimit = new Uint256(ergsPerPubdataLimit);
+    }
+
     public BigInteger getErgsLimitNumber() {
         return ergsLimit.getValue();
     }

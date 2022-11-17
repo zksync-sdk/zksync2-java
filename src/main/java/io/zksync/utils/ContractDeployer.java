@@ -110,14 +110,20 @@ public class ContractDeployer {
     public static byte[] hashBytecode(byte[] bytecode) {
         byte[] bytecodeHash = Hash.sha256(bytecode);
 
+        if (bytecode.length % 32 != 0) {
+            throw new IllegalArgumentException("The bytecode length in bytes must be divisible by 32");
+        }
+
         BigInteger length = BigInteger.valueOf(bytecode.length / 32);
         if (length.compareTo(MAX_BYTECODE_SIZE) > 0) {
             throw new IllegalArgumentException("Bytecode length must be less than 2^16 bytes");
         }
 
+        byte[] codeHashVersion = new byte[] { 1, 0 };
         byte[] bytecodeLength = Numeric.toBytesPadded(length, 2);
 
-        System.arraycopy(bytecodeLength, 0, bytecodeHash, 0, bytecodeLength.length);
+        System.arraycopy(codeHashVersion, 0, bytecodeHash, 0, codeHashVersion.length);
+        System.arraycopy(bytecodeLength, 0, bytecodeHash, 2, bytecodeLength.length);
 
         return bytecodeHash;
     }
@@ -157,7 +163,7 @@ public class ContractDeployer {
 
         return new Function(
             "create2",
-                Arrays.asList(new Bytes32(salt), new Bytes32(bytecodeHash), new Uint256(0), new DynamicBytes(calldata)),
+                Arrays.asList(new Bytes32(salt), new Bytes32(bytecodeHash), new DynamicBytes(calldata)),
                 Collections.emptyList()
         );
     }
@@ -169,7 +175,7 @@ public class ContractDeployer {
      * @return Encoded contract function
      */
     public static Function encodeCreate(byte[] bytecode) {
-        return encodeCreate(bytecode, new byte[] {}, new byte[32]);
+        return encodeCreate(bytecode, new byte[] {});
     }
 
     /**
@@ -180,23 +186,11 @@ public class ContractDeployer {
      * @return Encoded contract function
      */
     public static Function encodeCreate(byte[] bytecode, byte[] calldata) {
-        return encodeCreate(bytecode, calldata, new byte[32]);
-    }
-
-    /**
-     * Encode `create` deployment function of default factory contract
-     *
-     * @param bytecode Compiled bytecode of the contract
-     * @param calldata Encoded constructor parameters
-     * @param salt 32 bytes salt
-     * @return Encoded contract function
-     */
-    public static Function encodeCreate(byte[] bytecode, byte[] calldata, byte[] salt) {
         byte[] bytecodeHash = hashBytecode(bytecode);
 
         return new Function(
                 "create",
-                Arrays.asList(new Bytes32(new byte[32]), new Bytes32(bytecodeHash), new Uint256(0), new DynamicBytes(calldata)),
+                Arrays.asList(new Bytes32(new byte[32]), new Bytes32(bytecodeHash), new DynamicBytes(calldata)),
                 Collections.emptyList()
         );
     }
@@ -236,7 +230,7 @@ public class ContractDeployer {
 
         return new Function(
                 "create2Account",
-                Arrays.asList(new Bytes32(salt), new Bytes32(bytecodeHash), new Uint256(0), new DynamicBytes(calldata)),
+                Arrays.asList(new Bytes32(salt), new Bytes32(bytecodeHash), new DynamicBytes(calldata)),
                 Collections.emptyList()
         );
     }
@@ -248,7 +242,7 @@ public class ContractDeployer {
      * @return Encoded contract function
      */
     public static Function encodeCreateAccount(byte[] bytecode) {
-        return encodeCreateAccount(bytecode, new byte[] {}, new byte[32]);
+        return encodeCreateAccount(bytecode, new byte[] {});
     }
 
     /**
@@ -259,23 +253,11 @@ public class ContractDeployer {
      * @return Encoded contract function
      */
     public static Function encodeCreateAccount(byte[] bytecode, byte[] calldata) {
-        return encodeCreateAccount(bytecode, calldata, new byte[32]);
-    }
-
-    /**
-     * Encode `create` deployment custom account function of default factory contract (see <a href="https://eips.ethereum.org/EIPS/eip-4337">EIP-4337</a>)
-     *
-     * @param bytecode Compiled bytecode of the Custom Account contract
-     * @param calldata Encoded constructor parameters
-     * @param salt 32 bytes salt
-     * @return Encoded contract function
-     */
-    public static Function encodeCreateAccount(byte[] bytecode, byte[] calldata, byte[] salt) {
         byte[] bytecodeHash = hashBytecode(bytecode);
 
         return new Function(
                 "createAccount",
-                Arrays.asList(new Bytes32(new byte[32]), new Bytes32(bytecodeHash), new Uint256(0), new DynamicBytes(calldata)),
+                Arrays.asList(new Bytes32(new byte[32]), new Bytes32(bytecodeHash), new DynamicBytes(calldata)),
                 Collections.emptyList()
         );
     }
