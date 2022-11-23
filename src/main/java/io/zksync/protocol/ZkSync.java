@@ -108,4 +108,10 @@ public interface ZkSync extends Web3j {
      * @return Prepared get transaction receipt request
      */
     Request<?, ZksGetTransactionReceipt> zksGetTransactionReceipt(String transactionHash);
+
+    Request<?, ZksL1BatchNumber> zksGetL1BatchNumber();
+
+    Request<?, ZksL1BatchBlockRange> zksGetL1BatchBlockRange(Integer batchNumber);
+
+    Request<?, ZksMessageProof> zksGetL2ToL1LogProof(String transactionHash, @Nullable Long l2LogPosition);
 }

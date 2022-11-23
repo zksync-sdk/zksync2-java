@@ -90,4 +90,21 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
         return new Request<>(
                 "eth_getTransactionReceipt", Collections.singletonList(transactionHash), web3jService, ZksGetTransactionReceipt.class);
     }
+
+    @Override
+    public Request<?, ZksL1BatchNumber> zksGetL1BatchNumber() {
+        return new Request<>(
+                "zks_L1BatchNumber", Collections.emptyList(), web3jService, ZksL1BatchNumber.class);
+    }
+
+    @Override
+    public Request<?, ZksL1BatchBlockRange> zksGetL1BatchBlockRange(Integer batchNumber) {
+        return new Request<>(
+                "zks_getL1BatchBlockRange", Collections.singletonList(batchNumber), web3jService, ZksL1BatchBlockRange.class);
+    }
+
+    @Override
+    public Request<?, ZksMessageProof> zksGetL2ToL1LogProof(String transactionHash, @Nullable Long l2LogPosition) {
+        return new Request<>("zks_getL2ToL1LogProof", Arrays.asList(transactionHash, l2LogPosition), web3jService, ZksMessageProof.class);
+    }
 }

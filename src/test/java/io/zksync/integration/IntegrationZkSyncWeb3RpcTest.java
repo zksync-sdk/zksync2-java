@@ -1056,4 +1056,19 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         assertResponse(response);
     }
 
+    @Test
+    public void testGetL1BatchNumber() throws IOException {
+        ZksL1BatchNumber l1BatchNumber = zksync.zksGetL1BatchNumber().send();
+
+        assertResponse(l1BatchNumber);
+    }
+
+    @Test
+    public void testGetL1BatchBlockRange() throws IOException {
+        ZksL1BatchNumber l1BatchNumber = zksync.zksGetL1BatchNumber().send();
+        ZksL1BatchBlockRange l1BatchBlockRange = zksync.zksGetL1BatchBlockRange(l1BatchNumber.getL1BatchNumber().intValue()).send();
+
+        assertResponse(l1BatchBlockRange);
+    }
+
 }
