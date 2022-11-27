@@ -515,14 +515,14 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
     @Test
     @Disabled
     public void testEstimateFee_DeployContract() throws IOException {
-        ZksEstimateFee estimateGas = zksync.zksEstimateFee(io.zksync.methods.request.Transaction.create2ContractTransaction(
+        ZksEstimateFee estimateFee = zksync.zksEstimateFee(io.zksync.methods.request.Transaction.create2ContractTransaction(
                 credentials.getAddress(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
                 CounterContract.BINARY
         )).send();
 
-        assertResponse(estimateGas);
+        assertResponse(estimateFee);
     }
 
     @Test
