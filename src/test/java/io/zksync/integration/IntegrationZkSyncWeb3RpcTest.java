@@ -475,10 +475,11 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
                 "0x"
         );
 
-        ZksEstimateFee estimateGas = zksync.zksEstimateFee(estimate).send();
 
-        assertResponse(estimateGas);
-        System.out.println(estimateGas.getRawResponse());
+        ZksEstimateFee estimateFee = zksync.zksEstimateFee(estimate).send();
+
+        assertResponse(estimateFee);
+        System.out.println(estimateFee.getRawResponse());
     }
 
     @Test
