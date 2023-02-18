@@ -729,10 +729,10 @@ public class ZkSyncContract extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<BigInteger> deployContractBaseCost(BigInteger _gasPrice, BigInteger _ergsLimit, BigInteger _bytecodeLength, BigInteger _calldataLength, BigInteger _queueType, BigInteger _opTree) {
+    public RemoteFunctionCall<BigInteger> deployContractBaseCost(BigInteger _gasPrice, BigInteger _gasLimit, BigInteger _bytecodeLength, BigInteger _calldataLength, BigInteger _queueType, BigInteger _opTree) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_DEPLOYCONTRACTBASECOST, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_gasPrice), 
-                new org.web3j.abi.datatypes.generated.Uint256(_ergsLimit), 
+                new org.web3j.abi.datatypes.generated.Uint256(_gasLimit),
                 new org.web3j.abi.datatypes.generated.Uint32(_bytecodeLength), 
                 new org.web3j.abi.datatypes.generated.Uint32(_calldataLength), 
                 new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
@@ -781,10 +781,10 @@ public class ZkSyncContract extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<BigInteger> executeBaseCost(BigInteger _gasPrice, BigInteger _ergsLimit, BigInteger _calldataLength, BigInteger _queueType, BigInteger _opTree) {
+    public RemoteFunctionCall<BigInteger> executeBaseCost(BigInteger _gasPrice, BigInteger _gasLimit, BigInteger _calldataLength, BigInteger _queueType, BigInteger _opTree) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_EXECUTEBASECOST, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_gasPrice), 
-                new org.web3j.abi.datatypes.generated.Uint256(_ergsLimit), 
+                new org.web3j.abi.datatypes.generated.Uint256(_gasLimit),
                 new org.web3j.abi.datatypes.generated.Uint32(_calldataLength), 
                 new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
                 new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
@@ -867,24 +867,24 @@ public class ZkSyncContract extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> requestDeployContract(byte[] _bytecode, byte[] _calldata, BigInteger _ergsLimit, BigInteger _queueType, BigInteger _opTree) {
+    public RemoteFunctionCall<TransactionReceipt> requestDeployContract(byte[] _bytecode, byte[] _calldata, BigInteger _gasLimit, BigInteger _queueType, BigInteger _opTree) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
                 FUNC_REQUESTDEPLOYCONTRACT, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.DynamicBytes(_bytecode), 
                 new org.web3j.abi.datatypes.DynamicBytes(_calldata), 
-                new org.web3j.abi.datatypes.generated.Uint256(_ergsLimit), 
+                new org.web3j.abi.datatypes.generated.Uint256(_gasLimit),
                 new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
                 new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> requestExecute(String _contractAddressL2, byte[] _calldata, BigInteger _ergsLimit, BigInteger _queueType, BigInteger _opTree) {
+    public RemoteFunctionCall<TransactionReceipt> requestExecute(String _contractAddressL2, byte[] _calldata, BigInteger _gasLimit, BigInteger _queueType, BigInteger _opTree) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
                 FUNC_REQUESTEXECUTE, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _contractAddressL2), 
                 new org.web3j.abi.datatypes.DynamicBytes(_calldata), 
-                new org.web3j.abi.datatypes.generated.Uint256(_ergsLimit), 
+                new org.web3j.abi.datatypes.generated.Uint256(_gasLimit),
                 new org.web3j.abi.datatypes.generated.Uint8(_queueType), 
                 new org.web3j.abi.datatypes.generated.Uint8(_opTree)), 
                 Collections.<TypeReference<?>>emptyList());
