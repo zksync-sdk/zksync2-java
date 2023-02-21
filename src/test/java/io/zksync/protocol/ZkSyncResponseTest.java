@@ -22,9 +22,9 @@ public class ZkSyncResponseTest extends ResponseTester {
         ZksEstimateFee zksEstimateFee = deserialiseResponse(ZksEstimateFee.class);
 
         Fee fee = zksEstimateFee.getResult();
-        Assertions.assertEquals(BigInteger.valueOf(310888), fee.getErgsLimitNumber());
-        Assertions.assertEquals(BigInteger.valueOf(100000000), fee.getErgsPriceLimitNumber());
-        Assertions.assertEquals(BigInteger.valueOf(160000), fee.getErgsPerPubdataLimitNumber());
+        Assertions.assertEquals(BigInteger.valueOf(310888), fee.getGasLimitNumber());
+        Assertions.assertEquals(BigInteger.valueOf(100000000), fee.getGasPriceLimitNumber());
+        Assertions.assertEquals(BigInteger.valueOf(160000), fee.getGasPerPubdataLimitNumber());
         Assertions.assertEquals(BigInteger.valueOf(100000000), fee.getMaxPriorityFeePerErgNumber());
     }
 

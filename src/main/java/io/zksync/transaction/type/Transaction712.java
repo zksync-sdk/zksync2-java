@@ -79,8 +79,8 @@ public class Transaction712 extends Transaction1559 implements Structurable {
 
         result.add(RlpString.create(Numeric.hexStringToByteArray(getFrom()))); // 11
 
-        BigInteger ergsPerPubdata = getErgsPerPubdata();
-        result.add(RlpString.create(ergsPerPubdata)); //12
+        BigInteger gasPerPubdata = getGasPerPubdata();
+        result.add(RlpString.create(gasPerPubdata)); //12
 
         List<RlpType> factoryDeps;
 
@@ -129,8 +129,8 @@ public class Transaction712 extends Transaction1559 implements Structurable {
         return from;
     }
 
-    public BigInteger getErgsPerPubdata() {
-        return meta.getErgsPerPubdataNumber();
+    public BigInteger getGasPerPubdata() {
+        return meta.getGasPerPubdataNumber();
     }
 
     public byte[][] getFactoryDeps() {
@@ -167,10 +167,11 @@ public class Transaction712 extends Transaction1559 implements Structurable {
         result.add(Pair.of("txType", new Uint256(Transaction712.EIP_712_TX_TYPE)));
         result.add(Pair.of("from", new Uint256(Numeric.toBigInt(getFrom()))));
         result.add(Pair.of("to", getTo() != null ? new Uint256(Numeric.toBigInt(getTo())) : Uint256.DEFAULT));
-        result.add(Pair.of("ergsLimit", new Uint256(getGasLimit())));
-        result.add(Pair.of("ergsPerPubdataByteLimit", new Uint256(getErgsPerPubdata())));
-        result.add(Pair.of("maxFeePerErg", new Uint256(getMaxFeePerGas())));
-        result.add(Pair.of("maxPriorityFeePerErg", new Uint256(getMaxPriorityFeePerGas())));
+        result.add(Pair.of("gasLimit", new Uint256(getGasLimit())));
+
+        result.add(Pair.of("gasPerPubdataByteLimit", new Uint256(getGasPerPubdata())));
+        result.add(Pair.of("maxFeePerGas", new Uint256(getMaxFeePerGas())));
+        result.add(Pair.of("maxPriorityFeePerGas", new Uint256(getMaxPriorityFeePerGas())));
         result.add(Pair.of("paymaster", getPaymaster() != null ? new Uint256(Numeric.toBigInt(getPaymaster())) : Uint256.DEFAULT));
         result.add(Pair.of("nonce", new Uint256(getNonce())));
         result.add(Pair.of("value", getValue() != null ? new Uint256(getValue()) : Uint256.DEFAULT));
