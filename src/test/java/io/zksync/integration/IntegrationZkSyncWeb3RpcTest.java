@@ -189,7 +189,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getGasPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
@@ -248,7 +248,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getGasPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
@@ -329,7 +329,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getGasPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
@@ -397,7 +397,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getGasPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
@@ -595,7 +595,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getGasPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
@@ -666,7 +666,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getGasPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
@@ -735,7 +735,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getGasPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
@@ -806,7 +806,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getGasPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
@@ -881,7 +881,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getGasPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
@@ -969,7 +969,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getGasPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
@@ -1057,4 +1057,11 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         assertResponse(response);
     }
 
+
+    @Test
+    public void testGetTransactionDetails() throws IOException {
+        ZksGetTransactionDetails response = zksync.zksGetTransactionDetails("0x0898f4b225276625e1d5d2cc4dc5b7a1acb896daece7e46c8202a47da9a13a27").send();
+
+        assertResponse(response);
+    }
 }
