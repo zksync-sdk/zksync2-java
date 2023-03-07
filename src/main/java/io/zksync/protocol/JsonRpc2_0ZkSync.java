@@ -90,4 +90,10 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
         return new Request<>(
                 "eth_getTransactionReceipt", Collections.singletonList(transactionHash), web3jService, ZksGetTransactionReceipt.class);
     }
+
+    @Override
+    public Request<?, ZksGetTransactionDetails> zksGetTransactionDetails(String transactionHash) {
+        return new Request<>(
+                "zks_getTransactionDetails", Collections.singletonList(transactionHash), web3jService, ZksGetTransactionDetails.class);
+    }
 }
