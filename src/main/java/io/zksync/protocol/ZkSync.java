@@ -118,4 +118,7 @@ public interface ZkSync extends Web3j {
      * @return Prepared get transaction details request
      */
     Request<?, ZksGetTransactionDetails> zksGetTransactionDetails(String transactionHash);
+
+
+     Request<?, ZksGetTransactionByHash> zksGetTransactionByHash(String transactionHash);
 }

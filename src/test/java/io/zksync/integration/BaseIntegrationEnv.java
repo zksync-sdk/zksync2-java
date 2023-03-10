@@ -58,8 +58,8 @@ public class BaseIntegrationEnv {
     protected final ZkSyncWallet wallet;
 
     protected BaseIntegrationEnv() {
-        L1_NODE = System.getenv("ZKSYNC2_JAVA_CI_L1_NODE_URL");
-        L2_NODE = System.getenv("ZKSYNC2_JAVA_CI_L2_NODE_URL");
+        L1_NODE = "https://zksync2-testnet.zksync.dev";
+        L2_NODE = "https://zksync2-testnet.zksync.dev";
 
         final String privateKey = System.getenv("ZKSYNC2_JAVA_CI_PRIVATE_KEY");
 
@@ -135,7 +135,7 @@ public class BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getGasPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),

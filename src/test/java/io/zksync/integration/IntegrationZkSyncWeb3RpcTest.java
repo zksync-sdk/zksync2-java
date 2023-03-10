@@ -1064,4 +1064,12 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
 
         assertResponse(response);
     }
+
+
+    @Test
+    public void testGetTransactionByHash() throws IOException {
+        ZksGetTransactionByHash response = zksync.zksGetTransactionByHash("0xd933be650bf97d92c591a88c993b702b368af5480adf019afddee7e8c1e5ce2e").send();
+
+        assertResponse(response);
+    }
 }
