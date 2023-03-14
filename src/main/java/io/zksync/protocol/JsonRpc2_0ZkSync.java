@@ -7,8 +7,10 @@ import io.zksync.methods.request.Transaction;
 import io.zksync.methods.response.*;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3jService;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.JsonRpc2_0Web3j;
 import org.web3j.protocol.core.Request;
+import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthEstimateGas;
 
 public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
@@ -101,5 +103,31 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     public Request<?, ZksGetTransactionByHash> zksGetTransactionByHash(String transactionHash) {
         return new Request<>(
                 "eth_getTransactionByHash", Collections.singletonList(transactionHash), web3jService, ZksGetTransactionByHash.class);
+    }
+
+    @Override
+    public Request<?, ZksGetLogs> zksGetLogs(EthFilter ethFilter) {
+        return new Request<>(
+                "eth_getLogs", Arrays.asList(ethFilter), web3jService, ZksGetLogs.class);
+    }
+
+    @Override
+    public Request<?, ZkBlock> zksGetBlockByHash(
+            String blockHash, boolean returnFullTransactionObjects) {
+        return new Request<>(
+                "eth_getBlockByHash",
+                Arrays.asList(blockHash, returnFullTransactionObjects),
+                web3jService,
+                ZkBlock.class);
+    }
+
+    @Override
+    public Request<?, ZkBlock> zksGetBlockByNumber(
+            DefaultBlockParameter defaultBlockParameter, boolean returnFullTransactionObjects) {
+        return new Request<>(
+                "eth_getBlockByNumber",
+                Arrays.asList(defaultBlockParameter.getValue(), returnFullTransactionObjects),
+                web3jService,
+                ZkBlock.class);
     }
 }

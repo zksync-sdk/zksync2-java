@@ -5,7 +5,9 @@ import io.zksync.methods.response.*;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Request;
+import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthEstimateGas;
 
 import java.math.BigInteger;
@@ -119,6 +121,37 @@ public interface ZkSync extends Web3j {
      */
     Request<?, ZksGetTransactionDetails> zksGetTransactionDetails(String transactionHash);
 
+    /**
+     * Get transaction.
+     *
+     * @param transactionHash Hash of the executed transaction hash with sent message
+     * @return Prepared get transaction request
+     */
+    Request<?, ZksGetTransactionByHash> zksGetTransactionByHash(String transactionHash);
 
-     Request<?, ZksGetTransactionByHash> zksGetTransactionByHash(String transactionHash);
+    /**
+     * Get logs.
+     *!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     * @param ethFilter Hash of the executed transaction hash with sent message
+     * @return Prepared get transaction request
+     */
+    Request<?, ZksGetLogs> zksGetLogs(EthFilter ethFilter);
+
+    /**
+     * Get block by hash.
+     *!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     * @param blockHash Hash of the executed transaction hash with sent message
+     * @return Prepared get transaction receipt request
+     */
+    Request<?, ZkBlock> zksGetBlockByHash(
+            String blockHash, boolean returnFullTransactionObjects);
+
+    /**
+     * Get block by number.
+     *!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     * @param defaultBlockParameter of the executed transaction hash with sent message
+     * @return Prepared get transaction receipt request
+     */
+    Request<?, ZkBlock> zksGetBlockByNumber(
+            DefaultBlockParameter defaultBlockParameter, boolean returnFullTransactionObjects);
 }
