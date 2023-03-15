@@ -108,26 +108,26 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     @Override
     public Request<?, ZksGetLogs> zksGetLogs(EthFilter ethFilter) {
         return new Request<>(
-                "eth_getLogs", Arrays.asList(ethFilter), web3jService, ZksGetLogs.class);
+                "eth_getLogs", Collections.singletonList(ethFilter), web3jService, ZksGetLogs.class);
     }
 
     @Override
-    public Request<?, ZkBlock> zksGetBlockByHash(
+    public Request<?, ZksBlock> zksGetBlockByHash(
             String blockHash, boolean returnFullTransactionObjects) {
         return new Request<>(
                 "eth_getBlockByHash",
                 Arrays.asList(blockHash, returnFullTransactionObjects),
                 web3jService,
-                ZkBlock.class);
+                ZksBlock.class);
     }
 
     @Override
-    public Request<?, ZkBlock> zksGetBlockByNumber(
+    public Request<?, ZksBlock> zksGetBlockByNumber(
             DefaultBlockParameter defaultBlockParameter, boolean returnFullTransactionObjects) {
         return new Request<>(
                 "eth_getBlockByNumber",
                 Arrays.asList(defaultBlockParameter.getValue(), returnFullTransactionObjects),
                 web3jService,
-                ZkBlock.class);
+                ZksBlock.class);
     }
 }

@@ -17,7 +17,7 @@ public class ZkSyncResponseTest extends ResponseTester {
 
     @Test
     void zksEstimateFee() {
-        buildResponse("{\"jsonrpc\":\"2.0\",\"result\":{\"ergs_limit\":\"0x4be68\",\"ergs_per_pubdata_limit\":\"0x27100\",\"max_fee_per_erg\":\"0x5f5e100\",\"max_priority_fee_per_erg\":\"0x5f5e100\"},\"id\":1}");
+        buildResponse("{\"jsonrpc\":\"2.0\",\"result\":{\"gas_limit\":\"0x4be68\",\"gas_per_pubdata_limit\":\"0x27100\",\"max_fee_per_erg\":\"0x5f5e100\",\"max_priority_fee_per_erg\":\"0x5f5e100\"},\"id\":1}");
 
         ZksEstimateFee zksEstimateFee = deserialiseResponse(ZksEstimateFee.class);
 
@@ -111,5 +111,23 @@ public class ZkSyncResponseTest extends ResponseTester {
 
         Assertions.assertEquals("0xd8128f25ec5446a89c223d1e546299183bc8b033", zksTestnetPaymasterAddress.getResult());
     }
+
+    @Test
+    void zksGetBlockByHash() {
+        buildResponse("{\n" +
+                "    \"jsonrpc\": \"2.0\",\n" +
+                "    \"method\": \"eth_getBlockByHash\",\n" +
+                "    \"params\": [\n" +
+                "        \"0x17f6edfdba9148565d93bf8d8b1e5fa183b436fe62b94ef276e2eb459a4a7e2a\",\n" +
+                "        true\n" +
+                "    ],\n" +
+                "    \"id\": 53\n" +
+                "}");
+
+        ZksBlock zksBlock = deserialiseResponse(ZksBlock.class);
+
+        Assertions.assertEquals("", zksBlock.getResult());
+    }
+
 
 }

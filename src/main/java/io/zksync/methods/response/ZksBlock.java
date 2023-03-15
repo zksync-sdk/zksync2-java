@@ -3,12 +3,12 @@ package io.zksync.methods.response;
 import org.web3j.protocol.core.methods.response.EthBlock;
 
 
-public class ZkBlock extends EthBlock {
+public class ZksBlock extends EthBlock {
     private String baseFeePerGas;
     private String l1BatchNumber;
     private String l1BatchTimestamp;
 
-    public ZkBlock(String baseFeePerGas, String l1BatchNumber, String l1BatchTimestamp) {
+    public ZksBlock(String baseFeePerGas, String l1BatchNumber, String l1BatchTimestamp) {
         this.baseFeePerGas = baseFeePerGas;
         this.l1BatchNumber = l1BatchNumber;
         this.l1BatchTimestamp = l1BatchTimestamp;
