@@ -89,12 +89,10 @@ public class ZkSyncResponseTest extends ResponseTester {
 
     @Test
     void zksGetBridgeContracts() {
-        buildResponse("{\"jsonrpc\":\"2.0\",\"result\":{\"l1Erc20DefaultBridge\":\"0x3f92815bec299f152eafa1dc9b1290b307b91cfb\",\"l1EthDefaultBridge\":\"0x20410058241d1c4c5f7c04753bd4713b04f19423\",\"l2Erc20DefaultBridge\":\"0x39971d3297eb5b99d2f1f3ee42a5abecce0b751c\",\"l2EthDefaultBridge\":\"0x127cd7c40b8df6a51a15983f9073c99bf05ea1e7\"},\"id\":1}");
+        buildResponse("{\"jsonrpc\":\"2.0\",\"result\":{\"l1Erc20DefaultBridge\":\"0x3f92815bec299f152eafa1dc9b1290b307b91cfb\",\"l2Erc20DefaultBridge\":\"0x39971d3297eb5b99d2f1f3ee42a5abecce0b751c\"},\"id\":1}");
 
         ZksBridgeAddresses zksBridgeAddresses = deserialiseResponse(ZksBridgeAddresses.class);
 
-        Assertions.assertEquals("0x20410058241d1c4c5f7c04753bd4713b04f19423", zksBridgeAddresses.getResult().getL1EthDefaultBridge());
-        Assertions.assertEquals("0x127cd7c40b8df6a51a15983f9073c99bf05ea1e7", zksBridgeAddresses.getResult().getL2EthDefaultBridge());
         Assertions.assertEquals("0x3f92815bec299f152eafa1dc9b1290b307b91cfb", zksBridgeAddresses.getResult().getL1Erc20DefaultBridge());
         Assertions.assertEquals("0x39971d3297eb5b99d2f1f3ee42a5abecce0b751c", zksBridgeAddresses.getResult().getL2Erc20DefaultBridge());
     }

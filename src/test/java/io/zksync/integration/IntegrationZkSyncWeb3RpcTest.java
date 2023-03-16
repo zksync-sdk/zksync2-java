@@ -93,7 +93,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         ContractGasProvider gasProvider = new StaticGasProvider(gasPrice, BigInteger.valueOf(170_000L));
         TransactionReceipt receipt = EthereumProvider
                 .load(zksync, l1Web3, manager, gasProvider).join()
-                .deposit(ETH, Convert.toWei("0.1", Unit.ETHER).toBigInteger(), credentials.getAddress()).join();
+                .deposit(ETH, Convert.toWei("0.001", Unit.ETHER).toBigInteger(), BigInteger.ZERO, credentials.getAddress()).join();
 
         System.out.println(receipt);
     }
@@ -113,7 +113,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         TransactionReceipt approveReceipt = provider.approveDeposits(token, Optional.of(token.toBigInteger(10000000000L))).join();
         System.out.println(approveReceipt);
 
-        TransactionReceipt receipt = provider.deposit(token, token.toBigInteger(10000000000L), credentials.getAddress()).join();
+        TransactionReceipt receipt = provider.deposit(token, token.toBigInteger(10000000000L), BigInteger.ZERO, credentials.getAddress()).join();
 
         System.out.println(receipt);
     }

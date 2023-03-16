@@ -35,7 +35,7 @@ import org.web3j.tx.gas.ContractGasProvider;
  * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the 
  * <a href="https://github.com/web3j/web3j/tree/master/codegen">codegen module</a> to update.
  *
- * <p>Generated with web3j version 1.4.1.
+ * <p>Generated with web3j version 1.4.2.
  */
 @SuppressWarnings("rawtypes")
 public class IL1Bridge extends Contract {
@@ -87,8 +87,8 @@ public class IL1Bridge extends Contract {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
-    public List<ClaimedFailedDepositEventResponse> getClaimedFailedDepositEvents(TransactionReceipt transactionReceipt) {
-        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(CLAIMEDFAILEDDEPOSIT_EVENT, transactionReceipt);
+    public static List<ClaimedFailedDepositEventResponse> getClaimedFailedDepositEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(CLAIMEDFAILEDDEPOSIT_EVENT, transactionReceipt);
         ArrayList<ClaimedFailedDepositEventResponse> responses = new ArrayList<ClaimedFailedDepositEventResponse>(valueList.size());
         for (Contract.EventValuesWithLog eventValues : valueList) {
             ClaimedFailedDepositEventResponse typedResponse = new ClaimedFailedDepositEventResponse();
@@ -122,8 +122,8 @@ public class IL1Bridge extends Contract {
         return claimedFailedDepositEventFlowable(filter);
     }
 
-    public List<DepositInitiatedEventResponse> getDepositInitiatedEvents(TransactionReceipt transactionReceipt) {
-        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(DEPOSITINITIATED_EVENT, transactionReceipt);
+    public static List<DepositInitiatedEventResponse> getDepositInitiatedEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(DEPOSITINITIATED_EVENT, transactionReceipt);
         ArrayList<DepositInitiatedEventResponse> responses = new ArrayList<DepositInitiatedEventResponse>(valueList.size());
         for (Contract.EventValuesWithLog eventValues : valueList) {
             DepositInitiatedEventResponse typedResponse = new DepositInitiatedEventResponse();
@@ -159,8 +159,8 @@ public class IL1Bridge extends Contract {
         return depositInitiatedEventFlowable(filter);
     }
 
-    public List<WithdrawalFinalizedEventResponse> getWithdrawalFinalizedEvents(TransactionReceipt transactionReceipt) {
-        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(WITHDRAWALFINALIZED_EVENT, transactionReceipt);
+    public static List<WithdrawalFinalizedEventResponse> getWithdrawalFinalizedEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(WITHDRAWALFINALIZED_EVENT, transactionReceipt);
         ArrayList<WithdrawalFinalizedEventResponse> responses = new ArrayList<WithdrawalFinalizedEventResponse>(valueList.size());
         for (Contract.EventValuesWithLog eventValues : valueList) {
             WithdrawalFinalizedEventResponse typedResponse = new WithdrawalFinalizedEventResponse();
@@ -194,7 +194,7 @@ public class IL1Bridge extends Contract {
         return withdrawalFinalizedEventFlowable(filter);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> claimFailedDeposit(String _depositSender, String _l1Token, byte[] _l2TxHash, BigInteger _l2BlockNumber, BigInteger _l2MessageIndex, List<byte[]> _merkleProof) {
+    public RemoteFunctionCall<TransactionReceipt> claimFailedDeposit(String _depositSender, String _l1Token, byte[] _l2TxHash, BigInteger _l2BlockNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBlock, List<byte[]> _merkleProof) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
                 FUNC_CLAIMFAILEDDEPOSIT, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_depositSender), 
@@ -202,6 +202,7 @@ public class IL1Bridge extends Contract {
                 new org.web3j.abi.datatypes.generated.Bytes32(_l2TxHash), 
                 new org.web3j.abi.datatypes.generated.Uint256(_l2BlockNumber), 
                 new org.web3j.abi.datatypes.generated.Uint256(_l2MessageIndex), 
+                new org.web3j.abi.datatypes.generated.Uint16(_l2TxNumberInBlock), 
                 new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Bytes32>(
                         org.web3j.abi.datatypes.generated.Bytes32.class,
                         org.web3j.abi.Utils.typeMap(_merkleProof, org.web3j.abi.datatypes.generated.Bytes32.class))), 
@@ -209,21 +210,24 @@ public class IL1Bridge extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> deposit(String _l2Receiver, String _l1Token, BigInteger _amount, BigInteger _amountValue) {
+    public RemoteFunctionCall<TransactionReceipt> deposit(String _l2Receiver, String _l1Token, BigInteger _amount, BigInteger _l2TxGasLimit, BigInteger _l2TxGasPerPubdataByte, BigInteger weiValue) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
                 FUNC_DEPOSIT, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_l2Receiver), 
                 new org.web3j.abi.datatypes.Address(_l1Token), 
-                new org.web3j.abi.datatypes.generated.Uint256(_amount)), 
+                new org.web3j.abi.datatypes.generated.Uint256(_amount), 
+                new org.web3j.abi.datatypes.generated.Uint256(_l2TxGasLimit), 
+                new org.web3j.abi.datatypes.generated.Uint256(_l2TxGasPerPubdataByte)), 
                 Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function, _amountValue);
+        return executeRemoteCallTransaction(function, weiValue);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> finalizeWithdrawal(BigInteger _l2BlockNumber, BigInteger _l2MessageIndex, byte[] _message, List<byte[]> _merkleProof) {
+    public RemoteFunctionCall<TransactionReceipt> finalizeWithdrawal(BigInteger _l2BlockNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBlock, byte[] _message, List<byte[]> _merkleProof) {
         final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
                 FUNC_FINALIZEWITHDRAWAL, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_l2BlockNumber), 
                 new org.web3j.abi.datatypes.generated.Uint256(_l2MessageIndex), 
+                new org.web3j.abi.datatypes.generated.Uint16(_l2TxNumberInBlock), 
                 new org.web3j.abi.datatypes.DynamicBytes(_message), 
                 new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Bytes32>(
                         org.web3j.abi.datatypes.generated.Bytes32.class,
