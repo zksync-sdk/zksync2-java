@@ -90,7 +90,7 @@ public class IntegrationZkSyncWalletTest {
         ContractGasProvider gasProvider = new DefaultGasProvider();
         TransactionReceipt receipt = EthereumProvider
                 .load(wallet.getZksync(), web3j, manager, gasProvider).join()
-                .deposit(Token.ETH, Convert.toWei("9", Convert.Unit.ETHER).toBigInteger(), credentials.getAddress()).join();
+                .deposit(Token.ETH, Convert.toWei("1", Convert.Unit.GWEI).toBigInteger(), BigInteger.ZERO, credentials.getAddress()).join();
 
         System.out.println(receipt);
     }

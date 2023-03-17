@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class BridgeAddresses {
-    private String l1EthDefaultBridge;
-    private String l2EthDefaultBridge;
     private String l1Erc20DefaultBridge;
     private String l2Erc20DefaultBridge;
 }

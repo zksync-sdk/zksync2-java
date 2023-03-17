@@ -95,7 +95,7 @@ public class BaseIntegrationEnv {
         ContractGasProvider gasProvider = new StaticGasProvider(Convert.toWei("1", Convert.Unit.GWEI).toBigInteger(), BigInteger.valueOf(555_000L));
         TransactionReceipt receipt = EthereumProvider
                 .load(zksync, l1Web3, manager, gasProvider).join()
-                .deposit(ETH, Convert.toWei("100", Convert.Unit.ETHER).toBigInteger(), credentials.getAddress()).join();
+                .deposit(ETH, Convert.toWei("100", Convert.Unit.ETHER).toBigInteger(), BigInteger.ZERO, credentials.getAddress()).join();
 
         System.out.println(receipt);
     }

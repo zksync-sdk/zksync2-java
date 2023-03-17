@@ -189,7 +189,8 @@ public class ZkSyncWallet {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
             String l2Bridge;
             if (tokenToUse.isETH()) {
-                l2Bridge = zksync.zksGetBridgeContracts().send().getResult().getL2EthDefaultBridge();
+                throw new UnsupportedOperationException("ETH withdrawals are not supported yet");
+//                l2Bridge = zksync.zksGetBridgeContracts().send().getResult().getL2EthDefaultBridge();
             } else {
                 l2Bridge = zksync.zksGetBridgeContracts().send().getResult().getL2Erc20DefaultBridge();
             }

@@ -2,12 +2,12 @@ package io.zksync.protocol.provider;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import io.zksync.wrappers.*;
 import org.jetbrains.annotations.Nullable;
-import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.DynamicBytes;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -23,17 +23,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DefaultEthereumProvider implements EthereumProvider {
 
+    private static final HashMap<String, BigInteger> GAS_LIMITS;
+
     private static final BigInteger MAX_APPROVE_AMOUNT = BigInteger.valueOf(2).pow(256).subtract(BigInteger.ONE);
     private static final BigInteger DEFAULT_THRESHOLD = BigInteger.valueOf(2).pow(255);
     private static final ContractGasProvider DEFAULT_GAS_PROVIDER = new StaticGasProvider(BigInteger.ZERO,
             BigInteger.ZERO);
+
+    private static final BigInteger L1_TO_L2_GAS_PER_PUBDATA = BigInteger.valueOf(800);
 
     private final Web3j web3j;
     private final TransactionManager transactionManager;
     private final ContractGasProvider gasProvider;
     private final ZkSyncContract contract;
     private final IL1Bridge l1ERC20Bridge;
-    private final IL1Bridge l1EthBridge;
 
     public CompletableFuture<BigInteger> getGasPrice() {
         return web3j.ethGasPrice()
@@ -60,23 +63,41 @@ public class DefaultEthereumProvider implements EthereumProvider {
         }
     }
 
-    public CompletableFuture<BigInteger> getDepositBaseCost(@Nullable BigInteger gasPrice) {
+    @Override
+    public CompletableFuture<BigInteger> getBaseCost(BigInteger gasLimit, BigInteger gasPerPubdataByte, @Nullable BigInteger gasPrice) {
         if (gasPrice != null) {
-            return contract.depositBaseCost(gasPrice, PriorityQueueType.Deque.getValue(), PriorityOpTree.Full.getValue()).sendAsync();
+            return contract.l2TransactionBaseCost(gasPrice, gasLimit, gasPerPubdataByte).sendAsync();
         } else {
             return getGasPrice()
-                    .thenCompose(g -> contract.depositBaseCost(g, PriorityQueueType.Deque.getValue(), PriorityOpTree.Full.getValue()).sendAsync());
+                    .thenCompose(g -> contract.l2TransactionBaseCost(g, gasLimit, gasPerPubdataByte).sendAsync());
         }
     }
 
     @Override
-    public CompletableFuture<TransactionReceipt> deposit(Token token, BigInteger amount, String userAddress) {
-        BigInteger tips = BigInteger.ZERO;
-        if (token.isETH()) {
-            return l1EthBridge.deposit(userAddress, Address.DEFAULT.getValue(), amount, amount.add(tips)).sendAsync();
-        } else {
-            return l1ERC20Bridge.deposit(userAddress, token.getL1Address(), amount, tips).sendAsync();
-        }
+    public CompletableFuture<TransactionReceipt> requestExecute(String contractAddress, BigInteger l2Value, byte[] calldata, BigInteger gasLimit, @Nullable byte[][] factoryDeps, @Nullable BigInteger operatorTips, @Nullable BigInteger gasPrice, String refundRecipient) {
+        return CompletableFuture.supplyAsync(() -> {
+            BigInteger gasPriceValue = gasPrice == null ? getGasPrice().join() : gasPrice;
+            List<byte[]> factoryDepsList = factoryDeps == null ? Collections.emptyList() : Arrays.asList(factoryDeps);
+            BigInteger operatorTipsValue = operatorTips == null ? BigInteger.ZERO : operatorTips;
+            BigInteger baseCost = getBaseCost(gasLimit, L1_TO_L2_GAS_PER_PUBDATA, gasPriceValue).join();
+            BigInteger totalValue = l2Value.add(baseCost).add(operatorTipsValue);
+            return contract.requestL2Transaction(contractAddress, l2Value, calldata, gasLimit, L1_TO_L2_GAS_PER_PUBDATA, factoryDepsList, refundRecipient, totalValue).sendAsync().join();
+        });
+    }
+
+    @Override
+    public CompletableFuture<TransactionReceipt> deposit(Token token, BigInteger amount, BigInteger operatorTips, String userAddress) {
+        return CompletableFuture.supplyAsync(() -> {
+            BigInteger baseCost = BigInteger.ZERO;
+            if (token.isETH()) {
+                BigInteger gasLimit = BigInteger.valueOf(10000000);
+                return requestExecute(userAddress, amount, DynamicBytes.DEFAULT.getValue(), gasLimit, null, operatorTips, null, userAddress).join();
+            } else {
+                BigInteger gasLimit = GAS_LIMITS.getOrDefault(token.getL1Address(), BigInteger.valueOf(300000));
+                BigInteger totalAmount = operatorTips.add(baseCost);
+                return l1ERC20Bridge.deposit(userAddress, token.getL1Address(), gasLimit, L1_TO_L2_GAS_PER_PUBDATA, amount, totalAmount).sendAsync().join();
+            }
+        });
     }
 
     @Override
@@ -98,8 +119,90 @@ public class DefaultEthereumProvider implements EthereumProvider {
         return l1ERC20Bridge.getContractAddress();
     }
 
-    @Override
-    public String l1EthBridgeAddress() {
-        return l1EthBridge.getContractAddress();
+    static {
+        //{
+        //    "0x0000000000095413afc295d19edeb1ad7b71c952": 140000,
+        //    "0xeb4c2781e4eba804ce9a9803c67d0893436bb27d": 160000,
+        //    "0xbbbbca6a901c926f240b89eacb641d8aec7aeafd": 140000,
+        //    "0xb64ef51c888972c908cfacf59b47c1afbc0ab8ac": 140000,
+        //    "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984": 150000,
+        //    "0x9ba00d6856a4edf4665bca2c2309936572473b7e": 270000,
+        //    "0x8daebade922df735c38c80c7ebd708af50815faa": 140000,
+        //    "0x0d8775f648430679a709e98d2b0cb6250d2887ef": 140000,
+        //    "0xdac17f958d2ee523a2206206994597c13d831ec7": 140000,
+        //    "0x6de037ef9ad2725eb40118bb1702ebb27e4aeb24": 150000,
+        //    "0x056fd409e1d7a124bd7017459dfea2f387b6d5cd": 180000,
+        //    "0x0f5d2fb29fb7d3cfee444a200298f468908cc942": 140000,
+        //    "0x514910771af9ca656af840dff83e8264ecf986ca": 140000,
+        //    "0x1985365e9f78359a9b6ad760e32412f4a445e862": 180000,
+        //    "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599": 140000,
+        //    "0xe41d2489571d322189246dafa5ebde1f4699f498": 140000,
+        //    "0x6b175474e89094c44da98b954eedeac495271d0f": 140000,
+        //    "0xaaaebe6fe48e54f431b0c390cfaf0b017d09d42d": 150000,
+        //    "0x2b591e99afe9f32eaa6214f7b7629768c40eeb39": 140000,
+        //    "0x65ece136b89ebaa72a7f7aa815674946e44ca3f9": 140000,
+        //    "0x0000000000085d4780b73119b644ae5ecd22b376": 150000,
+        //    "0xdb25f211ab05b1c97d595516f45794528a807ad8": 180000,
+        //    "0x408e41876cccdc0f92210600ef50372656052a38": 140000,
+        //    "0x15a2b3cfafd696e1c783fe99eed168b78a3a371e": 160000,
+        //    "0x38e4adb44ef08f22f5b5b76a8f0c2d0dcbe7dca1": 160000,
+        //    "0x3108ccfd96816f9e663baa0e8c5951d229e8c6da": 140000,
+        //    "0x56d811088235f11c8920698a204a5010a788f4b3": 240000,
+        //    "0x57ab1ec28d129707052df4df418d58a2d46d5f51": 220000,
+        //    "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2": 140000,
+        //    "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 150000,
+        //    "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f": 200000,
+        //    "0x744d70fdbe2ba4cf95131626614a1763df805b9e": 230000,
+        //    "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e": 140000,
+        //    "0x4c7065bca76fe44afb0d16c2441b1e6e163354e2": 250000,
+        //    "0xdd974d5c2e2928dea5f71b9825b8b646686bd200": 140000,
+        //    "0x80fb784b7ed66730e8b1dbd9820afd29931aab03": 140000,
+        //    "0xd56dac73a4d6766464b38ec6d91eb45ce7457c44": 140000,
+        //    "0x4fabb145d64652a948d72533023f6e7a623c7c53": 150000,
+        //    "0x38a2fdc11f526ddd5a607c1f251c065f40fbf2f7": 140000,
+        //    "0x7dd9c5cba05e151c895fde1cf355c9a1d5da6429": 140000
+        //}
+        GAS_LIMITS = new HashMap<String, BigInteger>() {{
+            put("0x0000000000095413afc295d19edeb1ad7b71c952", BigInteger.valueOf(140000));
+            put("0xeb4c2781e4eba804ce9a9803c67d0893436bb27d", BigInteger.valueOf(160000));
+            put("0xbbbbca6a901c926f240b89eacb641d8aec7aeafd", BigInteger.valueOf(140000));
+            put("0xb64ef51c888972c908cfacf59b47c1afbc0ab8ac", BigInteger.valueOf(140000));
+            put("0x1f9840a85d5af5bf1d1762f925bdaddc4201f984", BigInteger.valueOf(150000));
+            put("0x9ba00d6856a4edf4665bca2c2309936572473b7e", BigInteger.valueOf(270000));
+            put("0x8daebade922df735c38c80c7ebd708af50815faa", BigInteger.valueOf(140000));
+            put("0x0d8775f648430679a709e98d2b0cb6250d2887ef", BigInteger.valueOf(140000));
+            put("0xdac17f958d2ee523a2206206994597c13d831ec7", BigInteger.valueOf(140000));
+            put("0x6de037ef9ad2725eb40118bb1702ebb27e4aeb24", BigInteger.valueOf(150000));
+            put("0x056fd409e1d7a124bd7017459dfea2f387b6d5cd", BigInteger.valueOf(180000));
+            put("0x0f5d2fb29fb7d3cfee444a200298f468908cc942", BigInteger.valueOf(140000));
+            put("0x514910771af9ca656af840dff83e8264ecf986ca", BigInteger.valueOf(140000));
+            put("0x1985365e9f78359a9b6ad760e32412f4a445e862", BigInteger.valueOf(180000));
+            put("0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", BigInteger.valueOf(140000));
+            put("0xe41d2489571d322189246dafa5ebde1f4699f498", BigInteger.valueOf(140000));
+            put("0x6b175474e89094c44da98b954eedeac495271d0f", BigInteger.valueOf(140000));
+            put("0xaaaebe6fe48e54f431b0c390cfaf0b017d09d42d", BigInteger.valueOf(150000));
+            put("0x2b591e99afe9f32eaa6214f7b7629768c40eeb39", BigInteger.valueOf(140000));
+            put("0x65ece136b89ebaa72a7f7aa815674946e44ca3f9", BigInteger.valueOf(140000));
+            put("0x0000000000085d4780b73119b644ae5ecd22b376", BigInteger.valueOf(150000));
+            put("0xdb25f211ab05b1c97d595516f45794528a807ad8", BigInteger.valueOf(180000));
+            put("0x408e41876cccdc0f92210600ef50372656052a38", BigInteger.valueOf(140000));
+            put("0x15a2b3cfafd696e1c783fe99eed168b78a3a371e", BigInteger.valueOf(160000));
+            put("0x38e4adb44ef08f22f5b5b76a8f0c2d0dcbe7dca1", BigInteger.valueOf(160000));
+            put("0x3108ccfd96816f9e663baa0e8c5951d229e8c6da", BigInteger.valueOf(140000));
+            put("0x56d811088235f11c8920698a204a5010a788f4b3", BigInteger.valueOf(240000));
+            put("0x57ab1ec28d129707052df4df418d58a2d46d5f51", BigInteger.valueOf(220000));
+            put("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", BigInteger.valueOf(140000));
+            put("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", BigInteger.valueOf(150000));
+            put("0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f", BigInteger.valueOf(200000));
+            put("0x744d70fdbe2ba4cf95131626614a1763df805b9e", BigInteger.valueOf(230000));
+            put("0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e", BigInteger.valueOf(140000));
+            put("0x4c7065bca76fe44afb0d16c2441b1e6e163354e2", BigInteger.valueOf(250000));
+            put("0xdd974d5c2e2928dea5f71b9825b8b646686bd200", BigInteger.valueOf(140000));
+            put("0x80fb784b7ed66730e8b1dbd9820afd29931aab03", BigInteger.valueOf(140000));
+            put("0xd56dac73a4d6766464b38ec6d91eb45ce7457c44", BigInteger.valueOf(140000));
+            put("0x4fabb145d64652a948d72533023f6e7a623c7c53", BigInteger.valueOf(150000));
+            put("0x38a2fdc11f526ddd5a607c1f251c065f40fbf2f7", BigInteger.valueOf(140000));
+            put("0x7dd9c5cba05e151c895fde1cf355c9a1d5da6429", BigInteger.valueOf(140000));
+        }};
     }
 }
