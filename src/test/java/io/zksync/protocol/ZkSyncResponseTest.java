@@ -17,7 +17,7 @@ public class ZkSyncResponseTest extends ResponseTester {
 
     @Test
     void zksEstimateFee() {
-        buildResponse("{\"jsonrpc\":\"2.0\",\"result\":{\"ergs_limit\":\"0x4be68\",\"ergs_per_pubdata_limit\":\"0x27100\",\"max_fee_per_erg\":\"0x5f5e100\",\"max_priority_fee_per_erg\":\"0x5f5e100\"},\"id\":1}");
+        buildResponse("{\"jsonrpc\":\"2.0\",\"result\":{\"gas_limit\":\"0x4be68\",\"gas_per_pubdata_limit\":\"0x27100\",\"max_fee_per_erg\":\"0x5f5e100\",\"max_priority_fee_per_erg\":\"0x5f5e100\"},\"id\":1}");
 
         ZksEstimateFee zksEstimateFee = deserialiseResponse(ZksEstimateFee.class);
 
@@ -111,5 +111,17 @@ public class ZkSyncResponseTest extends ResponseTester {
 
         Assertions.assertEquals("0xd8128f25ec5446a89c223d1e546299183bc8b033", zksTestnetPaymasterAddress.getResult());
     }
+
+    @Test
+    void zksGetBlock() {
+        buildResponse("{\"jsonrpc\":\"2.0\",\"result\":{\"baseFeePerGas\":\"0x1dcd6500\",\"difficulty\":\"0x0\",\"extraData\":\"0x\",\"gasLimit\":\"0xffffffff\",\"gasUsed\":\"0x5deb6\",\"hash\":\"0xad7d3b645205e6651e447251f0f649d6d7a191a54e7140a4266e143e0de8e320\",\"l1BatchNumber\":\"0x730\",\"l1BatchTimestamp\":\"0x63eb7ae0\",\"logsBloom\":\"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"miner\":\"0x0000000000000000000000000000000000000000\",\"mixHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"nonce\":\"0x0000000000000000\",\"number\":\"0x33450\",\"parentHash\":\"0xe47fa912bd7a769abb076cdf222e4fb643353b3cf4fccbe7b1562ace98bd9b29\",\"receiptsRoot\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"sealFields\":[],\"sha3Uncles\":\"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347\",\"size\":\"0x0\",\"stateRoot\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"timestamp\":\"0x63eb7b59\",\"totalDifficulty\":\"0x0\",\"transactions\":[{\"blockHash\":\"0xad7d3b645205e6651e447251f0f649d6d7a191a54e7140a4266e143e0de8e320\",\"blockNumber\":\"0x33450\",\"chainId\":\"0x118\",\"from\":\"0x6b42ba9a6f3249779504fe5f3ee9869e74a185fc\",\"gas\":\"0x5de0b\",\"gasPrice\":\"0x1dcd6500\",\"hash\":\"0xcb7c744f0b0f04008cabd2cbe57ce81c173639df7e9a369140d1dc848518b122\",\"input\":\"0xfefe409d\",\"l1BatchNumber\":\"0x730\",\"l1BatchTxIndex\":\"0x6e\",\"maxFeePerGas\":\"0x1dcd6500\",\"maxPriorityFeePerGas\":\"0x1dcd6500\",\"nonce\":\"0x0\",\"r\":\"0x5a5f5e8ccdf2b105f3c59bd29881ccf8e1fab98ca5ac33a10fcc92be24074b80\",\"s\":\"0x44c5f61fcccca830b983713cc905a3c5bd653c104dd81c3aaf0ba328923f6f74\",\"to\":\"0x07a6ee401cb2c9e4d9c436fa65cfb800715fe6e9\",\"transactionIndex\":\"0x0\",\"type\":\"0x0\",\"v\":\"0x1\",\"value\":\"0x0\"},{\"blockHash\":\"0xad7d3b645205e6651e447251f0f649d6d7a191a54e7140a4266e143e0de8e320\",\"blockNumber\":\"0x33450\",\"chainId\":\"0x118\",\"from\":\"0x7f2a7868bfc7b4ffb3768f5abd1b68e9739cdd2e\",\"gas\":\"0x41448\",\"gasPrice\":\"0x1dcd6500\",\"hash\":\"0xcb75831c4ac88e5aca7437f48a58bfa701ffa6646d0e5495433c19dae543b33e\",\"input\":\"0xa72a241100000000000000000000000034bd12ea642608107ee573e956c3f5c789b6d2c50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000053887e824808000\",\"l1BatchNumber\":\"0x730\",\"l1BatchTxIndex\":\"0x6f\",\"maxFeePerGas\":\"0x9502f900\",\"maxPriorityFeePerGas\":\"0x59682f00\",\"nonce\":\"0x11a\",\"r\":\"0xab9b8dedb64d2d9034c56245cee55d88ae4e867a05b9a94866dd208bb5a39fd6\",\"s\":\"0x27e447f696d7a2b4635eba277e501bd4c68b2d534c06f30eb1bdadc24b21afbd\",\"to\":\"0x2dd687e37323bd71a3b31b28dc6def2f2addd9b5\",\"transactionIndex\":\"0x1\",\"type\":\"0x2\",\"v\":\"0x0\",\"value\":\"0x0\"}],\"transactionsRoot\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"uncles\":[]},\"id\":53}\n");
+
+        ZksGetBlock zksBlock = deserialiseResponse(ZksGetBlock.class);
+
+        Assertions.assertEquals("0x730", zksBlock.getResult().getL1BatchNumber());
+        Assertions.assertEquals("0x63eb7ae0", zksBlock.getResult().getL1BatchTimestamp());
+        Assertions.assertEquals("0x1dcd6500", zksBlock.getResult().getBaseFeePerGas());
+    }
+
 
 }

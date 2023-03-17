@@ -27,6 +27,7 @@ import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.*;
@@ -1061,6 +1062,29 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
     @Test
     public void testGetTransactionDetails() throws IOException {
         ZksGetTransactionDetails response = zksync.zksGetTransactionDetails("0x0898f4b225276625e1d5d2cc4dc5b7a1acb896daece7e46c8202a47da9a13a27").send();
+
+        assertResponse(response);
+    }
+
+
+    @Test
+    public void testGetTransactionByHash() throws IOException {
+        ZksGetTransactionByHash response = zksync.zksGetTransactionByHash("0xd933be650bf97d92c591a88c993b702b368af5480adf019afddee7e8c1e5ce2e").send();
+
+        assertResponse(response);
+    }
+
+
+    @Test
+    public void testGetBlockByHash() throws IOException {
+        ZksBlock response = zksync.zksGetBlockByHash("0xd933be650bf97d92c591a88c993b702b368af5480adf019afddee7e8c1e5ce2e", true).send();
+
+        assertResponse(response);
+    }
+
+    @Test
+    public void testGetBlockByNumber() throws IOException {
+        ZksBlock response = zksync.zksGetBlockByNumber(DefaultBlockParameter.valueOf("0xb108e"), true).send();
 
         assertResponse(response);
     }

@@ -5,10 +5,10 @@ import io.zksync.methods.response.*;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Request;
+import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthEstimateGas;
-
-import java.math.BigInteger;
 
 public interface ZkSync extends Web3j {
     static ZkSync build(Web3jService web3jService) {
@@ -118,4 +118,43 @@ public interface ZkSync extends Web3j {
      * @return Prepared get transaction details request
      */
     Request<?, ZksGetTransactionDetails> zksGetTransactionDetails(String transactionHash);
+
+    /**
+     * Get transaction.
+     *
+     * @param transactionHash Hash of the executed transaction hash with sent message
+     * @return Prepared get transaction request
+     */
+    Request<?, ZksGetTransactionByHash> zksGetTransactionByHash(String transactionHash);
+
+    /**
+     * Get logs.
+     *
+     * @param ethFilter the filter options
+     * @return Prepared get transaction request
+     */
+    Request<?, ZksGetLogs> zksGetLogs(EthFilter ethFilter);
+
+    /**
+     * Get block by hash.
+     *
+     * @param blockHash Hash of a block
+     * @param returnFullTransactionObjects  If true it returns the full transaction objects,
+     * if false only the hashes of the transactions
+     * @return Prepared get transaction receipt request
+     */
+    Request<?, ZksBlock> zksGetBlockByHash(
+            String blockHash, boolean returnFullTransactionObjects);
+
+    /**
+     * Get block by number.
+     *
+     * @param defaultBlockParameter integer of a block number, or the string "earliest",
+     * "latest" or "pending", as in the default block parameter.
+     * @param returnFullTransactionObjects If true it returns the full transaction objects,
+     * if false only the hashes of the transactions.
+     * @return Prepared get transaction receipt request
+     */
+    Request<?, ZksBlock> zksGetBlockByNumber(
+            DefaultBlockParameter defaultBlockParameter, boolean returnFullTransactionObjects);
 }
