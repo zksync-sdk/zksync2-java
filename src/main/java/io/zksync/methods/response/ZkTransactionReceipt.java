@@ -29,7 +29,6 @@ public class ZkTransactionReceipt extends TransactionReceipt {
         return Numeric.decodeQuantity(l1BatchNumber);
     }
 
-
     public void setL1BatchNumber(String l1BatchNumber) {
         this.l1BatchNumber = l1BatchNumber;
     }
