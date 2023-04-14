@@ -2,14 +2,12 @@ package io.zksync.transaction;
 
 import io.zksync.crypto.eip712.Eip712Domain;
 import io.zksync.crypto.eip712.Eip712Encoder;
-import io.zksync.helper.CounterContract;
 import io.zksync.methods.request.Eip712Meta;
 import io.zksync.methods.request.PaymasterParams;
 import io.zksync.protocol.core.Token;
 import io.zksync.protocol.core.ZkSyncNetwork;
 import io.zksync.transaction.type.Transaction712;
 import org.junit.jupiter.api.Test;
-import org.web3j.abi.FunctionEncoder;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
@@ -19,8 +17,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Transaction712Test extends BaseTransactionTest {
 
     private static final Token FEE = BaseTransactionTest.FEE_TOKEN;
-    private static final String SENDER = "0x1234512345123451234512345123451234512345";
-    private static final String RECEIVER = "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC";
+    private static final String SENDER = "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf";
+    private static final String RECEIVER = "0x000102030405060708090a0b0c0d0e0f10111213";
+    private static final BigInteger VALUE = new BigInteger(Numeric.hexStringToByteArray("0x1"));
+    private static final BigInteger GAS_PRICE = new BigInteger(Numeric.hexStringToByteArray("0xee6b280"));
+    private static final BigInteger GAS_LIMIT = new BigInteger(Numeric.hexStringToByteArray("0x1ece8d"));
+    private static final BigInteger MAX_PRIORITY_FEE_PER_GAS = new BigInteger(Numeric.hexStringToByteArray("0x0"));
+
 
     @Test
     public void testEncodeToEIP712TypeString() {
@@ -28,7 +31,7 @@ public class Transaction712Test extends BaseTransactionTest {
         String result = Eip712Encoder.encodeType(transactionRequest.intoEip712Struct());
 
         assertEquals(
-                "Transaction(uint256 txType,uint256 from,uint256 to,uint256 ergsLimit,uint256 ergsPerPubdataByteLimit,uint256 maxFeePerErg,uint256 maxPriorityFeePerErg,uint256 paymaster,uint256 nonce,uint256 value,bytes data,bytes32[] factoryDeps,bytes paymasterInput)",
+                "Transaction(uint256 txType,uint256 from,uint256 to,uint256 gasLimit,uint256 gasPerPubdataByteLimit,uint256 maxFeePerGas,uint256 maxPriorityFeePerErg,uint256 paymaster,uint256 nonce,uint256 value,bytes data,bytes32[] factoryDeps,bytes paymasterInput)",
                 result);
     }
 
@@ -53,17 +56,17 @@ public class Transaction712Test extends BaseTransactionTest {
 
     private Transaction712 buildTransaction() {
         return new Transaction712(
-                42,
-                BigInteger.valueOf(NONCE),
-                BigInteger.valueOf(54321),
+                280,
+                GAS_LIMIT,
+                new BigInteger(Numeric.hexStringToByteArray("0x1ece8d")),
                 RECEIVER,
-                BigInteger.ZERO,
-                FunctionEncoder.encode(CounterContract.encodeIncrement(BigInteger.valueOf(42))),
-                BigInteger.ZERO,
-                BigInteger.ZERO,
+                VALUE,
+                "0x",
+                MAX_PRIORITY_FEE_PER_GAS,
+                GAS_PRICE,
                 SENDER,
                 new Eip712Meta(
-                        BigInteger.ZERO,
+                        new BigInteger(Numeric.hexStringToByteArray("0x1bb1")),
                         null,
                         null,
                         new PaymasterParams()
