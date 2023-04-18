@@ -247,7 +247,7 @@ public class ZkSyncWallet {
         return new RemoteCall<>(() -> {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
 
-            Transaction estimate = Transaction.create2ContractTransaction(
+            Transaction estimate = Transaction.createContractTransaction(
                     signer.getAddress(),
                     BigInteger.ZERO,
                     BigInteger.ZERO,
