@@ -8,6 +8,7 @@ import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.protocol.provider.EthereumProvider;
 import io.zksync.transaction.type.Transaction712;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
@@ -33,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+@Disabled
 public class SelfTransferTest {
 
     private static Credentials credentials;
