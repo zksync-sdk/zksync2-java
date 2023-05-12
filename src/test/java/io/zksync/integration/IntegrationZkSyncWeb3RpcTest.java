@@ -46,6 +46,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.*;
 
+import static io.zksync.utils.ZkSyncAddresses.L2_ETH_TOKEN_ADDRESS;
 import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariables({
@@ -301,7 +302,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
                 .ethGetTransactionCount(credentials.getAddress(), ZkBlockParameterName.COMMITTED).send()
                 .getTransactionCount();
 
-        String l2EthBridge = zksync.zksGetBridgeContracts().send().getResult().getL2EthDefaultBridge();
+        String l2EthBridge = L2_ETH_TOKEN_ADDRESS;
 
         final Function withdraw = new Function(
                 IL2Bridge.FUNC_WITHDRAW,
@@ -428,7 +429,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
     @Test
     @Disabled
     public void testEstimateGas_Withdraw() throws IOException {
-        String l2EthBridge = zksync.zksGetBridgeContracts().send().getResult().getL2EthDefaultBridge();
+        String l2EthBridge = L2_ETH_TOKEN_ADDRESS;
         final Function withdraw = new Function(
                 IL2Bridge.FUNC_WITHDRAW,
                 Arrays.asList(new Address(credentials.getAddress()),

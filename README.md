@@ -570,6 +570,72 @@ public class Main {
     }
 }
 ```
+### Deposit
+
+```java
+import org.web3j.tx.RawTransactionManager;
+import org.web3j.tx.TransactionManager;
+import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import io.zksync.protocol.core.Token;
+import io.zksync.protocol.provider.EthereumProvider;
+import org.web3j.protocol.Web3j;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
+public class Main {
+    public static void main(String... args) {
+        Web3j web3j; // Initialize web3j client
+        Credentials credentials; // Initialize credentials
+        BigInteger chainId; // Initialize chainId
+        
+        TransactionManager manager = new RawTransactionManager(web3j, credentials, chainId.longValue());
+        BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
+        ContractGasProvider gasProvider = new StaticGasProvider(gasPrice, BigInteger.valueOf(300_000L));
+        TransactionReceipt receipt = EthereumProvider
+                .load(wallet.getZksync(), web3j, manager, gasProvider).join()
+                .deposit(Token.ETH, Convert.toWei("0.001", Convert.Unit.ETHER).toBigInteger(), BigInteger.ZERO, credentials.getAddress()).join();
+
+        System.out.println(receipt);
+    }
+}
+```
+
+### Deposit ERC20
+
+```java
+import org.web3j.tx.RawTransactionManager;
+import org.web3j.tx.TransactionManager;
+import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import io.zksync.protocol.core.Token;
+import io.zksync.protocol.provider.EthereumProvider;
+import org.web3j.protocol.Web3j;
+import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.gas.StaticGasProvider;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
+public class Main {
+    public static void main(String... args) {
+        Web3j web3j; // Initialize web3j client
+        Credentials credentials; // Initialize credentials
+        BigInteger chainId; // Initialize chainId
+        Token token = new Token("L1_ADDRESS", "L2_ADDRESS", 18);
+        
+        TransactionManager manager = new RawTransactionManager(web3j, credentials, chainId.longValue());
+        BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
+        ContractGasProvider gasProvider = new StaticGasProvider(gasPrice, BigInteger.valueOf(300_000L));
+        TransactionReceipt receipt = EthereumProvider
+                .load(wallet.getZksync(), web3j, manager, gasProvider).join()
+                .deposit(token, Convert.toWei("0.001", Convert.Unit.ETHER).toBigInteger(), BigInteger.ZERO, credentials.getAddress()).join();
+
+        System.out.println(receipt);
+    }
+}
+```
 
 ### Withdraw funds (Native coins)
 

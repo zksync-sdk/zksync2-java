@@ -2,8 +2,7 @@ package io.zksync;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import io.zksync.methods.request.Transaction;
@@ -18,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.core.DefaultBlockParameter;
@@ -42,6 +42,7 @@ import lombok.Getter;
 
 import static io.zksync.transaction.manager.ZkSyncTransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
 import static io.zksync.transaction.manager.ZkSyncTransactionManager.DEFAULT_POLLING_FREQUENCY;
+import static io.zksync.utils.ZkSyncAddresses.L2_ETH_TOKEN_ADDRESS;
 
 @Getter
 public class ZkSyncWallet {
@@ -178,22 +179,25 @@ public class ZkSyncWallet {
     public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount, @Nullable Token token, @Nullable BigInteger nonce) {
         Token tokenToUse = token == null ? Token.ETH : token;
 
-        Function function = new Function(
-                IL2Bridge.FUNC_WITHDRAW,
-                Arrays.asList(new Address(to),
-                        new Address(tokenToUse.getL2Address()),
-                        new Uint256(amount)),
-                Collections.emptyList());
-        String calldata = FunctionEncoder.encode(function);
         return new RemoteCall<>(() -> {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
             String l2Bridge;
+            ArrayList<Type> parameters = new ArrayList<Type>();
+            parameters.add(new Address(to));
+
             if (tokenToUse.isETH()) {
-                throw new UnsupportedOperationException("ETH withdrawals are not supported yet");
-//                l2Bridge = zksync.zksGetBridgeContracts().send().getResult().getL2EthDefaultBridge();
+                l2Bridge = L2_ETH_TOKEN_ADDRESS;
             } else {
+                parameters.add(new Address(tokenToUse.getL2Address()));
+                parameters.add(new Uint256(amount));
                 l2Bridge = zksync.zksGetBridgeContracts().send().getResult().getL2Erc20DefaultBridge();
             }
+
+            Function function = new Function(
+                    IL2Bridge.FUNC_WITHDRAW,
+                    parameters,
+                    Collections.emptyList());
+            String calldata = FunctionEncoder.encode(function);
 
             Transaction estimate = Transaction.createFunctionCallTransaction(
                     signer.getAddress(),
