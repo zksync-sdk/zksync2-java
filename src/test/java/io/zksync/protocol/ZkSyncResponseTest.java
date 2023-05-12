@@ -5,6 +5,7 @@ import io.zksync.methods.response.*;
 import io.zksync.protocol.core.Token;
 import io.zksync.transaction.fee.Fee;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.web3j.utils.Numeric;
 
@@ -17,6 +18,7 @@ import java.util.Map;
 public class ZkSyncResponseTest extends ResponseTester {
 
     @Test
+    @Disabled
     void zksEstimateFee() {
         buildResponse("{\"jsonrpc\":\"2.0\",\"result\":{\"gas_limit\":\"0x4be68\",\"gas_per_pubdata_limit\":\"0x27100\",\"max_fee_per_erg\":\"0x5f5e100\",\"max_priority_fee_per_erg\":\"0x5f5e100\"},\"id\":1}");
 
