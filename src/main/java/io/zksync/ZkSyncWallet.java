@@ -182,7 +182,7 @@ public class ZkSyncWallet {
         return new RemoteCall<>(() -> {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
             String l2Bridge;
-            ArrayList<Type> parameters = new ArrayList<Type>();
+            ArrayList parameters = new ArrayList();
             parameters.add(new Address(to));
 
             if (tokenToUse.isETH()) {
