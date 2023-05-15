@@ -27,6 +27,7 @@ import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.*;
@@ -45,6 +46,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.*;
 
+import static io.zksync.utils.ZkSyncAddresses.L2_ETH_TOKEN_ADDRESS;
 import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariables({
@@ -93,7 +95,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         ContractGasProvider gasProvider = new StaticGasProvider(gasPrice, BigInteger.valueOf(170_000L));
         TransactionReceipt receipt = EthereumProvider
                 .load(zksync, l1Web3, manager, gasProvider).join()
-                .deposit(ETH, Convert.toWei("0.1", Unit.ETHER).toBigInteger(), credentials.getAddress()).join();
+                .deposit(ETH, Convert.toWei("0.001", Unit.ETHER).toBigInteger(), BigInteger.ZERO, credentials.getAddress()).join();
 
         System.out.println(receipt);
     }
@@ -113,7 +115,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         TransactionReceipt approveReceipt = provider.approveDeposits(token, Optional.of(token.toBigInteger(10000000000L))).join();
         System.out.println(approveReceipt);
 
-        TransactionReceipt receipt = provider.deposit(token, token.toBigInteger(10000000000L), credentials.getAddress()).join();
+        TransactionReceipt receipt = provider.deposit(token, token.toBigInteger(10000000000L), BigInteger.ZERO, credentials.getAddress()).join();
 
         System.out.println(receipt);
     }
@@ -189,17 +191,17 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 value,
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 credentials.getAddress(),
                 meta
         );
@@ -248,17 +250,17 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 credentials.getAddress(),
                 meta
         );
@@ -300,7 +302,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
                 .ethGetTransactionCount(credentials.getAddress(), ZkBlockParameterName.COMMITTED).send()
                 .getTransactionCount();
 
-        String l2EthBridge = zksync.zksGetBridgeContracts().send().getResult().getL2EthDefaultBridge();
+        String l2EthBridge = L2_ETH_TOKEN_ADDRESS;
 
         final Function withdraw = new Function(
                 IL2Bridge.FUNC_WITHDRAW,
@@ -329,17 +331,17 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 credentials.getAddress(),
                 meta
         );
@@ -397,17 +399,17 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 credentials.getAddress(),
                 meta
         );
@@ -427,7 +429,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
     @Test
     @Disabled
     public void testEstimateGas_Withdraw() throws IOException {
-        String l2EthBridge = zksync.zksGetBridgeContracts().send().getResult().getL2EthDefaultBridge();
+        String l2EthBridge = L2_ETH_TOKEN_ADDRESS;
         final Function withdraw = new Function(
                 IL2Bridge.FUNC_WITHDRAW,
                 Arrays.asList(new Address(credentials.getAddress()),
@@ -595,17 +597,17 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 credentials.getAddress(),
                 meta
         );
@@ -666,17 +668,17 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 credentials.getAddress(),
                 meta
         );
@@ -735,17 +737,17 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 credentials.getAddress(),
                 meta
         );
@@ -806,17 +808,17 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 credentials.getAddress(),
                 meta
         );
@@ -881,17 +883,17 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 credentials.getAddress(),
                 meta
         );
@@ -969,17 +971,17 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 credentials.getAddress(),
                 meta
         );
@@ -1057,4 +1059,34 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         assertResponse(response);
     }
 
+
+    @Test
+    public void testGetTransactionDetails() throws IOException {
+        ZksGetTransactionDetails response = zksync.zksGetTransactionDetails("0x0898f4b225276625e1d5d2cc4dc5b7a1acb896daece7e46c8202a47da9a13a27").send();
+
+        assertResponse(response);
+    }
+
+
+    @Test
+    public void testGetTransactionByHash() throws IOException {
+        ZksGetTransactionByHash response = zksync.zksGetTransactionByHash("0xd933be650bf97d92c591a88c993b702b368af5480adf019afddee7e8c1e5ce2e").send();
+
+        assertResponse(response);
+    }
+
+
+    @Test
+    public void testGetBlockByHash() throws IOException {
+        ZksBlock response = zksync.zksGetBlockByHash("0xd933be650bf97d92c591a88c993b702b368af5480adf019afddee7e8c1e5ce2e", true).send();
+
+        assertResponse(response);
+    }
+
+    @Test
+    public void testGetBlockByNumber() throws IOException {
+        ZksBlock response = zksync.zksGetBlockByNumber(DefaultBlockParameter.valueOf("0xb108e"), true).send();
+
+        assertResponse(response);
+    }
 }

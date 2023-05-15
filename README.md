@@ -26,7 +26,7 @@ Maven `pom.xml`
     <dependency>
       <groupId>io.zksync</groupId>
       <artifactId>zksync2</artifactId>
-      <version>0.0.1</version>
+      <version>0.1.0</version>
     </dependency>
   </dependencies>
 </project>
@@ -36,7 +36,7 @@ Gradle `build.gradle`
 
 ```groovy
 dependencies {
-    implementation "io.zksync:zksync2:0.0.1"
+    implementation "io.zksync:zksync2:0.1.0"
 }
 ```
 
@@ -147,17 +147,17 @@ public class Main {
         Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 signer.getAddress(),
                 meta
         );
@@ -228,17 +228,17 @@ public class Main {
         Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 signer.getAddress(),
                 meta
         );
@@ -314,17 +314,17 @@ public class Main {
         Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 signer.getAddress(),
                 meta
         );
@@ -444,17 +444,17 @@ public class Main {
         Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 signer.getAddress(),
                 meta
         );
@@ -519,17 +519,17 @@ public class Main {
         Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 signer.getAddress(),
                 meta
         );
@@ -567,6 +567,72 @@ public class Main {
 
         //Also, you can convert amount number to decimal
         BigDecimal decimalBalance = Token.ETH.intoDecimal(balance);
+    }
+}
+```
+### Deposit
+
+```java
+import org.web3j.tx.RawTransactionManager;
+import org.web3j.tx.TransactionManager;
+import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import io.zksync.protocol.core.Token;
+import io.zksync.protocol.provider.EthereumProvider;
+import org.web3j.protocol.Web3j;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
+public class Main {
+    public static void main(String... args) {
+        Web3j web3j; // Initialize web3j client
+        Credentials credentials; // Initialize credentials
+        BigInteger chainId; // Initialize chainId
+        
+        TransactionManager manager = new RawTransactionManager(web3j, credentials, chainId.longValue());
+        BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
+        ContractGasProvider gasProvider = new StaticGasProvider(gasPrice, BigInteger.valueOf(300_000L));
+        TransactionReceipt receipt = EthereumProvider
+                .load(wallet.getZksync(), web3j, manager, gasProvider).join()
+                .deposit(Token.ETH, Convert.toWei("0.001", Convert.Unit.ETHER).toBigInteger(), BigInteger.ZERO, credentials.getAddress()).join();
+
+        System.out.println(receipt);
+    }
+}
+```
+
+### Deposit ERC20
+
+```java
+import org.web3j.tx.RawTransactionManager;
+import org.web3j.tx.TransactionManager;
+import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import io.zksync.protocol.core.Token;
+import io.zksync.protocol.provider.EthereumProvider;
+import org.web3j.protocol.Web3j;
+import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.gas.StaticGasProvider;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
+public class Main {
+    public static void main(String... args) {
+        Web3j web3j; // Initialize web3j client
+        Credentials credentials; // Initialize credentials
+        BigInteger chainId; // Initialize chainId
+        Token token = new Token("L1_ADDRESS", "L2_ADDRESS", 18);
+        
+        TransactionManager manager = new RawTransactionManager(web3j, credentials, chainId.longValue());
+        BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
+        ContractGasProvider gasProvider = new StaticGasProvider(gasPrice, BigInteger.valueOf(300_000L));
+        TransactionReceipt receipt = EthereumProvider
+                .load(wallet.getZksync(), web3j, manager, gasProvider).join()
+                .deposit(token, Convert.toWei("0.001", Convert.Unit.ETHER).toBigInteger(), BigInteger.ZERO, credentials.getAddress()).join();
+
+        System.out.println(receipt);
     }
 }
 ```
@@ -619,17 +685,17 @@ public class Main {
         Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 signer.getAddress(),
                 meta
         );
@@ -698,17 +764,17 @@ public class Main {
         Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 signer.getAddress(),
                 meta
         );

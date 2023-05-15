@@ -24,13 +24,15 @@ import org.web3j.tx.gas.ContractGasProvider;
  * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the 
  * <a href="https://github.com/web3j/web3j/tree/master/codegen">codegen module</a> to update.
  *
- * <p>Generated with web3j version 1.4.1.
+ * <p>Generated with web3j version 1.4.2.
  */
 @SuppressWarnings("rawtypes")
 public class IL2Bridge extends Contract {
     public static final String BINARY = "0x";
 
     public static final String FUNC_FINALIZEDEPOSIT = "finalizeDeposit";
+
+    public static final String FUNC_INITIALIZE = "initialize";
 
     public static final String FUNC_L1BRIDGE = "l1Bridge";
 
@@ -76,6 +78,16 @@ public class IL2Bridge extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
+    public RemoteFunctionCall<TransactionReceipt> initialize(String _l1Bridge, byte[] _l2TokenProxyBytecodeHash, String _governor) {
+        final Function function = new Function(
+                FUNC_INITIALIZE, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_l1Bridge), 
+                new org.web3j.abi.datatypes.generated.Bytes32(_l2TokenProxyBytecodeHash), 
+                new org.web3j.abi.datatypes.Address(_governor)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
     public RemoteFunctionCall<String> l1Bridge() {
         final Function function = new Function(FUNC_L1BRIDGE, 
                 Arrays.<Type>asList(), 
@@ -105,15 +117,6 @@ public class IL2Bridge extends Contract {
                 new org.web3j.abi.datatypes.generated.Uint256(_amount)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
-    }
-
-    public static Function encodeWithdraw(String _l1Receiver, String _l2Token, BigInteger _amount) {
-        return new Function(
-                FUNC_WITHDRAW,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_l1Receiver),
-                        new org.web3j.abi.datatypes.Address(_l2Token),
-                        new org.web3j.abi.datatypes.generated.Uint256(_amount)),
-                Collections.<TypeReference<?>>emptyList());
     }
 
     @Deprecated

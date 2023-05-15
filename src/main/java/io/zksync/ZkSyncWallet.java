@@ -2,8 +2,7 @@ package io.zksync;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import io.zksync.methods.request.Transaction;
@@ -42,6 +41,7 @@ import lombok.Getter;
 
 import static io.zksync.transaction.manager.ZkSyncTransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
 import static io.zksync.transaction.manager.ZkSyncTransactionManager.DEFAULT_POLLING_FREQUENCY;
+import static io.zksync.utils.ZkSyncAddresses.L2_ETH_TOKEN_ADDRESS;
 
 @Getter
 public class ZkSyncWallet {
@@ -178,21 +178,25 @@ public class ZkSyncWallet {
     public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount, @Nullable Token token, @Nullable BigInteger nonce) {
         Token tokenToUse = token == null ? Token.ETH : token;
 
-        Function function = new Function(
-                IL2Bridge.FUNC_WITHDRAW,
-                Arrays.asList(new Address(to),
-                        new Address(tokenToUse.getL2Address()),
-                        new Uint256(amount)),
-                Collections.emptyList());
-        String calldata = FunctionEncoder.encode(function);
         return new RemoteCall<>(() -> {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
             String l2Bridge;
+            ArrayList parameters = new ArrayList();
+            parameters.add(new Address(to));
+
             if (tokenToUse.isETH()) {
-                l2Bridge = zksync.zksGetBridgeContracts().send().getResult().getL2EthDefaultBridge();
+                l2Bridge = L2_ETH_TOKEN_ADDRESS;
             } else {
+                parameters.add(new Address(tokenToUse.getL2Address()));
+                parameters.add(new Uint256(amount));
                 l2Bridge = zksync.zksGetBridgeContracts().send().getResult().getL2Erc20DefaultBridge();
             }
+
+            Function function = new Function(
+                    IL2Bridge.FUNC_WITHDRAW,
+                    parameters,
+                    Collections.emptyList());
+            String calldata = FunctionEncoder.encode(function);
 
             Transaction estimate = Transaction.createFunctionCallTransaction(
                     signer.getAddress(),
@@ -246,7 +250,7 @@ public class ZkSyncWallet {
         return new RemoteCall<>(() -> {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
 
-            Transaction estimate = Transaction.create2ContractTransaction(
+            Transaction estimate = Transaction.createContractTransaction(
                     signer.getAddress(),
                     BigInteger.ZERO,
                     BigInteger.ZERO,

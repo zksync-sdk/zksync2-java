@@ -18,19 +18,20 @@ import java.math.BigInteger;
 @Setter
 @Builder
 public class Eip712Meta {
-    private BigInteger ergsPerPubdata;
+    private BigInteger gasPerPubdata;
     private byte[] customSignature;
     private byte[][] factoryDeps;
 
     private PaymasterParams paymasterParams;
 
-    public String getErgsPerPubdata() {
-        return convert(ergsPerPubdata);
+
+    public String getGasPerPubdata() {
+        return convert(gasPerPubdata);
     }
 
     @JsonIgnore
-    public BigInteger getErgsPerPubdataNumber() {
-        return ergsPerPubdata;
+    public BigInteger getGasPerPubdataNumber() {
+        return gasPerPubdata;
     }
 
     @JsonSerialize(using = ByteArraySerializer.class)

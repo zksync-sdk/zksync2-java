@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.utils.Numeric;
 
@@ -16,80 +14,80 @@ import java.math.BigInteger;
 public class Fee {
 
     @JsonIgnore
-    private Uint256 ergsLimit;
+    private Uint256 gasLimit;
 
     @JsonIgnore
-    private Uint256 maxFeePerErg;
+    private Uint256 maxFeePerGas;
 
     @JsonIgnore
-    private Uint256 maxPriorityFeePerErg;
+    private Uint256 maxPriorityFeePerGas;
 
     @JsonIgnore
-    private Uint256 ergsPerPubdataLimit;
+    private Uint256 gasPerPubdataLimit;
 
     public Fee() {
-        this.ergsLimit = Uint256.DEFAULT;
-        this.maxFeePerErg = Uint256.DEFAULT;
-        this.maxPriorityFeePerErg = Uint256.DEFAULT;
-        this.ergsPerPubdataLimit = Uint256.DEFAULT;
+        this.gasLimit = Uint256.DEFAULT;
+        this.maxFeePerGas = Uint256.DEFAULT;
+        this.maxPriorityFeePerGas = Uint256.DEFAULT;
+        this.gasPerPubdataLimit = Uint256.DEFAULT;
     }
 
-    public Fee(BigInteger ergsLimit, BigInteger maxFeePerErg, BigInteger maxPriorityFeePerErg, BigInteger ergsPerPubdataLimit) {
-        this.ergsLimit = new Uint256(ergsLimit);
-        this.maxFeePerErg = new Uint256(maxFeePerErg);
-        this.maxPriorityFeePerErg = new Uint256(maxPriorityFeePerErg);
-        this.ergsPerPubdataLimit = new Uint256(ergsPerPubdataLimit);
+    public Fee(BigInteger gqsLimit, BigInteger maxFeePerGas, BigInteger maxPriorityFeePerGas, BigInteger gasPerPubdataLimit) {
+        this.gasLimit = new Uint256(gqsLimit);
+        this.maxFeePerGas = new Uint256(maxFeePerGas);
+        this.maxPriorityFeePerGas = new Uint256(maxPriorityFeePerGas);
+        this.gasPerPubdataLimit = new Uint256(gasPerPubdataLimit);
     }
 
-    public BigInteger getErgsLimitNumber() {
-        return ergsLimit.getValue();
+    public BigInteger getGasLimitNumber() {
+        return gasLimit.getValue();
     }
 
-    public void setErgsLimit(BigInteger ergsLimit) {
-        this.ergsLimit = new Uint256(ergsLimit);
+    public void setGasLimit(BigInteger gasLimit) {
+        this.gasLimit = new Uint256(gasLimit);
     }
 
-    @JsonSetter("ergs_limit")
-    public void setErgsLimit(String ergsLimit) {
-        this.ergsLimit = new Uint256(Numeric.toBigInt(ergsLimit));
+    @JsonSetter("gas_limit")
+    public void setGasLimit(String gasLimit) {
+        this.gasLimit = new Uint256(Numeric.toBigInt(gasLimit));
     }
 
-    public BigInteger getErgsPriceLimitNumber() {
-        return maxFeePerErg.getValue();
+    public BigInteger getGasPriceLimitNumber() {
+        return maxFeePerGas.getValue();
     }
 
-    public void setMaxFeePerErg(BigInteger maxFeePerErg) {
-        this.maxFeePerErg = new Uint256(maxFeePerErg);
+    public void setMaxFeePerGas(BigInteger maxFeePerGas) {
+        this.maxFeePerGas = new Uint256(maxFeePerGas);
     }
 
-    @JsonSetter("max_fee_per_erg")
-    public void setMaxFeePerErg(String ergsPriceLimit) {
-        this.maxFeePerErg = new Uint256(Numeric.toBigInt(ergsPriceLimit));
+    @JsonSetter("max_fee_per_gas")
+    public void setMaxFeePerGas(String gasPriceLimit) {
+        this.maxFeePerGas = new Uint256(Numeric.toBigInt(gasPriceLimit));
     }
 
     public BigInteger getMaxPriorityFeePerErgNumber() {
-        return maxPriorityFeePerErg.getValue();
+        return maxPriorityFeePerGas.getValue();
     }
 
-    public void setMaxPriorityFeePerErg(BigInteger maxPriorityFeePerErg) {
-        this.maxPriorityFeePerErg = new Uint256(maxPriorityFeePerErg);
+    public void setMaxPriorityFeePerGas(BigInteger maxPriorityFeePerGas) {
+        this.maxPriorityFeePerGas = new Uint256(maxPriorityFeePerGas);
     }
 
     @JsonSetter("max_priority_fee_per_erg")
-    public void setMaxPriorityFeePerErg(String maxPriorityFeePerErg) {
-        this.maxPriorityFeePerErg = new Uint256(Numeric.toBigInt(maxPriorityFeePerErg));
+    public void setMaxPriorityFeePerGas(String maxPriorityFeePerErg) {
+        this.maxPriorityFeePerGas = new Uint256(Numeric.toBigInt(maxPriorityFeePerErg));
     }
 
-    public BigInteger getErgsPerPubdataLimitNumber() {
-        return ergsPerPubdataLimit.getValue();
+    public BigInteger getGasPerPubdataLimitNumber() {
+        return gasPerPubdataLimit.getValue();
     }
 
-    public void setErgsPerPubdataLimit(BigInteger ergsPerPubdataLimit) {
-        this.ergsPerPubdataLimit = new Uint256(ergsPerPubdataLimit);
+    public void setGasPerPubdataLimit(BigInteger gasPerPubdataLimit) {
+        this.gasPerPubdataLimit = new Uint256(gasPerPubdataLimit);
     }
 
-    @JsonSetter("ergs_per_pubdata_limit")
-    public void setErgsPerPubdataLimit(String ergsPerPubdataLimit) {
-        this.ergsPerPubdataLimit = new Uint256(Numeric.toBigInt(ergsPerPubdataLimit));
+    @JsonSetter("gas_per_pubdata_limit")
+    public void setGasPerPubdataLimit(String gasPerPubdataLimit) {
+        this.gasPerPubdataLimit = new Uint256(Numeric.toBigInt(gasPerPubdataLimit));
     }
 }

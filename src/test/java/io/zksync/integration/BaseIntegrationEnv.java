@@ -15,8 +15,6 @@ import io.zksync.transaction.fee.ZkTransactionFeeProvider;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.utils.ContractDeployer;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariables;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.protocol.Web3j;
@@ -97,7 +95,7 @@ public class BaseIntegrationEnv {
         ContractGasProvider gasProvider = new StaticGasProvider(Convert.toWei("1", Convert.Unit.GWEI).toBigInteger(), BigInteger.valueOf(555_000L));
         TransactionReceipt receipt = EthereumProvider
                 .load(zksync, l1Web3, manager, gasProvider).join()
-                .deposit(ETH, Convert.toWei("100", Convert.Unit.ETHER).toBigInteger(), credentials.getAddress()).join();
+                .deposit(ETH, Convert.toWei("100", Convert.Unit.ETHER).toBigInteger(), BigInteger.ZERO, credentials.getAddress()).join();
 
         System.out.println(receipt);
     }
@@ -137,17 +135,17 @@ public class BaseIntegrationEnv {
         Fee fee = estimateFee.getResult();
 
         Eip712Meta meta = estimate.getEip712Meta();
-        meta.setErgsPerPubdata(fee.getErgsPerPubdataLimitNumber());
+        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getErgsLimitNumber(),
+                fee.getGasLimitNumber(),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
                 fee.getMaxPriorityFeePerErgNumber(),
-                fee.getErgsPriceLimitNumber(),
+                fee.getGasPriceLimitNumber(),
                 credentials.getAddress(),
                 meta
         );

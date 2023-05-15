@@ -5,7 +5,9 @@ import io.zksync.methods.response.*;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Request;
+import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthEstimateGas;
 
 public interface ZkSync extends Web3j {
@@ -16,7 +18,7 @@ public interface ZkSync extends Web3j {
     /**
      * Estimate fee for the given transaction at the moment of the latest committed
      * block.
-     * 
+     *
      * @param transaction Transaction data for estimation
      * @return Prepared estimate fee request
      */
@@ -24,7 +26,7 @@ public interface ZkSync extends Web3j {
 
     /**
      * Get address of main contract for current network chain.
-     * 
+     *
      * @return Prepared main contract request
      */
     Request<?, ZksMainContract> zksMainContract();
@@ -32,7 +34,7 @@ public interface ZkSync extends Web3j {
     /**
      * Get list of the tokens supported by ZkSync.
      * The tokens are returned in alphabetical order by their symbol, so basically, the token id is its position in an alphabetically sorted array of tokens.
-     * 
+     *
      * @param from  Offset of tokens
      * @param limit Limit of amount of tokens to return
      * @return Prepared get confirmed tokens request
@@ -41,7 +43,7 @@ public interface ZkSync extends Web3j {
 
     /**
      * Get price of the token in USD.
-     * 
+     *
      * @param tokenAddress Address of the token in hex format
      * @return Prepared get token price request
      */
@@ -49,7 +51,7 @@ public interface ZkSync extends Web3j {
 
     /**
      * Get chain identifier of the L1 chain.
-     * 
+     *
      * @return Prepared l1 chainid request
      */
     Request<?, ZksL1ChainId> zksL1ChainId();
@@ -76,9 +78,9 @@ public interface ZkSync extends Web3j {
     /**
      * Get the proof for the message sent via the L1Messenger system contract.
      *
-     * @param block The number of the block where the message was emitted
-     * @param sender The sender of the message (i.e. the account that called the L1Messenger system contract)
-     * @param message The keccak256 hash of the message that was sent
+     * @param block         The number of the block where the message was emitted
+     * @param sender        The sender of the message (i.e. the account that called the L1Messenger system contract)
+     * @param message       The keccak256 hash of the message that was sent
      * @param l2LogPosition The index in the block of the event that was emitted by the L1Messenger when submitting this message. If it is omitted, the proof for the first message with such content will be returned
      * @return Prepared get proof for message request
      */
@@ -108,4 +110,51 @@ public interface ZkSync extends Web3j {
      * @return Prepared get transaction receipt request
      */
     Request<?, ZksGetTransactionReceipt> zksGetTransactionReceipt(String transactionHash);
+
+    /**
+     * Get transaction details.
+     *
+     * @param transactionHash Hash of the executed transaction hash with sent message
+     * @return Prepared get transaction details request
+     */
+    Request<?, ZksGetTransactionDetails> zksGetTransactionDetails(String transactionHash);
+
+    /**
+     * Get transaction.
+     *
+     * @param transactionHash Hash of the executed transaction hash with sent message
+     * @return Prepared get transaction request
+     */
+    Request<?, ZksGetTransactionByHash> zksGetTransactionByHash(String transactionHash);
+
+    /**
+     * Get logs.
+     *
+     * @param ethFilter the filter options
+     * @return Prepared get transaction request
+     */
+    Request<?, ZksGetLogs> zksGetLogs(EthFilter ethFilter);
+
+    /**
+     * Get block by hash.
+     *
+     * @param blockHash Hash of a block
+     * @param returnFullTransactionObjects  If true it returns the full transaction objects,
+     * if false only the hashes of the transactions
+     * @return Prepared get transaction receipt request
+     */
+    Request<?, ZksBlock> zksGetBlockByHash(
+            String blockHash, boolean returnFullTransactionObjects);
+
+    /**
+     * Get block by number.
+     *
+     * @param defaultBlockParameter integer of a block number, or the string "earliest",
+     * "latest" or "pending", as in the default block parameter.
+     * @param returnFullTransactionObjects If true it returns the full transaction objects,
+     * if false only the hashes of the transactions.
+     * @return Prepared get transaction receipt request
+     */
+    Request<?, ZksBlock> zksGetBlockByNumber(
+            DefaultBlockParameter defaultBlockParameter, boolean returnFullTransactionObjects);
 }
