@@ -1,12 +1,19 @@
 package io.zksync.crypto.signer;
 
 import io.zksync.ZkSyncWallet;
+import io.zksync.abi.TransactionEncoder;
 import io.zksync.crypto.eip712.Eip712Domain;
+import io.zksync.methods.request.Eip712Meta;
+import io.zksync.methods.response.ZkTransactionReceipt;
+import io.zksync.methods.response.ZksEstimateFee;
+import io.zksync.methods.response.ZksMessageProof;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.Token;
 import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.protocol.provider.EthereumProvider;
+import io.zksync.transaction.fee.Fee;
 import io.zksync.transaction.type.Transaction712;
+import io.zksync.wrappers.IL2Bridge;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -16,9 +23,10 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Hash;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.methods.response.EthCall;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.response.*;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
@@ -34,7 +42,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@Disabled
+import static io.zksync.integration.BaseIntegrationEnv.ETH;
+import static io.zksync.utils.ZkSyncAddresses.L2_ETH_TOKEN_ADDRESS;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class SelfTransferTest {
 
     private static Credentials credentials;
@@ -50,14 +61,14 @@ public class SelfTransferTest {
     @BeforeAll
     public static void setUp() throws IOException {
 
-        final String privateKey = "PRIVATE_KEY";
-        zksync = ZkSync.build(new HttpService("https://zksync2-testnet.zksync.dev"));
+        final String privateKey = "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
+        zksync = ZkSync.build(new HttpService("http://localhost:3050/"));
         credentials = Credentials.create(privateKey);
-        key = new PrivateKeyEthSigner(credentials, 280L);
+        key = new PrivateKeyEthSigner(credentials, 270L);
         wallet = new ZkSyncWallet(zksync, key, Token.ETH);
-        web3j = Web3j.build(new HttpService("https://goerli.infura.io/v3/API_KEY"));
+        web3j = Web3j.build(new HttpService("http://localhost:8545/"));
         chainId = web3j.ethChainId().send().getChainId();
-        domain = Eip712Domain.defaultDomain(280L);
+        domain = Eip712Domain.defaultDomain(270L);
     }
 
     @Test
@@ -73,10 +84,27 @@ public class SelfTransferTest {
 
     }
 
+    @Test
+    public void withdraw() throws Exception{
+        EthGetBalance getBalance = web3j
+                .ethGetBalance(credentials.getAddress(), DefaultBlockParameterName.LATEST)
+                .send();
+
+
+
+
+    }
 
     @Test
     public void withdrawTest() throws Exception {
-        TransactionReceipt receipt = wallet.withdraw(credentials.getAddress(), Convert.toWei("0.117649", Convert.Unit.ETHER).toBigInteger()).send();
+        TransactionReceipt tx = wallet.withdraw(credentials.getAddress(), Convert.toWei("0.117649", Convert.Unit.ETHER).toBigInteger()).send();
+        TransactionManager manager = new RawTransactionManager(web3j, credentials, chainId.longValue());
+        BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
+        ContractGasProvider gasProvider = new StaticGasProvider(gasPrice, BigInteger.valueOf(300_000L));
+        TransactionReceipt receipt = EthereumProvider
+                .load(wallet.getZksync(), web3j, manager, gasProvider).join()
+                .finalizeWithdraw(tx.getTransactionHash(), 0);
+
         System.out.println(receipt);
     }
 

@@ -77,6 +77,11 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     }
 
     @Override
+    public Request<?, ZksMessageProof> zksGetL2ToL1LogProof(String txHash, int index) {
+        return new Request<>("zks_getL2ToL1LogProof", Arrays.asList(txHash, index), web3jService, ZksMessageProof.class);
+    }
+
+    @Override
     public Request<?, EthEstimateGas> ethEstimateGas(Transaction transaction) {
         return new Request<>(
                 "eth_estimateGas", Collections.singletonList(transaction), web3jService, EthEstimateGas.class);
