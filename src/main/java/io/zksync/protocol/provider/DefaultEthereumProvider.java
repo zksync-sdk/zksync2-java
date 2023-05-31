@@ -1,24 +1,18 @@
 package io.zksync.protocol.provider;
 
 import io.zksync.methods.response.L2toL1Log;
-import io.zksync.methods.response.ZkLog;
 import io.zksync.methods.response.ZkTransactionReceipt;
-import io.zksync.methods.response.ZksMessageProof;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.L2ToL1MessageProof;
 import io.zksync.protocol.core.Token;
 import io.zksync.wrappers.ERC20;
 import io.zksync.wrappers.IL1Bridge;
+import io.zksync.wrappers.IL2Bridge;
 import io.zksync.wrappers.ZkSyncContract;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.abi.EventValues;
-import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.TypeReference;
-import org.web3j.abi.Utils;
-import org.web3j.abi.datatypes.*;
-import org.web3j.abi.datatypes.generated.Bytes32;
-import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.abi.datatypes.DynamicBytes;
 import org.web3j.crypto.Hash;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
@@ -32,12 +26,12 @@ import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.utils.Convert.Unit;
 import org.web3j.utils.Numeric;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import static io.zksync.utils.ZkSyncAddresses.L2_ETH_TOKEN_ADDRESS;
 import static io.zksync.utils.ZkSyncAddresses.MESSENGER_ADDRESS;
 import static io.zksync.wrappers.L1Messenger.L1MESSAGESENT_EVENT;
 
@@ -129,40 +123,64 @@ public class DefaultEthereumProvider implements EthereumProvider {
     }
 
     @Override
-    public TransactionReceipt finalizeWithdraw(String txHash, int index) throws IOException {
+    public TransactionReceipt finalizeWithdraw(String txHash, int index) throws Exception {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         ZkTransactionReceipt receipt = zkSync.zksGetTransactionReceipt(txHash).sendAsync().join().getResult();
 
-        String topic = "L1MessageSent(address,bytes32,bytes)";
-        List<Log> logs = receipt.getLogs();
-        List<Integer> msgsIndex = new ArrayList<>();
-        for (int i = 0 ; i < logs.size() ; i++){
-            if (logs.get(i).getAddress().equals(MESSENGER_ADDRESS) && Arrays.equals(logs.get(i).getTopics().get(0).getBytes(), Hash.sha3String(topic).getBytes())){
-                msgsIndex.add(i);
-            }
-        }
+        int logIndex = getWithdrawalLogIndex(receipt.getLogs(), index);
+        Log log = receipt.getLogs().get(logIndex);
 
-        List<Integer> msgsL2Index = new ArrayList<>();
-        List<L2toL1Log> l2toL1Logs = receipt.getl2ToL1Logs();
-        for (int i = 0 ; i < l2toL1Logs.size() ; i++){
-            if (l2toL1Logs.get(i).getSender().getValue().equals(MESSENGER_ADDRESS)){
-                msgsL2Index.add(i);
-            }
-        }
+        int l2ToL1LogIndex = getWithdrawalL2ToL1LogIndex(receipt.getl2ToL1Logs(), index);
+        L2ToL1MessageProof l2ToL1MessageProof = zkSync.zksGetL2ToL1LogProof(txHash, l2ToL1LogIndex).sendAsync().join().getResult();
 
-        L2ToL1MessageProof l2ToL1MessageProof = zkSync.zksGetL2ToL1LogProof(txHash, msgsL2Index.get(index)).sendAsync().join().getResult();
-        Log log = logs.get(msgsIndex.get(index));
         EventValues eventValues = Contract.staticExtractEventParameters(L1MESSAGESENT_EVENT, log);
-        byte[] bytes_data = eventValues.getIndexedValues().toString().getBytes();
+        byte[] bytes_data = (byte[]) eventValues.getNonIndexedValues().get(0).getValue();
+
         BigInteger l1BatchNumber = receipt.getL1BatchNumber();
 
         List<byte[]> merkle_proof = new ArrayList<>();
         for (int i = 0 ; i < l2ToL1MessageProof.getProof().size() ; i++){
             merkle_proof.add(Numeric.hexStringToByteArray(l2ToL1MessageProof.getProof().get(i)));
         }
+        String sender = log.getTopics().get(1);
 
-        return contract.finalizeEthWithdrawal(l1BatchNumber, BigInteger.valueOf(l2ToL1MessageProof.getId()), receipt.getL1BatchTxIndex(), bytes_data, merkle_proof).sendAsync().join();
+        if (sender.equals(L2_ETH_TOKEN_ADDRESS)){
+            return contract.finalizeEthWithdrawal(l1BatchNumber, BigInteger.valueOf(l2ToL1MessageProof.getId()), receipt.getL1BatchTxIndex(), bytes_data, merkle_proof).sendAsync().join();
+        }
+        IL2Bridge il2Bridge = IL2Bridge.load(sender, web3j, transactionManager, gasProvider);
+        IL1Bridge il1Bridge = IL1Bridge.load(il2Bridge.l1Bridge().send(), web3j, transactionManager, gasProvider);
+
+        return il1Bridge.finalizeWithdrawal(l1BatchNumber, BigInteger.valueOf(l2ToL1MessageProof.getId()), receipt.getL1BatchTxIndex(), bytes_data, merkle_proof).sendAsync().join();
     }
 
+    public int getWithdrawalLogIndex(List<Log> logs, int index){
+        String topic = "L1MessageSent(address,bytes32,bytes)";
+        List<Integer> logIndex = new ArrayList<>();
+
+        for (int i = 0 ; i < logs.size() ; i++){
+            if (logs.get(i).getAddress().equals(MESSENGER_ADDRESS) && Arrays.equals(logs.get(i).getTopics().get(0).getBytes(), Hash.sha3String(topic).getBytes())){
+                logIndex.add(i);
+            }
+        }
+
+        return logIndex.get(index);
+    }
+
+    public int getWithdrawalL2ToL1LogIndex(List<L2toL1Log> logs, int index){
+        List<Integer> logIndex = new ArrayList<>();
+
+        for (int i = 0 ; i < logs.size() ; i++){
+            if (logs.get(i).getSender().getValue().equals(MESSENGER_ADDRESS)){
+                logIndex.add(i);
+            }
+        }
+
+        return logIndex.get(index);
+    }
     @Override
     public CompletableFuture<Boolean> isDepositApproved(Token token, String to, Optional<BigInteger> threshold) {
         ERC20 tokenContract = ERC20.load(token.getL1Address(), web3j, transactionManager,
