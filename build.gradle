@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
+    id 'io.codearte.nexus-staging' version '0.30.0'
 }
 
 group = 'io.zksync'
@@ -40,7 +41,6 @@ publishing {
                 name = 'ZkSync2 SDK'
                 description = 'This repository provides a Java SDK for zkSync developers, which can be used either on PC or Android.'
                 url = 'https://github.com/zksync-sdk/zksync2-java'
-                version = '0.1.0'
                 organization {
                     name = 'Matter Labs'
                     url = 'https://matter-labs.io'
@@ -53,9 +53,9 @@ publishing {
                 }
                 developers {
                     developer {
-                        id = 'mfischuk'
-                        name = 'Maxim Fischuk'
-                        email = 'mfischuk@vareger.com'
+                        id = 'matterLabs'
+                        name = 'Matter Labs'
+                        email = 'hello@matterlabs.io'
                     }
                 }
                 scm {
@@ -76,6 +76,11 @@ publishing {
             }
         }
     }
+}
+
+nexusStaging {
+    packageGroup = "io.zksync.zksync2" //optional if packageGroup == project.getGroup()
+    stagingProfileId findProperty("OSSRH_STAGING_PROFILE_ID")
 }
 
 
