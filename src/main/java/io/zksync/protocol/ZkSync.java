@@ -86,6 +86,7 @@ public interface ZkSync extends Web3j {
      */
     Request<?, ZksMessageProof> zksGetL2ToL1MsgProof(Integer block, String sender, String message, @Nullable Long l2LogPosition);
 
+    Request<?, ZksMessageProof> zksGetL2ToL1LogProof(String txHash, int index);
     /**
      * Generates and returns an estimate of how much gas is necessary to allow the transaction to complete. The transaction will not be added to the blockchain.
      *

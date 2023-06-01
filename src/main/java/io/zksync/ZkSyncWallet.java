@@ -19,9 +19,11 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Hash;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.RemoteCall;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
+import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.tx.ReadonlyTransactionManager;
@@ -183,28 +185,43 @@ public class ZkSyncWallet {
             String l2Bridge;
             ArrayList parameters = new ArrayList();
             parameters.add(new Address(to));
-
+            Transaction estimate;
             if (tokenToUse.isETH()) {
+                Function function = new Function(
+                        IL2Bridge.FUNC_WITHDRAW,
+                        Arrays.asList(new Address(to)),
+                        Collections.emptyList());
+
+                String calldata = FunctionEncoder.encode(function);
                 l2Bridge = L2_ETH_TOKEN_ADDRESS;
+
+                estimate = Transaction.createFunctionCallTransaction(
+                        signer.getAddress(),
+                        l2Bridge,
+                        BigInteger.ZERO,
+                        BigInteger.ZERO,
+                        amount,
+                        calldata
+                );
             } else {
-                parameters.add(new Address(tokenToUse.getL2Address()));
-                parameters.add(new Uint256(amount));
+                Function function = new Function(
+                        IL2Bridge.FUNC_WITHDRAW,
+                        Arrays.asList(new Address(to),
+                                new Address(tokenToUse.getL2Address()),
+                                new Uint256(amount)),
+                        Collections.emptyList());
+
+                String calldata = FunctionEncoder.encode(function);
                 l2Bridge = zksync.zksGetBridgeContracts().send().getResult().getL2Erc20DefaultBridge();
+
+                estimate = Transaction.createFunctionCallTransaction(
+                        signer.getAddress(),
+                        l2Bridge,
+                        BigInteger.ZERO,
+                        BigInteger.ZERO,
+                        calldata
+                );
             }
-
-            Function function = new Function(
-                    IL2Bridge.FUNC_WITHDRAW,
-                    parameters,
-                    Collections.emptyList());
-            String calldata = FunctionEncoder.encode(function);
-
-            Transaction estimate = Transaction.createFunctionCallTransaction(
-                    signer.getAddress(),
-                    l2Bridge,
-                    BigInteger.ZERO,
-                    BigInteger.ZERO,
-                    calldata
-            );
 
             EthSendTransaction sent = estimateAndSend(estimate, nonceToUse).join();
 

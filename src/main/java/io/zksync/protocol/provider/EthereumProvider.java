@@ -85,6 +85,7 @@ public interface EthereumProvider {
      * @return CompletableFuture for waiting for transaction mine
      */
     CompletableFuture<TransactionReceipt> withdraw(Token token, BigInteger amount, String userAddress);
+    TransactionReceipt finalizeWithdraw(String txHash, int index) throws Exception;
 
     /**
      * Check if deposit is approved in enough amount
@@ -109,7 +110,7 @@ public interface EthereumProvider {
             String mainContract = zksync.zksMainContract().sendAsync().join().getResult();
             IL1Bridge erc20Bridge = IL1Bridge.load(bridgeAddresses.getL1Erc20DefaultBridge(), ethereum, transactionManager, gasProvider);
             ZkSyncContract zkSyncContract = ZkSyncContract.load(mainContract, ethereum, transactionManager, gasProvider);
-            return new DefaultEthereumProvider(ethereum, transactionManager, gasProvider, zkSyncContract, erc20Bridge);
+            return new DefaultEthereumProvider(ethereum,zksync, transactionManager, gasProvider, zkSyncContract, erc20Bridge);
         });
     }
 

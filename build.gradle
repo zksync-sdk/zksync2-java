@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
+    id 'io.codearte.nexus-staging' version '0.30.0'
 }
 
 group = 'io.zksync'
@@ -52,9 +53,9 @@ publishing {
                 }
                 developers {
                     developer {
-                        id = 'mfischuk'
-                        name = 'Maxim Fischuk'
-                        email = 'mfischuk@vareger.com'
+                        id = 'matterLabs'
+                        name = 'Matter Labs'
+                        email = 'hello@matterlabs.io'
                     }
                 }
                 scm {
@@ -75,6 +76,11 @@ publishing {
             }
         }
     }
+}
+
+nexusStaging {
+    packageGroup = "io.zksync.zksync2" //optional if packageGroup == project.getGroup()
+    stagingProfileId findProperty("OSSRH_STAGING_PROFILE_ID")
 }
 
 
