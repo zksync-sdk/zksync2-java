@@ -26,7 +26,7 @@ Maven `pom.xml`
     <dependency>
       <groupId>io.zksync</groupId>
       <artifactId>zksync2</artifactId>
-      <version>0.1.0</version>
+      <version>0.1.1</version>
     </dependency>
   </dependencies>
 </project>
@@ -36,7 +36,7 @@ Gradle `build.gradle`
 
 ```groovy
 dependencies {
-    implementation "io.zksync:zksync2:0.1.0"
+    implementation "io.zksync:zksync2:0.1.1"
 }
 ```
 
@@ -112,6 +112,10 @@ import io.zksync.transaction.type.Transaction712;
 import io.zksync.utils.ContractDeployer;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
+import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
+
+
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
@@ -120,11 +124,12 @@ import java.security.SecureRandom;
 public class Main {
     public static void main(String... args) {
         ZkSync zksync; // Initialize client
-        EthSigner signer; // Initialize signer
-
-        String binary = "0x<bytecode_of_the_contract>";
-
+        Credentials credentials = Credentials.create("PRIVATE_KEY"); // Initialize signer
         BigInteger chainId = zksync.ethChainId().send().getChainId();
+        EthSigner signer = new PrivateKeyEthSigner(credentials, chainId);
+        ZkSyncTransactionReceiptProcessor processor = new ZkSyncTransactionReceiptProcessor(zksync, DEFAULT_POLLING_FREQUENCY, DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
+        
+        String binary = "0x<bytecode_of_the_contract>";
 
         byte[] salt = SecureRandom.getSeed(32);
 
@@ -132,11 +137,11 @@ public class Main {
         String precomputedAddress = ContractDeployer.computeL2Create2Address(new Address(signer.getAddress()), Numeric.hexStringToByteArray(binary), new byte[]{}, salt).getValue();
 
         BigInteger nonce = zksync
-                .ethGetTransactionCount(signer.getAddress(), ZkBlockParameterName.COMMITTED).send()
+                .ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
                 .getTransactionCount();
 
         Transaction estimate = Transaction.create2ContractTransaction(
-                signer.getAddress(),
+                credentials.getAddress(),
                 BigInteger.ZERO,
                 BigInteger.ZERO,
                 binary,
@@ -144,31 +149,27 @@ public class Main {
                 salt
         );
 
-        Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
-
-        Eip712Meta meta = estimate.getEip712Meta();
-        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
+        ZkTransactionFeeProvider feeProvider = new DefaultTransactionFeeProvider(zksync, Token.ETH);
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getGasLimitNumber(),
+                feeProvider.getGasLimit(estimate),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                fee.getMaxPriorityFeePerErgNumber(),
-                fee.getGasPriceLimitNumber(),
-                signer.getAddress(),
-                meta
+                BigInteger.valueOf(100000000L),
+                feeProvider.getGasPrice(),
+                credentials.getAddress(),
+                estimate.getEip712Meta()
         );
 
         String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
-        String sentTransactionHash = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send().getTransactionHash();
+        EthSendTransaction sent = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
 
-        // You can check transaction status as the same way as in Web3
-        TransactionReceipt receipt = zksync.ethGetTransactionReceipt(sentTransactionHash).send().getTransactionReceipt();
+        TransactionReceipt receipt = processor.waitForTransactionReceipt(sent.getResult());    
     }
 }
 ```
@@ -191,9 +192,13 @@ import io.zksync.utils.ZkSyncAddresses;
 import io.zksync.wrappers.NonceHolder;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
+import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
+
 import org.web3j.tx.ReadonlyTransactionManager;
 import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.utils.Numeric;
+
 
 import java.math.BigInteger;
 
@@ -201,6 +206,7 @@ public class Main {
     public static void main(String... args) {
         ZkSync zksync; // Initialize client
         EthSigner signer; // Initialize signer
+        ZkSyncTransactionReceiptProcessor processor = new ZkSyncTransactionReceiptProcessor(zksync, DEFAULT_POLLING_FREQUENCY, DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
 
         String binary = "0x<bytecode_of_the_contract>";
 
@@ -209,10 +215,7 @@ public class Main {
         NonceHolder nonceHolder = NonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, zksync, new ReadonlyTransactionManager(zksync, signer.getAddress()), new DefaultGasProvider());
 
         BigInteger deploymentNonce = nonceHolder.getDeploymentNonce(signer.getAddress()).send();
-
-        // Here we can precompute contract address before its deploying
-        String precomputedAddress = ContractDeployer.computeL2CreateAddress(new Address(signer.getAddress()), deploymentNonce).getValue();
-
+        
         BigInteger nonce = zksync
                 .ethGetTransactionCount(signer.getAddress(), ZkBlockParameterName.COMMITTED).send()
                 .getTransactionCount();
@@ -225,31 +228,28 @@ public class Main {
                 "0x"
         );
 
-        Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
-
-        Eip712Meta meta = estimate.getEip712Meta();
-        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
+        ZkTransactionFeeProvider feeProvider = new DefaultTransactionFeeProvider(zksync, Token.ETH);
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getGasLimitNumber(),
+                feeProvider.getGasLimit(estimate),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                fee.getMaxPriorityFeePerErgNumber(),
-                fee.getGasPriceLimitNumber(),
+                BigInteger.valueOf(100000000L),
+                feeProvider.getGasPrice(),
                 signer.getAddress(),
-                meta
+                estimate.getEip712Meta()
         );
 
         String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
-        String sentTransactionHash = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send().getTransactionHash();
-
+        EthSendTransaction sent = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
+        
         // You can check transaction status as the same way as in Web3
-        TransactionReceipt receipt = zksync.ethGetTransactionReceipt(sentTransactionHash).send().getTransactionReceipt();
+        TransactionReceipt receipt = processor.waitForTransactionReceipt(sent.getResult());
     }
 }
 ```
@@ -283,8 +283,10 @@ import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.transaction.fee.Fee;
 import io.zksync.transaction.type.Transaction712;
+import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
@@ -293,6 +295,7 @@ public class Main {
     public static void main(String... args) {
         ZkSync zksync; // Initialize client
         EthSigner signer; // Initialize signer
+        ZkSyncTransactionReceiptProcessor processor = new ZkSyncTransactionReceiptProcessor(zksync, DEFAULT_POLLING_FREQUENCY, DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
 
         BigInteger chainId = zksync.ethChainId().send().getChainId();
 
@@ -311,31 +314,26 @@ public class Main {
                 calldata
         );
 
-        Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
-
-        Eip712Meta meta = estimate.getEip712Meta();
-        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
+        ZkTransactionFeeProvider feeProvider = new DefaultTransactionFeeProvider(zksync, Token.ETH);
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getGasLimitNumber(),
+                feeProvider.getGasLimit(estimate),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                fee.getMaxPriorityFeePerErgNumber(),
-                fee.getGasPriceLimitNumber(),
+                BigInteger.valueOf(100000000L),
+                feeProvider.getGasPrice(),
                 signer.getAddress(),
-                meta
+                estimate.getEip712Meta()
         );
 
         String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
-        String sentTransactionHash = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send().getTransactionHash();
-
-        // You can check transaction status as the same way as in Web3
-        TransactionReceipt receipt = zksync.ethGetTransactionReceipt(sentTransactionHash).send().getTransactionReceipt();
+        EthSendTransaction sent = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
+        TransactionReceipt receipt = processor.waitForTransactionReceipt(sent.getResult());
     }
 }
 ```
@@ -413,7 +411,10 @@ import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.transaction.fee.Fee;
 import io.zksync.transaction.type.Transaction712;
+import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
+
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
 
@@ -441,31 +442,27 @@ public class Main {
                 "0x"
         );
 
-        Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
-
-        Eip712Meta meta = estimate.getEip712Meta();
-        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
+        ZkTransactionFeeProvider feeProvider = new DefaultTransactionFeeProvider(zksync, Token.ETH);
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getGasLimitNumber(),
+                feeProvider.getGasLimit(estimate),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                fee.getMaxPriorityFeePerErgNumber(),
-                fee.getGasPriceLimitNumber(),
+                BigInteger.valueOf(100000000L),
+                feeProvider.getGasPrice(),
                 signer.getAddress(),
-                meta
+                estimate.getEip712Meta()
         );
 
         String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
-        String sentTransactionHash = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send().getTransactionHash();
+        EthSendTransaction sent = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
 
-        // You can check transaction status as the same way as in Web3
-        TransactionReceipt receipt = zksync.ethGetTransactionReceipt(sentTransactionHash).send().getTransactionReceipt();
+        TransactionReceipt receipt = processor.waitForTransactionReceipt(sent.getResult());
     }
 }
 ```
@@ -516,31 +513,27 @@ public class Main {
                 calldata
         );
 
-        Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
-
-        Eip712Meta meta = estimate.getEip712Meta();
-        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
+        ZkTransactionFeeProvider feeProvider = new DefaultTransactionFeeProvider(zksync, Token.ETH);
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getGasLimitNumber(),
+                feeProvider.getGasLimit(estimate),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                fee.getMaxPriorityFeePerErgNumber(),
-                fee.getGasPriceLimitNumber(),
+                BigInteger.valueOf(100000000L),
+                feeProvider.getGasPrice(),
                 signer.getAddress(),
-                meta
+                estimate.getEip712Meta()
         );
 
         String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
-        String sentTransactionHash = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send().getTransactionHash();
+        EthSendTransaction sent = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
 
-        // You can check transaction status as the same way as in Web3
-        TransactionReceipt receipt = zksync.ethGetTransactionReceipt(sentTransactionHash).send().getTransactionReceipt();
+        TransactionReceipt receipt = processor.waitForTransactionReceipt(sent.getResult());
     }
 }
 ```
@@ -650,9 +643,12 @@ import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.transaction.fee.Fee;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.wrappers.IL2Bridge;
+import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
+
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
@@ -661,6 +657,7 @@ public class Main {
     public static void main(String ...args) {
         ZkSync zksync; // Initialize client
         EthSigner signer; // Initialize signer
+        ZkSyncTransactionReceiptProcessor processor = new ZkSyncTransactionReceiptProcessor(zksync, DEFAULT_POLLING_FREQUENCY, DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
 
         BigInteger chainId = zksync.ethChainId().send().getChainId();
 
@@ -669,8 +666,11 @@ public class Main {
                 .getTransactionCount();
 
         // Get address of the default bridge contract
-        String l2EthBridge = zksync.zksGetBridgeContracts().send().getResult().getL2EthDefaultBridge();
-        final Function withdraw = IL2Bridge.encodeWithdraw(signer.getAddress(), Token.ETH.getL2Address(), Token.ETH.toBigInteger(1));
+        String l2EthBridge = L2_ETH_TOKEN_ADDRESS;
+        final Function withdraw = new Function(
+                IL2Bridge.FUNC_WITHDRAW,
+                Arrays.asList(new Address(to)),
+                Collections.emptyList());
 
         String calldata = FunctionEncoder.encode(withdraw);
 
@@ -679,34 +679,31 @@ public class Main {
                 l2EthBridge,
                 BigInteger.ZERO,
                 BigInteger.ZERO,
+                amount,
                 calldata
         );
 
-        Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
-
-        Eip712Meta meta = estimate.getEip712Meta();
-        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
+        ZkTransactionFeeProvider feeProvider = new DefaultTransactionFeeProvider(zksync, Token.ETH);
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getGasLimitNumber(),
+                feeProvider.getGasLimit(estimate),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                fee.getMaxPriorityFeePerErgNumber(),
-                fee.getGasPriceLimitNumber(),
+                BigInteger.valueOf(100000000L),
+                feeProvider.getGasPrice(),
                 signer.getAddress(),
-                meta
+                estimate.getEip712Meta()
         );
 
         String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
-        String sentTransactionHash = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send().getTransactionHash();
+        EthSendTransaction sent = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
 
-        // You can check transaction status as the same way as in Web3
-        TransactionReceipt receipt = zksync.ethGetTransactionReceipt(sentTransactionHash).send().getTransactionReceipt();
+        TransactionReceipt receipt = processor.waitForTransactionReceipt(sent.getResult());
     }
 }
 ```
@@ -749,8 +746,13 @@ public class Main {
 
         // Get address of the default bridge contract (ERC20)
         String l2Erc20Bridge = zksync.zksGetBridgeContracts().send().getResult().getL2Erc20DefaultBridge();
-        final Function withdraw = IL2Bridge.encodeWithdraw(signer.getAddress(), token.getL2Address(), token.toBigInteger(1.0));
-
+        final Function withdraw = new Function(
+                IL2Bridge.FUNC_WITHDRAW,
+                Arrays.asList(new Address(to),
+                        new Address(tokenToUse.getL2Address()),
+                        new Uint256(amount)),
+                Collections.emptyList());
+        
         String calldata = FunctionEncoder.encode(withdraw);
 
         Transaction estimate = Transaction.createFunctionCallTransaction(
@@ -761,31 +763,27 @@ public class Main {
                 calldata
         );
 
-        Fee fee = zksync.zksEstimateFee(estimate).send().getResult();
-
-        Eip712Meta meta = estimate.getEip712Meta();
-        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
+        ZkTransactionFeeProvider feeProvider = new DefaultTransactionFeeProvider(zksync, Token.ETH);
 
         Transaction712 transaction = new Transaction712(
                 chainId.longValue(),
                 nonce,
-                fee.getGasLimitNumber(),
+                feeProvider.getGasLimit(estimate),
                 estimate.getTo(),
                 estimate.getValueNumber(),
                 estimate.getData(),
-                fee.getMaxPriorityFeePerErgNumber(),
-                fee.getGasPriceLimitNumber(),
+                BigInteger.valueOf(100000000L),
+                feeProvider.getGasPrice(),
                 signer.getAddress(),
-                meta
+                estimate.getEip712Meta()
         );
 
         String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
         byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
 
-        String sentTransactionHash = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send().getTransactionHash();
+        EthSendTransaction sent = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
 
-        // You can check transaction status as the same way as in Web3
-        TransactionReceipt receipt = zksync.ethGetTransactionReceipt(sentTransactionHash).send().getTransactionReceipt();
+        TransactionReceipt receipt = processor.waitForTransactionReceipt(sent.getResult());
     }
 }
 ```
@@ -811,6 +809,29 @@ public class Main {
         Token token;
 
         TransactionReceipt receipt = wallet.withdraw("0x<receiver_address>", amount, token).send();
+    }
+}
+```
+
+### Finalize Withdraw
+```java
+import io.zksync.protocol.core.Token;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+
+import java.math.BigInteger;
+
+public class Main {
+    public static void main(String... args) {
+        Web3j webj; //Initialize web3j
+        ZkSync zksync; //Initalize zksync
+        Credentials credentials; //Initialize credentials
+        
+        TransactionManager manager = new RawTransactionManager(web3j, credentials, chainId.longValue());
+        BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
+        ContractGasProvider gasProvider = new StaticGasProvider(gasPrice, BigInteger.valueOf(300_000L));
+        TransactionReceipt receipt = EthereumProvider
+                .load(zksync, web3j, manager, gasProvider).join()
+                .finalizeWithdraw("TRANSACTION_HASH", 0);
     }
 }
 ```
