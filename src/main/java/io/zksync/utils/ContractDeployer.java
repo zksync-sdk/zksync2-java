@@ -8,7 +8,7 @@ import org.web3j.abi.datatypes.DynamicBytes;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Bytes32;
-import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.crypto.Hash;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Contract;
@@ -20,9 +20,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class ContractDeployer {
 
@@ -202,7 +200,7 @@ public class ContractDeployer {
      * @return Encoded contract function
      */
     public static Function encodeCreate2Account(byte[] bytecode) {
-        return encodeCreate2Account(bytecode, new byte[] {}, new byte[32]);
+        return encodeCreate2Account(bytecode, new byte[] {}, new byte[32], AccountAbstractionVersion.Version1);
     }
 
     /**
@@ -213,7 +211,7 @@ public class ContractDeployer {
      * @return Encoded contract function
      */
     public static Function encodeCreate2Account(byte[] bytecode, byte[] calldata) {
-        return encodeCreate2Account(bytecode, calldata, new byte[32]);
+        return encodeCreate2Account(bytecode, calldata, new byte[32], AccountAbstractionVersion.Version1);
     }
 
     /**
@@ -224,13 +222,12 @@ public class ContractDeployer {
      * @param salt 32 bytes salt
      * @return Encoded contract function
      */
-    public static Function encodeCreate2Account(byte[] bytecode, byte[] calldata, byte[] salt) {
+    public static Function encodeCreate2Account(byte[] bytecode, byte[] calldata, byte[] salt, AccountAbstractionVersion accountAbstractionVersion) {
         Assertions.verifyPrecondition(salt.length == 32, "Salt length must be 32 bytes");
         byte[] bytecodeHash = hashBytecode(bytecode);
-
         return new Function(
                 "create2Account",
-                Arrays.asList(new Bytes32(salt), new Bytes32(bytecodeHash), new DynamicBytes(calldata)),
+                Arrays.asList(new Bytes32(salt), new Bytes32(bytecodeHash), new DynamicBytes(calldata), new Uint8(accountAbstractionVersion.getRawValue())),
                 Collections.emptyList()
         );
     }

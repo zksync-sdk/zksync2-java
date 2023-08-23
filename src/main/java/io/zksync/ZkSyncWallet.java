@@ -2,19 +2,24 @@ package io.zksync;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import io.zksync.abi.ZkFunctionEncoder;
 import io.zksync.methods.request.Transaction;
 import io.zksync.protocol.exceptions.JsonRpcResponseException;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
+import io.zksync.utils.AccountAbstractionVersion;
+import io.zksync.utils.ContractDeployer;
 import io.zksync.utils.ZkSyncAddresses;
 import io.zksync.wrappers.ERC20;
 import io.zksync.wrappers.IL2Bridge;
 import io.zksync.wrappers.IL2Messenger;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.TypeEncoder;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Uint256;
@@ -284,7 +289,49 @@ public class ZkSyncWallet {
             }
         });
     }
+    public RemoteCall<TransactionReceipt> deployAccount(byte[] bytecode,
+                                                        byte[] calldata){
+        return deployAccount(bytecode, calldata, null, null);
+    }
+    public RemoteCall<TransactionReceipt> deployAccount(byte[] bytecode,
+                                                        byte[] calldata,
+                                                        BigInteger nonce){
+        return deployAccount(bytecode, calldata, null, nonce);
+    }
+    public RemoteCall<TransactionReceipt> deployAccount(byte[] bytecode,
+                                                        byte[] calldata,
+                                                        byte[] salt) {
+        return deployAccount(bytecode, calldata, salt, null);
+    }
+    public RemoteCall<TransactionReceipt> deployAccount(byte[] bytecode,
+                                                        byte[] calldata,
+                                                        @Nullable byte[] salt,
+                                                        @Nullable BigInteger nonce) {
+        return new RemoteCall<>(() -> {
+            BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
 
+            byte[] saltToUse = salt == null ? SecureRandom.getSeed(32) : salt;
+            Function function = ContractDeployer.encodeCreate2Account(bytecode, calldata, saltToUse, AccountAbstractionVersion.Version1);
+            ZkFunctionEncoder encoder = new ZkFunctionEncoder();
+            String data = encoder.encodeFunction(function);
+            Transaction estimate = Transaction.create2ContractTransaction(
+                    signer.getAddress(),
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    Numeric.toHexString(bytecode),
+                    data,
+                    Collections.singletonList(Numeric.toHexString(bytecode))
+            );
+
+            EthSendTransaction sent = estimateAndSend(estimate, nonceToUse).join();
+
+            try {
+                return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
+            } catch (IOException | TransactionException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
     /**
      * Execute function of deployed contract
      *
