@@ -3,6 +3,7 @@ package io.zksync.methods.request;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.zksync.transaction.type.Transaction712;
+import io.zksync.utils.AccountAbstractionVersion;
 import io.zksync.utils.ContractDeployer;
 import io.zksync.utils.ZkSyncAddresses;
 import lombok.AllArgsConstructor;
@@ -119,6 +120,24 @@ public class Transaction {
             BigInteger gasPrice,
             BigInteger gasLimit,
             String bytecode,
+            String calldata,
+            List<String> deps
+    ) {
+        byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
+        byte[][] factoryDeps = new byte[deps.size() + 1][];
+        for (int i = 0; i < deps.size(); i ++) {
+            factoryDeps[i] = Numeric.hexStringToByteArray(deps.get(i));
+        }
+        factoryDeps[deps.size()] = bytecodeBytes;
+        Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), null, factoryDeps, null);
+        return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, gasPrice, gasLimit, null, calldata, meta);
+    }
+
+    public static Transaction create2ContractTransaction(
+            String from,
+            BigInteger gasPrice,
+            BigInteger gasLimit,
+            String bytecode,
             List<String> deps,
             String calldata,
             byte[] salt
@@ -203,7 +222,7 @@ public class Transaction {
     ) {
         byte[] bytecodeBytes = Numeric.hexStringToByteArray(bytecode);
         byte[] calldataBytes = Numeric.hexStringToByteArray(calldata);
-        String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate2Account(bytecodeBytes, calldataBytes, salt));
+        String calldataCreate = FunctionEncoder.encode(ContractDeployer.encodeCreate2Account(bytecodeBytes, calldataBytes, salt, AccountAbstractionVersion.Version1));
         Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(160000L), null, new byte[][] {bytecodeBytes}, null);
         return new Transaction(from, ZkSyncAddresses.CONTRACT_DEPLOYER_ADDRESS, gasPrice, gasLimit, null, calldataCreate, meta);
     }

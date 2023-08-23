@@ -1,24 +1,16 @@
 package io.zksync.abi;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.TypeEncoder;
+import org.web3j.abi.datatypes.*;
+import org.web3j.utils.Numeric;
+
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.List;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.TypeEncoder;
-import org.web3j.abi.datatypes.DynamicArray;
-import org.web3j.abi.datatypes.DynamicBytes;
-import org.web3j.abi.datatypes.DynamicStruct;
-import org.web3j.abi.datatypes.Function;
-import org.web3j.abi.datatypes.StaticArray;
-import org.web3j.abi.datatypes.StaticStruct;
-import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.Uint;
-import org.web3j.abi.datatypes.Utf8String;
-import org.web3j.utils.Numeric;
 
 import static org.web3j.abi.Utils.staticStructNestedPublicFieldsFlatList;
 
@@ -142,7 +134,7 @@ public class ZkFunctionEncoder extends FunctionEncoder {
         final StringBuilder dynamicData = new StringBuilder();
 
         for (Type parameter : parameters) {
-            final String encodedValue = TypeEncoder.encode(parameter);
+            final String encodedValue = ZkTypeEncoder.encode(parameter);
 
             if (isDynamic(parameter)) {
                 final String encodedDataOffset =
