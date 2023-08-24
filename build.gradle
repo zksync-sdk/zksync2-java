@@ -78,20 +78,6 @@ publishing {
     }
 }
 
-nexusStaging {
-    packageGroup = "io.zksync.zksync2" //optional if packageGroup == project.getGroup()
-    stagingProfileId findProperty("OSSRH_STAGING_PROFILE_ID")
-}
-
-
-signing {
-    def signingKeyId = findProperty("signingKeyId")
-    def signingKey = findProperty("signingKey")
-    def signingPassword = findProperty("signingPassword")
-    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-    sign publishing.publications.mavenJava
-}
-
 dependencies {
 
     // === Code Generation ===
