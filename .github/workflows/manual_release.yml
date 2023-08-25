@@ -1,0 +1,44 @@
+name: Manual Release Java library
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-tag:
+        description: 'Tag for the release'
+        required: true
+
+jobs:
+  build_and_publish:
+    name: Build jar library
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ref from inputs
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.release-tag }}
+      - name: Check if specified ref is a tag
+        run: |
+          REF=${{ github.event.inputs.release-tag }}
+          if git show-ref --verify --quiet "refs/tags/$REF"; then
+            echo "Ref $REF is a tag."
+          else
+            echo "Ref $REF is not a tag."
+            exit 1
+          fi
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11
+          distribution: temurin
+      - name: Build with Gradle
+        run: gradle build
+        env:
+          VERSION: ${{ github.event.inputs.release-tag }}
+      - name: Publish package
+        run: gradle clean build sign publish
+        env:
+          VERSION: ${{ github.event.inputs.release-tag }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.PASSPHRASE }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_TOKEN }}
