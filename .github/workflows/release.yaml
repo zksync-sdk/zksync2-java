@@ -30,7 +30,7 @@ jobs:
         env:
           VERSION: ${{ env.lib_version }}
       - name: Publish package
-        run: gradle clean build sign publish
+        run: gradle clean build sign publish closeAndReleaseStagingRepository
         env:
           VERSION: ${{ env.lib_version }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
