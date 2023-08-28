@@ -93,7 +93,7 @@ nexusPublishing {
             snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
             username = findProperty("sonatypeUsername")
             password = findProperty("sonatypePassword")
-            stagingProfileId = findProperty("OSSRH_STAGING_PROFILE_ID")
+            stagingProfileId = findProperty("stagingProfileId")
          }
     }
 }

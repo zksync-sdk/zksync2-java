@@ -37,3 +37,4 @@ jobs:
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.PASSPHRASE }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_TOKEN }}
+          ORG_GRADLE_PROJECT_stagingProfileId: ${{ secrets.OSSRH_STAGING_PROFILE_ID }}
