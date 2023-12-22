@@ -1,17 +1,26 @@
----
-title: 'ZkSync 2 Java SDK'
-disqus: hackmd
----
 
-ZkSync 2 Java SDK
-===
+
+# 🚀 zksync2-java Java SDK 🚀
+
 ![downloads](https://img.shields.io/github/downloads/atom/atom/total.svg)
 ![build](https://img.shields.io/appveyor/ci/:user/:repo.svg)
 ![chat](https://img.shields.io/discord/:serverId.svg)
 
-## Table of Contents
+![Era Logo](https://github.com/matter-labs/era-contracts/raw/main/eraLogo.svg)
 
-[TOC]
+In order to provide easy access to all the features of zkSync Era, the `zksync2-java` Java SDK was created,
+which is made in a way that has an interface very similar to those of [web3j](https://web3py.readthedocs.io/en/v6.6.1/). In
+fact, `web3j` is a peer dependency of our library and most of the objects exported by `zksync2-java` inherit from the corresponding `web3j` objects and override only the fields that need
+to be changed.
+
+While most of the existing SDKs functionalities should work out of the box, deploying smart contracts or using unique zkSync features,
+like account abstraction, requires providing additional fields to those that Ethereum transactions have by default.
+
+The library is made in such a way that after replacing `web3j` with `zksync2-java` most client apps will work out of
+box.
+
+🔗 For a detailed walkthrough, refer to the [official documentation](https://era.zksync.io/docs/api/java).
+
 
 ## Dependency
 
