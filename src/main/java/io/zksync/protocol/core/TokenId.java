@@ -5,8 +5,7 @@ import java.math.BigInteger;
 
 public interface TokenId {
 
-    String getSymbol();
+  String getSymbol();
 
-    BigDecimal intoDecimal(BigInteger amount);
-    
+  BigDecimal intoDecimal(BigInteger amount);
 }

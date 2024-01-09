@@ -5,9 +5,8 @@ import org.web3j.abi.spi.FunctionEncoderProvider;
 
 public class ZkFunctionEncoderProvider implements FunctionEncoderProvider {
 
-    @Override
-    public FunctionEncoder get() {
-        return new ZkFunctionEncoder();
-    }
-    
+  @Override
+  public FunctionEncoder get() {
+    return new ZkFunctionEncoder();
+  }
 }

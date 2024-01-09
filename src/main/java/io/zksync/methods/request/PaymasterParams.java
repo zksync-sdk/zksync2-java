@@ -12,15 +12,15 @@ import lombok.Setter;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PaymasterParams {
-    private String paymaster;
-    private byte[] paymasterInput;
+  private String paymaster;
+  private byte[] paymasterInput;
 
-    public String getPaymaster() {
-        return paymaster;
-    }
+  public String getPaymaster() {
+    return paymaster;
+  }
 
-    @JsonSerialize(using = ByteArraySerializer.class)
-    public byte[] getPaymasterInput() {
-        return paymasterInput;
-    }
+  @JsonSerialize(using = ByteArraySerializer.class)
+  public byte[] getPaymasterInput() {
+    return paymasterInput;
+  }
 }
