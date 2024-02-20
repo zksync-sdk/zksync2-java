@@ -34,4 +34,6 @@ gradle
 bin/main/META-INF/services/org.web3j.abi.spi.FunctionEncoderProvider
 .classpath
 .project
+gradlew
+dradlew.bat
 sec.asc
