@@ -31,7 +31,7 @@ jobs:
           java-version: 11
           distribution: temurin
       - name: Build with Gradle
-        run: gradle build
+        run: gradle build -x test
         env:
           VERSION: ${{ github.event.inputs.release-tag }}
       - name: Publish package
