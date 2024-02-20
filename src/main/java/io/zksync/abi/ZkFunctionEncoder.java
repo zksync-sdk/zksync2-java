@@ -34,7 +34,9 @@ public class ZkFunctionEncoder extends FunctionEncoder {
         final String methodId = buildMethodId(methodSignature);
 
         final StringBuilder result = new StringBuilder();
-        result.append(methodId);
+        if (function.getName() != null){
+            result.append(methodId);
+        }
 
         return encodeParameters(parameters, result);
     }

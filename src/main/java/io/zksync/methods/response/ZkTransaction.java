@@ -1,5 +1,6 @@
 package io.zksync.methods.response;
 
+import lombok.NoArgsConstructor;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.utils.Numeric;
 
@@ -7,6 +8,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
 
+@NoArgsConstructor
 public class ZkTransaction extends Transaction {
 
     private String l1BatchNumber;

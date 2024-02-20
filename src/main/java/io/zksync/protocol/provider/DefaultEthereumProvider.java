@@ -33,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static io.zksync.utils.ZkSyncAddresses.L2_ETH_TOKEN_ADDRESS;
 import static io.zksync.utils.ZkSyncAddresses.MESSENGER_ADDRESS;
-import static io.zksync.wrappers.L1Messenger.L1MESSAGESENT_EVENT;
+import static io.zksync.wrappers.IL1Messenger.L1MESSAGESENT_EVENT;
 
 @RequiredArgsConstructor
 public class DefaultEthereumProvider implements EthereumProvider {
@@ -111,7 +111,7 @@ public class DefaultEthereumProvider implements EthereumProvider {
             } else {
                 BigInteger gasLimit = GAS_LIMITS.getOrDefault(token.getL1Address(), BigInteger.valueOf(300000));
                 BigInteger totalAmount = operatorTips.add(baseCost);
-                return l1ERC20Bridge.deposit(userAddress, token.getL1Address(), gasLimit, L1_TO_L2_GAS_PER_PUBDATA, amount, totalAmount).sendAsync().join();
+                return l1ERC20Bridge.deposit(userAddress, token.getL1Address(), amount, gasLimit, L1_TO_L2_GAS_PER_PUBDATA, userAddress, totalAmount).sendAsync().join();
             }
         });
     }

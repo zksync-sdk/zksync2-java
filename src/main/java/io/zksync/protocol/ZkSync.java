@@ -2,6 +2,8 @@ package io.zksync.protocol;
 
 import io.zksync.methods.request.Transaction;
 import io.zksync.methods.response.*;
+import io.zksync.transaction.type.TransferTransaction;
+import io.zksync.transaction.type.WithdrawTransaction;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
@@ -9,6 +11,11 @@ import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthEstimateGas;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.tx.TransactionManager;
+import org.web3j.tx.gas.ContractGasProvider;
+
+import java.math.BigInteger;
 
 public interface ZkSync extends Web3j {
     static ZkSync build(Web3jService web3jService) {
@@ -76,12 +83,12 @@ public interface ZkSync extends Web3j {
     Request<?, ZksBridgeAddresses> zksGetBridgeContracts();
 
     /**
-     * Get the proof for the message sent via the L1Messenger system contract.
+     * Get the proof for the message sent via the IL1Messenger system contract.
      *
      * @param block         The number of the block where the message was emitted
-     * @param sender        The sender of the message (i.e. the account that called the L1Messenger system contract)
+     * @param sender        The sender of the message (i.e. the account that called the IL1Messenger system contract)
      * @param message       The keccak256 hash of the message that was sent
-     * @param l2LogPosition The index in the block of the event that was emitted by the L1Messenger when submitting this message. If it is omitted, the proof for the first message with such content will be returned
+     * @param l2LogPosition The index in the block of the event that was emitted by the IL1Messenger when submitting this message. If it is omitted, the proof for the first message with such content will be returned
      * @return Prepared get proof for message request
      */
     Request<?, ZksMessageProof> zksGetL2ToL1MsgProof(Integer block, String sender, String message, @Nullable Long l2LogPosition);
@@ -158,4 +165,27 @@ public interface ZkSync extends Web3j {
      */
     Request<?, ZksBlock> zksGetBlockByNumber(
             DefaultBlockParameter defaultBlockParameter, boolean returnFullTransactionObjects);
+
+    Request<?, EthEstimateGas> estimateL1ToL2Execute(String contractAddress, byte[] calldata, String caller, @Nullable BigInteger l2GasLimit, @Nullable BigInteger l2Value, @Nullable byte[][] factoryDeps, @Nullable BigInteger operatorTip, @Nullable BigInteger gasPerPubDataByte, @Nullable String refoundRecepient);
+
+    Transaction getWithdrawTransaction(WithdrawTransaction tx, ContractGasProvider gasProvider, TransactionManager transactionManager) throws Exception;
+
+    Transaction getTransferTransaction(TransferTransaction tx, TransactionManager transactionManager, ContractGasProvider gasProvider);
+
+    Request<?, ZksGetTransactionByHash> getL2TransactionFromPriorityOp(TransactionReceipt receipt) throws InterruptedException;
+
+    String getL2HashFromPriorityOp(TransactionReceipt receipt, String contractAddress);
+
+    Request<?, ZksL1BatchNumber> getL1BatchNumber();
+
+    Request<?, ZksStorageProof> getProof(String address, String[] keys, BigInteger l1BatchNumber);
+
+    Request<?, ZksBlockRange> getL1BatchBlockRange(BigInteger l1BatchNumber);
+
+    Request<?, ZksBatchDetails> getL1BatchDetails(BigInteger number);
+
+    Request<?, ZksBlockDetails> getBlockDetails(BigInteger number);
+
+
+
 }

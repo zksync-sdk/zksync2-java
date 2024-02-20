@@ -13,7 +13,8 @@ public enum ZkBlockParameterName implements DefaultBlockParameter {
     /**
      * Last block that was finalized on L1
      */
-    FINALIZED("finalized");
+    FINALIZED("finalized"),
+    LATEST("latest");
 
     private final String name;
 
