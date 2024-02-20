@@ -290,6 +290,17 @@ public class Transaction {
     public static Transaction createFunctionCallTransaction(
             String from,
             String to,
+            BigInteger value,
+            String data,
+            BigInteger gasPerPubData
+    ) {
+        Eip712Meta meta = new Eip712Meta(gasPerPubData, null, null, null);
+        return new Transaction(from, to, null, null, value, data, meta);
+    }
+
+    public static Transaction createFunctionCallTransaction(
+            String from,
+            String to,
             BigInteger gasPrice,
             BigInteger gasLimit,
             BigInteger value,

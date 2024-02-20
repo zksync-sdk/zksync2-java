@@ -1,143 +1,120 @@
-package io.zksync;
+package io.zksync.protocol.account;
+
+import io.zksync.abi.TransactionEncoder;
+import io.zksync.abi.ZkFunctionEncoder;
+import io.zksync.crypto.signer.EthSigner;
+import io.zksync.crypto.signer.PrivateKeyEthSigner;
+import io.zksync.methods.request.Transaction;
+import io.zksync.methods.response.ZksAccountBalances;
+import io.zksync.protocol.ZkSync;
+import io.zksync.protocol.core.BridgeAddresses;
+import io.zksync.protocol.core.Token;
+import io.zksync.protocol.core.ZkBlockParameterName;
+import io.zksync.protocol.exceptions.JsonRpcResponseException;
+import io.zksync.transaction.fee.DefaultTransactionFeeProvider;
+import io.zksync.transaction.fee.ZkTransactionFeeProvider;
+import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
+import io.zksync.transaction.type.*;
+import io.zksync.utils.AccountAbstractionVersion;
+import io.zksync.utils.ContractDeployer;
+import io.zksync.utils.ZkSyncAddresses;
+import io.zksync.wrappers.*;
+import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.crypto.Credentials;
+import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.RemoteCall;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.exceptions.TransactionException;
+import org.web3j.tx.RawTransactionManager;
+import org.web3j.tx.ReadonlyTransactionManager;
+import org.web3j.tx.TransactionManager;
+import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.gas.DefaultGasProvider;
+import org.web3j.tx.gas.StaticGasProvider;
+import org.web3j.tx.response.TransactionReceiptProcessor;
+import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-
-import io.zksync.abi.ZkFunctionEncoder;
-import io.zksync.methods.request.Transaction;
-import io.zksync.protocol.exceptions.JsonRpcResponseException;
-import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
-import io.zksync.transaction.type.Transaction712;
-import io.zksync.utils.AccountAbstractionVersion;
-import io.zksync.utils.ContractDeployer;
-import io.zksync.utils.ZkSyncAddresses;
-import io.zksync.wrappers.ERC20;
-import io.zksync.wrappers.IL1Messenger;
-import io.zksync.wrappers.IL2Bridge;
-import org.jetbrains.annotations.Nullable;
-import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.TypeEncoder;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Function;
-import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.crypto.Credentials;
-import org.web3j.crypto.Hash;
-import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.RemoteCall;
-import org.web3j.protocol.core.methods.response.EthSendTransaction;
-import org.web3j.protocol.core.methods.response.Log;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.protocol.exceptions.TransactionException;
-import org.web3j.tx.ReadonlyTransactionManager;
-import org.web3j.tx.gas.DefaultGasProvider;
-import org.web3j.tx.response.TransactionReceiptProcessor;
-import org.web3j.utils.Numeric;
-
-import io.zksync.abi.TransactionEncoder;
-import io.zksync.crypto.signer.EthSigner;
-import io.zksync.crypto.signer.PrivateKeyEthSigner;
-import io.zksync.protocol.ZkSync;
-import io.zksync.protocol.core.Token;
-import io.zksync.protocol.core.ZkBlockParameterName;
-import io.zksync.transaction.fee.DefaultTransactionFeeProvider;
-import io.zksync.transaction.fee.ZkTransactionFeeProvider;
-import lombok.Getter;
 
 import static io.zksync.transaction.manager.ZkSyncTransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
 import static io.zksync.transaction.manager.ZkSyncTransactionManager.DEFAULT_POLLING_FREQUENCY;
-import static io.zksync.utils.ZkSyncAddresses.L2_ETH_TOKEN_ADDRESS;
 
 @Getter
-public class ZkSyncWallet {
+public class Wallet extends WalletL1{
 
-    private final ZkSync zksync;
-    private final EthSigner signer;
     private final TransactionReceiptProcessor transactionReceiptProcessor;
-    private final ZkTransactionFeeProvider feeProvider;
+    private final ZkTransactionFeeProvider feeProviderL2;
+    protected final EthSigner signerL2;
 
-    public ZkSyncWallet(ZkSync zksync, EthSigner signer, TransactionReceiptProcessor transactionReceiptProcessor,
-                        ZkTransactionFeeProvider feeProvider) {
-        this.zksync = zksync;
-        this.signer = signer;
+    public Wallet(Web3j providerL1, ZkSync providerL2, TransactionManager transactionManager, ContractGasProvider feeProviderL1, ZkTransactionFeeProvider feeProviderL2, TransactionReceiptProcessor transactionReceiptProcessor, Credentials credentials) {
+        super(providerL1, providerL2, transactionManager, feeProviderL1, credentials);
         this.transactionReceiptProcessor = transactionReceiptProcessor;
-        this.feeProvider = feeProvider;
+        this.feeProviderL2 = feeProviderL2;
+        this.signerL2 = new PrivateKeyEthSigner(credentials, providerL2.ethChainId().sendAsync().join().getChainId().longValue());
     }
 
-    public ZkSyncWallet(ZkSync zksync, EthSigner signer) {
-        this(zksync, signer, new ZkSyncTransactionReceiptProcessor(zksync, DEFAULT_POLLING_FREQUENCY, DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH),
-                new DefaultTransactionFeeProvider(zksync, Token.ETH));
+    public Wallet(ZkSync providerL2, Credentials credentials) {
+        this(
+                null,
+                providerL2,
+                null,
+                null,
+                new DefaultTransactionFeeProvider(providerL2, Token.ETH),
+                new ZkSyncTransactionReceiptProcessor(providerL2, DEFAULT_POLLING_FREQUENCY, DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH),
+                credentials);
     }
 
-    public ZkSyncWallet(ZkSync zksync, EthSigner signer, Token feeToken) {
-        this(zksync, signer, new ZkSyncTransactionReceiptProcessor(zksync, DEFAULT_POLLING_FREQUENCY, DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH),
-                new DefaultTransactionFeeProvider(zksync, feeToken));
+    public Wallet(Web3j providerL1, ZkSync providerL2, Credentials credentials) {
+        this(
+                providerL1,
+                providerL2,
+                new RawTransactionManager(providerL1, credentials, providerL1.ethChainId().sendAsync().join().getChainId().longValue()),
+                new StaticGasProvider(providerL1.ethGasPrice().sendAsync().join().getGasPrice(), BigInteger.valueOf(300_000L)),
+                new DefaultTransactionFeeProvider(providerL2, Token.ETH),
+                new ZkSyncTransactionReceiptProcessor(providerL2, DEFAULT_POLLING_FREQUENCY, DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH),
+                credentials);
     }
 
-    public ZkSyncWallet(ZkSync zksync, Credentials credentials, Long chainId) {
-        this(zksync, new PrivateKeyEthSigner(credentials, chainId));
+
+    /**
+     * @return Returns the wallet address.
+     */
+    public String getAddress(){
+        return signer.getAddress();
     }
 
     /**
-     * Transfer coins
-     *
-     * @param to Receiver address
-     * @param amount Amount of funds to be transferred in minimal denomination (in Wei)
-     * @return Prepared remote call of transaction
+     * @return Returns wrappers of L2 bridge contracts.
      */
-    public RemoteCall<TransactionReceipt> transfer(String to, BigInteger amount) {
-        return transfer(to, amount, null, null);
+    public L2BridgeContracts getL2BridgeContracts(){
+        BridgeAddresses bridgeAddresses = providerL2.zksGetBridgeContracts().sendAsync().join().getResult();
+        return new L2BridgeContracts(bridgeAddresses.getL2Erc20DefaultBridge(), bridgeAddresses.getL2wETHBridge(), providerL2, transactionManager, feeProviderL2);
+    }
+
+    public CompletableFuture<BigInteger> getDeploymentNonce(){
+        return INonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, providerL2, credentials, feeProviderL2).getDeploymentNonce(getAddress()).sendAsync();
     }
 
     /**
      * Transfer coins or tokens
      *
-     * @param to Receiver address
-     * @param amount Amount of funds to be transferred in minimal denomination
-     * @param token Token object supported by ZkSync
+     * @param tx TransferTransaction class
      * @return Prepared remote call of transaction
      */
-    public RemoteCall<TransactionReceipt> transfer(String to, BigInteger amount, Token token) {
-        return transfer(to, amount, token, null);
-    }
-
-    /**
-     * Transfer coins or tokens
-     *
-     * @param to Receiver address
-     * @param amount Amount of funds to be transferred in minimal denomination
-     * @param token Token object supported by ZkSync
-     * @param nonce Custom nonce value of the wallet
-     * @return Prepared remote call of transaction
-     */
-    public RemoteCall<TransactionReceipt> transfer(String to, BigInteger amount, @Nullable Token token, @Nullable BigInteger nonce) {
-        Token tokenToUse = token == null ? Token.ETH : token;
-        String calldata;
-        String txTo;
-        BigInteger txAmount;
-
-        if (tokenToUse.isETH()) {
-            calldata = "0x";
-            txTo = to;
-            txAmount = amount;
-        } else {
-            calldata = ERC20.encodeTransfer(to, amount);
-            txTo = tokenToUse.getL2Address();
-            txAmount = null;
-        }
+    public RemoteCall<TransactionReceipt> transfer(TransferTransaction tx) {
         return new RemoteCall<>(() -> {
-            BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
+            BigInteger nonceToUse = getNonce().send();
 
-            Transaction estimate = Transaction.createFunctionCallTransaction(
-                    signer.getAddress(),
-                    txTo,
-                    BigInteger.ZERO,
-                    BigInteger.ZERO,
-                    txAmount,
-                    calldata
-            );
+            Transaction estimate = providerL2.getTransferTransaction(tx, transactionManager, gasProvider);
 
             EthSendTransaction sent = estimateAndSend(estimate, nonceToUse).join();
 
@@ -152,82 +129,17 @@ public class ZkSyncWallet {
     /**
      * Withdraw native coins to L1 chain
      *
-     * @param to Address of the wallet in L1 to that funds will be withdrawn
-     * @param amount Amount of the funds to be withdrawn
+     * @param tx WithdrawTransaction class
      * @return Prepared remote call of transaction
      */
-    public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount) {
-        return withdraw(to, amount, null, null);
-    }
-
-    /**
-     * Withdraw native coins or tokens to L1 chain
-     *
-     * @param to Address of the wallet in L1 to that funds will be withdrawn
-     * @param amount Amount of the funds to be withdrawn
-     * @param token Token object supported by ZkSync
-     * @return Prepared remote call of transaction
-     */
-    public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount, Token token) {
-        return withdraw(to, amount, token, null);
-    }
-
-    /**
-     * Withdraw native coins to L1 chain
-     *
-     * @param to Address of the wallet in L1 to that funds will be withdrawn
-     * @param amount Amount of the funds to be withdrawn
-     * @param token Token object supported by ZkSync
-     * @param nonce Custom nonce value of the wallet
-     * @return Prepared remote call of transaction
-     */
-    public RemoteCall<TransactionReceipt> withdraw(String to, BigInteger amount, @Nullable Token token, @Nullable BigInteger nonce) {
-        Token tokenToUse = token == null ? Token.ETH : token;
+    public RemoteCall<TransactionReceipt> withdraw(WithdrawTransaction tx) {
+        tx.tokenAddress = tx.tokenAddress == null ? ZkSyncAddresses.ETH_ADDRESS : tx.tokenAddress;
+        tx.from = tx.from == null ? getAddress() : tx.from;
 
         return new RemoteCall<>(() -> {
-            BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
-            String l2Bridge;
-            ArrayList parameters = new ArrayList();
-            parameters.add(new Address(to));
-            Transaction estimate;
-            if (tokenToUse.isETH()) {
-                Function function = new Function(
-                        IL2Bridge.FUNC_WITHDRAW,
-                        Arrays.asList(new Address(to)),
-                        Collections.emptyList());
+            Transaction transaction = providerL2.getWithdrawTransaction(tx, gasProvider, transactionManager);
 
-                String calldata = FunctionEncoder.encode(function);
-                l2Bridge = L2_ETH_TOKEN_ADDRESS;
-
-                estimate = Transaction.createFunctionCallTransaction(
-                        signer.getAddress(),
-                        l2Bridge,
-                        BigInteger.ZERO,
-                        BigInteger.ZERO,
-                        amount,
-                        calldata
-                );
-            } else {
-                Function function = new Function(
-                        IL2Bridge.FUNC_WITHDRAW,
-                        Arrays.asList(new Address(to),
-                                new Address(tokenToUse.getL2Address()),
-                                new Uint256(amount)),
-                        Collections.emptyList());
-
-                String calldata = FunctionEncoder.encode(function);
-                l2Bridge = zksync.zksGetBridgeContracts().send().getResult().getL2Erc20DefaultBridge();
-
-                estimate = Transaction.createFunctionCallTransaction(
-                        signer.getAddress(),
-                        l2Bridge,
-                        BigInteger.ZERO,
-                        BigInteger.ZERO,
-                        calldata
-                );
-            }
-
-            EthSendTransaction sent = estimateAndSend(estimate, nonceToUse).join();
+            EthSendTransaction sent = estimateAndSend(transaction, getNonce().send()).join();
 
             try {
                 return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
@@ -272,7 +184,7 @@ public class ZkSyncWallet {
             BigInteger nonceToUse = nonce != null ? nonce : getNonce().send();
 
             Transaction estimate = Transaction.createContractTransaction(
-                    signer.getAddress(),
+                    getAddress(),
                     BigInteger.ZERO,
                     BigInteger.ZERO,
                     Numeric.toHexString(bytecode),
@@ -314,7 +226,7 @@ public class ZkSyncWallet {
             ZkFunctionEncoder encoder = new ZkFunctionEncoder();
             String data = encoder.encodeFunction(function);
             Transaction estimate = Transaction.create2ContractTransaction(
-                    signer.getAddress(),
+                    getAddress(),
                     BigInteger.ZERO,
                     BigInteger.ZERO,
                     Numeric.toHexString(bytecode),
@@ -356,7 +268,7 @@ public class ZkSyncWallet {
             String calldata = FunctionEncoder.encode(function);
 
             Transaction estimate = Transaction.createFunctionCallTransaction(
-                    signer.getAddress(),
+                    getAddress(),
                     contractAddress,
                     BigInteger.ZERO,
                     BigInteger.ZERO,
@@ -379,37 +291,27 @@ public class ZkSyncWallet {
      * @return Prepared get balance call
      */
     public RemoteCall<BigInteger> getBalance() {
-        return getBalance(signer.getAddress(), Token.ETH, ZkBlockParameterName.COMMITTED);
+        return getBalance(getAddress(), ZkSyncAddresses.ETH_ADDRESS, ZkBlockParameterName.COMMITTED);
     }
 
     /**
      * Get balance of wallet in {@link Token} (wallet address gets from {@link EthSigner})
      *
-     * @param token Token object supported by ZkSync
+     * @param token Address of the token supported by ZkSync
      * @return Prepared get balance call
      */
-    public RemoteCall<BigInteger> getBalance(Token token) {
-        return getBalance(signer.getAddress(), token, ZkBlockParameterName.COMMITTED);
-    }
-
-    /**
-     * Get balance of wallet in native coin
-     *
-     * @param address Address of the wallet
-     * @return Prepared get balance call
-     */
-    public RemoteCall<BigInteger> getBalance(String address) {
-        return getBalance(address, Token.ETH, ZkBlockParameterName.COMMITTED);
+    public RemoteCall<BigInteger> getBalance(String token) {
+        return getBalance(getAddress(), token, ZkBlockParameterName.COMMITTED);
     }
 
     /**
      * Get balance of wallet in {@link Token}
      *
      * @param address Address of the wallet
-     * @param token Token object supported by ZkSync
+     * @param token Address of the token supported by ZkSync
      * @return Prepared get balance call
      */
-    public RemoteCall<BigInteger> getBalance(String address, Token token) {
+    public RemoteCall<BigInteger> getBalance(String address, String token) {
         return getBalance(address, token, ZkBlockParameterName.COMMITTED);
     }
 
@@ -418,18 +320,27 @@ public class ZkSyncWallet {
      * also see {@link org.web3j.protocol.core.DefaultBlockParameterName}, {@link org.web3j.protocol.core.DefaultBlockParameterNumber}, {@link ZkBlockParameterName}
      *
      * @param address Wallet address
-     * @param token Token object supported by ZkSync
+     * @param token Address of the token supported by ZkSync
      * @param at Block variant
      * @return Prepared get balance call
      */
-    public RemoteCall<BigInteger> getBalance(String address, Token token, DefaultBlockParameter at) {
-        if (token.isETH()) {
+    public RemoteCall<BigInteger> getBalance(String address, String token, DefaultBlockParameter at) {
+        if (token == ZkSyncAddresses.ETH_ADDRESS) {
             return new RemoteCall<>(() ->
-                    this.zksync.ethGetBalance(address, at).sendAsync().join().getBalance());
+                    this.providerL2.ethGetBalance(address, at).sendAsync().join().getBalance());
         } else {
-            ERC20 erc20 = ERC20.load(token.getL2Address(), this.zksync, new ReadonlyTransactionManager(this.zksync, getSigner().getAddress()), new DefaultGasProvider());
+            ERC20 erc20 = ERC20.load(token, this.providerL2, new ReadonlyTransactionManager(this.providerL2, address), new DefaultGasProvider());
+
             return erc20.balanceOf(address);
         }
+    }
+
+
+    /**
+     * @return Returns all balances for confirmed tokens given by an account address.
+     */
+    public CompletableFuture<ZksAccountBalances> getAllBalances(){
+        return providerL2.zksGetAllAccountBalances(signer.getAddress()).sendAsync();
     }
 
     /**
@@ -439,8 +350,8 @@ public class ZkSyncWallet {
      * @return Prepared get nonce call
      */
     public RemoteCall<BigInteger> getNonce(DefaultBlockParameter at) {
-        return new RemoteCall<>(() -> this.zksync
-                .ethGetTransactionCount(signer.getAddress(), at).sendAsync().join()
+        return new RemoteCall<>(() -> this.providerL2
+                .ethGetTransactionCount(getAddress(), at).sendAsync().join()
                 .getTransactionCount());
     }
 
@@ -462,7 +373,7 @@ public class ZkSyncWallet {
             String calldata = IL1Messenger.encodeSendToL1(message);
 
             Transaction estimate = Transaction.createFunctionCallTransaction(
-                    signer.getAddress(),
+                    getAddress(),
                     ZkSyncAddresses.MESSENGER_ADDRESS,
                     BigInteger.ZERO,
                     BigInteger.ZERO,
@@ -479,12 +390,13 @@ public class ZkSyncWallet {
         });
     }
 
+
     private CompletableFuture<EthSendTransaction> estimateAndSend(Transaction transaction, BigInteger nonce) {
         return CompletableFuture
                 .supplyAsync(() -> {
-                    long chainId = signer.getDomain().join().getChainId().getValue().longValue();
-                    BigInteger gas = getFeeProvider().getGasLimit(transaction);
-                    BigInteger gasPrice = getFeeProvider().getGasPrice();
+                    long chainId = providerL2.ethChainId().sendAsync().join().getChainId().longValue();
+                    BigInteger gas = getFeeProviderL2().getGasLimit(transaction);
+                    BigInteger gasPrice = getFeeProviderL2().getGasPrice();
 
                     Transaction712 prepared = new Transaction712(
                             chainId,
@@ -498,11 +410,10 @@ public class ZkSyncWallet {
                             transaction.getFrom(),
                             transaction.getEip712Meta()
                     );
-
-                    String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, prepared)).join();
+                    String signature = signerL2.getDomain().thenCompose(domain -> signerL2.signTypedData(domain, prepared)).join();
                     byte[] signed = TransactionEncoder.encode(prepared, TransactionEncoder.getSignatureData(signature));
 
-                    return this.zksync.ethSendRawTransaction(Numeric.toHexString(signed))
+                    return this.providerL2.ethSendRawTransaction(Numeric.toHexString(signed))
                             .sendAsync().join();
                 })
                 .thenApply(response -> {
@@ -513,5 +424,4 @@ public class ZkSyncWallet {
                     }
                 });
     }
-
 }

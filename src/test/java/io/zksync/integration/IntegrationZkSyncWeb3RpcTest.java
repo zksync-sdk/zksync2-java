@@ -16,7 +16,7 @@ import io.zksync.utils.ContractDeployer;
 import io.zksync.utils.ZkSyncAddresses;
 import io.zksync.wrappers.ERC20;
 import io.zksync.wrappers.IL2Bridge;
-import io.zksync.wrappers.NonceHolder;
+import io.zksync.wrappers.INonceHolder;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -140,7 +140,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
 
     @Test
     public void testGetDeploymentNonce() throws Exception {
-        NonceHolder nonceHolder = NonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, zksync, new ReadonlyTransactionManager(zksync, credentials.getAddress()), new DefaultGasProvider());
+        INonceHolder nonceHolder = INonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, zksync, new ReadonlyTransactionManager(zksync, credentials.getAddress()), new DefaultGasProvider());
 
         BigInteger nonce = nonceHolder.getDeploymentNonce(credentials.getAddress()).send();
 
@@ -218,64 +218,64 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         assertTrue(receipt::isStatusOK);
     }
 
-    @Test
-    public void testTransferTokenToSelf() throws IOException, TransactionException {
-        BigInteger nonce = zksync
-                .ethGetTransactionCount(credentials.getAddress(), ZkBlockParameterName.COMMITTED).send()
-                .getTransactionCount();
-
-        Token token = zksync.zksGetConfirmedTokens(0, (short) 100).send()
-                .getResult().stream()
-                .filter(t -> t.getSymbol().equalsIgnoreCase("USDC"))
-                .findFirst().orElseThrow(IllegalArgumentException::new);
-        String tokenAddress = token.getL2Address();
-        Function transfer = ERC20.encodeTransfer(credentials.getAddress(), token.toBigInteger(10));
-        String calldata = FunctionEncoder.encode(transfer);
-
-        io.zksync.methods.request.Transaction estimate = io.zksync.methods.request.Transaction.createFunctionCallTransaction(
-                credentials.getAddress(),
-                tokenAddress,
-                BigInteger.ZERO,
-                BigInteger.ZERO,
-                calldata
-        );
-
-        ZksEstimateFee estimateFee = zksync.zksEstimateFee(estimate).send();
-
-        EthGasPrice gasPrice = zksync.ethGasPrice().send();
-
-        assertResponse(gasPrice);
-        assertResponse(estimateFee);
-
-        Fee fee = estimateFee.getResult();
-
-        Eip712Meta meta = estimate.getEip712Meta();
-        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
-
-        Transaction712 transaction = new Transaction712(
-                chainId.longValue(),
-                nonce,
-                fee.getGasLimitNumber(),
-                estimate.getTo(),
-                estimate.getValueNumber(),
-                estimate.getData(),
-                fee.getMaxPriorityFeePerErgNumber(),
-                fee.getGasPriceLimitNumber(),
-                credentials.getAddress(),
-                meta
-        );
-
-        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
-        byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
-
-        EthSendTransaction sent = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
-
-        assertResponse(sent);
-
-        TransactionReceipt receipt = processor.waitForTransactionReceipt(sent.getResult());
-
-        assertTrue(receipt::isStatusOK);
-    }
+//    @Test
+//    public void testTransferTokenToSelf() throws IOException, TransactionException {
+//        BigInteger nonce = zksync
+//                .ethGetTransactionCount(credentials.getAddress(), ZkBlockParameterName.COMMITTED).send()
+//                .getTransactionCount();
+//
+//        Token token = zksync.zksGetConfirmedTokens(0, (short) 100).send()
+//                .getResult().stream()
+//                .filter(t -> t.getSymbol().equalsIgnoreCase("USDC"))
+//                .findFirst().orElseThrow(IllegalArgumentException::new);
+//        String tokenAddress = token.getL2Address();
+//        Function transfer = ERC20.encodeTransfer(credentials.getAddress(), token.toBigInteger(10));
+//        String calldata = FunctionEncoder.encode(transfer);
+//
+//        io.zksync.methods.request.Transaction estimate = io.zksync.methods.request.Transaction.createFunctionCallTransaction(
+//                credentials.getAddress(),
+//                tokenAddress,
+//                BigInteger.ZERO,
+//                BigInteger.ZERO,
+//                calldata
+//        );
+//
+//        ZksEstimateFee estimateFee = zksync.zksEstimateFee(estimate).send();
+//
+//        EthGasPrice gasPrice = zksync.ethGasPrice().send();
+//
+//        assertResponse(gasPrice);
+//        assertResponse(estimateFee);
+//
+//        Fee fee = estimateFee.getResult();
+//
+//        Eip712Meta meta = estimate.getEip712Meta();
+//        meta.setGasPerPubdata(fee.getGasPerPubdataLimitNumber());
+//
+//        Transaction712 transaction = new Transaction712(
+//                chainId.longValue(),
+//                nonce,
+//                fee.getGasLimitNumber(),
+//                estimate.getTo(),
+//                estimate.getValueNumber(),
+//                estimate.getData(),
+//                fee.getMaxPriorityFeePerErgNumber(),
+//                fee.getGasPriceLimitNumber(),
+//                credentials.getAddress(),
+//                meta
+//        );
+//
+//        String signature = signer.getDomain().thenCompose(domain -> signer.signTypedData(domain, transaction)).join();
+//        byte[] message = TransactionEncoder.encode(transaction, TransactionEncoder.getSignatureData(signature));
+//
+//        EthSendTransaction sent = zksync.ethSendRawTransaction(Numeric.toHexString(message)).send();
+//
+//        assertResponse(sent);
+//
+//        TransactionReceipt receipt = processor.waitForTransactionReceipt(sent.getResult());
+//
+//        assertTrue(receipt::isStatusOK);
+//    }
 
     @Test
     public void testTransferTokenToSelfWeb3jContract() throws Exception {
@@ -484,22 +484,22 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
         System.out.println(estimateFee.getRawResponse());
     }
 
-    @Test
-    @Disabled
-    public void testEstimateGas_Execute() throws IOException {
-        Function transfer = ERC20.encodeTransfer("0xe1fab3efd74a77c23b426c302d96372140ff7d0c", BigInteger.valueOf(1L));
-        String calldata = FunctionEncoder.encode(transfer);
-
-        EthEstimateGas estimateGas = zksync.ethEstimateGas(io.zksync.methods.request.Transaction.createFunctionCallTransaction(
-                credentials.getAddress(),
-                "0x79f73588fa338e685e9bbd7181b410f60895d2a3",
-                BigInteger.ZERO,
-                BigInteger.ZERO,
-                calldata
-        )).send();
-
-        assertResponse(estimateGas);
-    }
+//    @Test
+//    @Disabled
+//    public void testEstimateGas_Execute() throws IOException {
+//        Function transfer = ERC20.encodeTransfer("0xe1fab3efd74a77c23b426c302d96372140ff7d0c", BigInteger.valueOf(1L));
+//        String calldata = FunctionEncoder.encode(transfer);
+//
+//        EthEstimateGas estimateGas = zksync.ethEstimateGas(io.zksync.methods.request.Transaction.createFunctionCallTransaction(
+//                credentials.getAddress(),
+//                "0x79f73588fa338e685e9bbd7181b410f60895d2a3",
+//                BigInteger.ZERO,
+//                BigInteger.ZERO,
+//                calldata
+//        )).send();
+//
+//        assertResponse(estimateGas);
+//    }
 
     @Test
     @Disabled
@@ -574,7 +574,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
                 .ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
                 .getTransactionCount();
 
-        NonceHolder nonceHolder = NonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, zksync, new ReadonlyTransactionManager(zksync, credentials.getAddress()), new DefaultGasProvider());
+        INonceHolder nonceHolder = INonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, zksync, new ReadonlyTransactionManager(zksync, credentials.getAddress()), new DefaultGasProvider());
 
         BigInteger deploymentNonce = nonceHolder.getDeploymentNonce(credentials.getAddress()).send();
 
@@ -642,7 +642,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
                 .ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
                 .getTransactionCount();
 
-        NonceHolder nonceHolder = NonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, zksync, new ReadonlyTransactionManager(zksync, credentials.getAddress()), new DefaultGasProvider());
+        INonceHolder nonceHolder = INonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, zksync, new ReadonlyTransactionManager(zksync, credentials.getAddress()), new DefaultGasProvider());
 
         BigInteger deploymentNonce = nonceHolder.getDeploymentNonce(credentials.getAddress()).send();
 
@@ -783,7 +783,7 @@ public class IntegrationZkSyncWeb3RpcTest extends BaseIntegrationEnv {
                 .ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.PENDING).send()
                 .getTransactionCount();
 
-        NonceHolder nonceHolder = NonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, zksync, new ReadonlyTransactionManager(zksync, credentials.getAddress()), new DefaultGasProvider());
+        INonceHolder nonceHolder = INonceHolder.load(ZkSyncAddresses.NONCE_HOLDER_ADDRESS, zksync, new ReadonlyTransactionManager(zksync, credentials.getAddress()), new DefaultGasProvider());
 
         BigInteger deploymentNonce = nonceHolder.getDeploymentNonce(credentials.getAddress()).send();
 

@@ -7,6 +7,8 @@ import io.zksync.crypto.signer.PrivateKeyEthSigner;
 import io.zksync.methods.request.Eip712Meta;
 import io.zksync.methods.response.ZksEstimateFee;
 import io.zksync.protocol.ZkSync;
+import io.zksync.protocol.account.Wallet;
+import io.zksync.protocol.account.WalletL1;
 import io.zksync.protocol.core.Token;
 import io.zksync.protocol.provider.EthereumProvider;
 import io.zksync.transaction.fee.DefaultTransactionFeeProvider;
@@ -15,6 +17,8 @@ import io.zksync.transaction.fee.ZkTransactionFeeProvider;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.utils.ContractDeployer;
+import io.zksync.wrappers.IZkSync;
+import io.zksync.wrappers.ZkSyncContract;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.protocol.Web3j;
@@ -43,7 +47,11 @@ public class BaseIntegrationEnv {
 
     private final String L1_NODE;
     private final String L2_NODE;
-
+    protected final String ADDRESS;
+    protected final String RECEIVER;
+    protected final String PAYMASTER;
+    protected final String TOKEN;
+    protected final String L1_DAI;
     protected final Web3j l1Web3;
     protected final ZkSync zksync;
     protected final Credentials credentials;
@@ -56,12 +64,18 @@ public class BaseIntegrationEnv {
     protected final BigInteger chainId;
 
     protected final ZkSyncWallet wallet;
+    protected final Wallet testWallet;
 
     protected BaseIntegrationEnv() {
-        L1_NODE = System.getenv("ZKSYNC2_JAVA_CI_L1_NODE_URL");
-        L2_NODE = System.getenv("ZKSYNC2_JAVA_CI_L2_NODE_URL");
 
-        final String privateKey = System.getenv("ZKSYNC2_JAVA_CI_PRIVATE_KEY");
+        L1_NODE = "http://127.0.0.1:8545";
+        L2_NODE = "http://127.0.0.1:3050";
+        ADDRESS = "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049";
+        RECEIVER = "0xa61464658AfeAf65CccaaFD3a512b69A83B77618";
+        PAYMASTER = "0x594E77D36eB367b3AbAb98775c99eB383079F966";
+        TOKEN = "0x0183Fe07a98bc036d6eb23C3943d823bcD66a90F";
+        L1_DAI = "0x70a0F165d6f8054d0d0CF8dFd4DD2005f0AF6B55";
+        final String privateKey = "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
 
         this.l1Web3 = Web3j.build(new HttpService(L1_NODE));
         this.zksync = ZkSync.build(new HttpService(L2_NODE));
@@ -76,6 +90,17 @@ public class BaseIntegrationEnv {
         this.feeProvider = new DefaultTransactionFeeProvider(zksync, ETH);
 
         this.wallet = new ZkSyncWallet(zksync, signer, ETH);
+        TransactionManager manager = new RawTransactionManager(l1Web3, credentials, l1Web3.ethChainId().sendAsync().join().getChainId().longValue());
+        try {
+            ContractGasProvider gasProvider = new StaticGasProvider(l1Web3.ethGasPrice().send().getGasPrice(), BigInteger.valueOf(300_000L));
+            IZkSync zkSyncContract = IZkSync.load(zksync.zksMainContract().sendAsync().join().getResult(), l1Web3, manager, gasProvider);
+            this.testWallet = new Wallet(l1Web3, zksync, credentials);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
     }
 
     protected void sendTestMoney() {

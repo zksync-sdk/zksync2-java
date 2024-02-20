@@ -64,7 +64,7 @@ public class IntegrationZkSyncWalletTest {
 
         EthSigner signer = new PrivateKeyEthSigner(credentials, chainId.longValue());
 
-        wallet = new ZkSyncWallet(zksync, signer, Token.ETH);
+        wallet = new ZkSyncWallet(zksync, credentials, chainId.longValue());
     }
 
     @Test

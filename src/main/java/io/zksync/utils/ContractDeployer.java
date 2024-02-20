@@ -62,7 +62,7 @@ public class ContractDeployer {
      * Compute contract address
      *
      * @param sender Address of a source of a transaction
-     * @param nonce Deployment nonce (see {@link io.zksync.wrappers.NonceHolder})
+     * @param nonce Deployment nonce (see {@link io.zksync.wrappers.INonceHolder})
      * @return Computed address of a contract
      */
     public static Address computeL2CreateAddress(Address sender, BigInteger nonce) {
