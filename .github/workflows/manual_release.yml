@@ -35,7 +35,7 @@ jobs:
         env:
           VERSION: ${{ github.event.inputs.release-tag }}
       - name: Publish package
-        run: gradle -x test clean build sign publish
+        run: gradle -x test clean build sign publish publishToSonatype closeAndReleaseSonatypeStagingRepository
         env:
           VERSION: ${{ github.event.inputs.release-tag }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
