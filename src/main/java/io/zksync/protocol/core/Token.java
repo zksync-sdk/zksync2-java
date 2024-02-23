@@ -32,7 +32,7 @@ public class Token implements TokenId {
     }
 
     public boolean isETH() {
-        return l2Address.equals(ZkSyncAddresses.ETH_ADDRESS) && symbol.equals("ETH");
+        return ZkSyncAddresses.ETH_ADDRESS.equals(l2Address) && "ETH".equals(symbol);
     }
 
     public BigDecimal intoDecimal(BigInteger amount) {
