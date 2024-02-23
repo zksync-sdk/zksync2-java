@@ -8,6 +8,7 @@ import org.web3j.utils.Numeric;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -143,9 +144,7 @@ public class ZkTypeEncoder {
         byte paddingValue = getPaddingValue(numericType);
         byte[] paddedRawValue = new byte[MAX_BYTE_LENGTH];
         if (paddingValue != 0) {
-            for (int i = 0; i < paddedRawValue.length; i++) {
-                paddedRawValue[i] = paddingValue;
-            }
+            Arrays.fill(paddedRawValue, paddingValue);
         }
 
         System.arraycopy(

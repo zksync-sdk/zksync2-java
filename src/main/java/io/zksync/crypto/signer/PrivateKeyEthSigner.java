@@ -122,7 +122,7 @@ public class PrivateKeyEthSigner implements EthSigner {
     private static Credentials generateCredentialsFromMnemonic(String mnemonic, int accountIndex) {
         // m/44'/60'/0'/0 derivation path
         int[] derivationPath = { 44 | Bip32ECKeyPair.HARDENED_BIT, 60 | Bip32ECKeyPair.HARDENED_BIT,
-                0 | Bip32ECKeyPair.HARDENED_BIT, 0, accountIndex };
+                Bip32ECKeyPair.HARDENED_BIT, 0, accountIndex };
 
         // Generate a BIP32 master keypair from the mnemonic phrase
         Bip32ECKeyPair masterKeypair = Bip32ECKeyPair.generateKeyPair(

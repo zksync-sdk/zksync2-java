@@ -35,10 +35,7 @@ import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static io.zksync.transaction.manager.ZkSyncTransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
@@ -135,7 +132,7 @@ public class WalletL1 {
      * @return Prepared get balance call
      */
     public RemoteCall<BigInteger> getBalanceL1(String address, String token, DefaultBlockParameter at) {
-        if (token == ZkSyncAddresses.ETH_ADDRESS) {
+        if (Objects.equals(token, ZkSyncAddresses.ETH_ADDRESS)) {
             return new RemoteCall<>(() ->
                     this.providerL1.ethGetBalance(address, at).sendAsync().join().getBalance());
         } else {
@@ -159,7 +156,7 @@ public class WalletL1 {
             try{
                 l2WethAddress = bridgeContracts.wethL1Bridge.l2TokenAddress(token).sendAsync().join();
             }catch (Exception e){}
-            bridgeAddress = l2WethAddress != ZkSyncAddresses.ETH_ADDRESS ? bridgeContracts.wethL1Bridge.getContractAddress() : bridgeContracts.erc20L1Bridge.getContractAddress();
+            bridgeAddress = !Objects.equals(l2WethAddress, ZkSyncAddresses.ETH_ADDRESS) ? bridgeContracts.wethL1Bridge.getContractAddress() : bridgeContracts.erc20L1Bridge.getContractAddress();
         }
 
         return tokenContract.approve(bridgeAddress, amount).sendAsync();
@@ -176,14 +173,14 @@ public class WalletL1 {
             try{
                 l2WethToken = bridgeContracts.wethL1Bridge.l2TokenAddress(token).sendAsync().join();
             }catch (Exception e){}
-            bridgeAddress = l2WethToken != ZkSyncAddresses.ETH_ADDRESS ? bridgeContracts.wethL1Bridge.getContractAddress() : bridgeContracts.erc20L1Bridge.getContractAddress();
+            bridgeAddress = !Objects.equals(l2WethToken, ZkSyncAddresses.ETH_ADDRESS) ? bridgeContracts.wethL1Bridge.getContractAddress() : bridgeContracts.erc20L1Bridge.getContractAddress();
         }
         ERC20 erc20 = ERC20.load(token, providerL1, transactionManager, gasProvider);
         return erc20.allowance(signer.getAddress(), bridgeAddress).sendAsync();
     }
 
     public String l2TokenAddress(String l1Address){
-        if (ZkSyncAddresses.ETH_ADDRESS == l1Address){
+        if (ZkSyncAddresses.ETH_ADDRESS.equals(l1Address)){
             return ZkSyncAddresses.ETH_ADDRESS;
         }
 
@@ -192,7 +189,7 @@ public class WalletL1 {
         String l2WethAddress = ZkSyncAddresses.ETH_ADDRESS;
         try{
             l2WethAddress = bridgeContracts.wethL1Bridge.l2TokenAddress(l1Address).sendAsync().join();
-            if (l2WethAddress == ZkSyncAddresses.ETH_ADDRESS){
+            if (Objects.equals(l2WethAddress, ZkSyncAddresses.ETH_ADDRESS)){
                 return l2WethAddress;
             }
         }catch (Exception e){}
@@ -261,7 +258,7 @@ public class WalletL1 {
     public Request<?, EthSendTransaction> deposit(DepositTransaction transaction) throws IOException {
         transaction = getDepositTransaction(transaction);
 
-        if (transaction.tokenAddress == ZkSyncAddresses.ETH_ADDRESS){
+        if (Objects.equals(transaction.tokenAddress, ZkSyncAddresses.ETH_ADDRESS)){
             BigInteger baseGasLimit = estimateGasRequestExecute(transaction.toRequestExecute(mainContractAddress)).sendAsync().join().getAmountUsed();
             BigInteger gasLimit = scaleGasLimit(baseGasLimit);
 
@@ -277,9 +274,9 @@ public class WalletL1 {
                 l2WethAddress = bridgeContracts.wethL1Bridge.l2TokenAddress(transaction.tokenAddress).sendAsync().join();
                 bridge = bridgeContracts.wethL1Bridge;
             }catch (Exception e){}
-            transaction.bridgeAddress = l2WethAddress != ZkSyncAddresses.ETH_ADDRESS ? bridgeContracts.wethL1Bridge.getContractAddress() : bridgeContracts.erc20L1Bridge.getContractAddress();
+            transaction.bridgeAddress = !Objects.equals(l2WethAddress, ZkSyncAddresses.ETH_ADDRESS) ? bridgeContracts.wethL1Bridge.getContractAddress() : bridgeContracts.erc20L1Bridge.getContractAddress();
         }
-        if (transaction.approveERC20 != null || transaction.approveERC20){
+        if (transaction.approveERC20 != null && transaction.approveERC20){
             BigInteger allowance = getAllowanceL1(transaction.tokenAddress, transaction.bridgeAddress).join();
             if (transaction.amount.compareTo(allowance) > 0){
                 approveERC20(transaction.tokenAddress, transaction.amount, transaction.bridgeAddress).join();
@@ -298,7 +295,7 @@ public class WalletL1 {
     public BigInteger estimateGasDeposit(DepositTransaction transaction){
         transaction = getDepositTransaction(transaction);
         BigInteger baseGasLimit = BigInteger.ZERO;
-        if (transaction.tokenAddress == ZkSyncAddresses.ETH_ADDRESS){
+        if (Objects.equals(transaction.tokenAddress, ZkSyncAddresses.ETH_ADDRESS)){
             String address = providerL2.zksMainContract().sendAsync().join().getResult();
             baseGasLimit = estimateGasRequestExecute(new RequestExecuteTransaction(transaction.l2GasLimit, address, transaction.customBridgeData, transaction.amount, null, transaction.operatorTip, transaction.gasPerPubdataByte, transaction.refoundRecepient, transaction.options)).sendAsync().join().getAmountUsed();
         } else {
@@ -308,7 +305,7 @@ public class WalletL1 {
                 l2WethToken = l1BridgeContracts.wethL1Bridge.l2TokenAddress(transaction.tokenAddress).sendAsync().join();
             } catch (Exception e) {}
 
-            IL1Bridge l1Bridge = l2WethToken != ZkSyncAddresses.ETH_ADDRESS ? l1BridgeContracts.wethL1Bridge : l1BridgeContracts.erc20L1Bridge;
+            IL1Bridge l1Bridge = !Objects.equals(l2WethToken, ZkSyncAddresses.ETH_ADDRESS) ? l1BridgeContracts.wethL1Bridge : l1BridgeContracts.erc20L1Bridge;
             baseGasLimit = providerL1.ethEstimateGas(transaction.toFunctionCallTx(signer.getAddress(), l1Bridge)).sendAsync().join().getAmountUsed();
 
         }
@@ -327,7 +324,7 @@ public class WalletL1 {
         transaction.gasPerPubdataByte = transaction.gasPerPubdataByte == null ? L1_TO_L2_GAS_PER_PUBDATA : transaction.gasPerPubdataByte;
         if (transaction.bridgeAddress != null){
             String customBridgeData = transaction.customBridgeData == null ?
-                    (transaction.bridgeAddress == l1BridgeContracts.wethL1Bridge.getContractAddress() ? "0x" :
+                    (transaction.bridgeAddress.equals(l1BridgeContracts.wethL1Bridge.getContractAddress()) ? "0x" :
                             getERC20DefaultBridgeData(transaction.tokenAddress, providerL1, credentials, gasProvider))
                     : Numeric.toHexString(transaction.customBridgeData);
 
@@ -341,7 +338,7 @@ public class WalletL1 {
         BigInteger balance = getBalanceL1().sendAsync().join();
 
         if (baseCost.compareTo(balance.add(transaction.amount)) >= 0){
-            BigInteger recommendedETHBalance = (transaction.tokenAddress == ZkSyncAddresses.ETH_ADDRESS ?
+            BigInteger recommendedETHBalance = (Objects.equals(transaction.tokenAddress, ZkSyncAddresses.ETH_ADDRESS) ?
                     L1_RECOMMENDED_MIN_ETH_DEPOSIT_GAS_LIMIT : L1_RECOMMENDED_MIN_ERC20_DEPOSIT_GAS_LIMIT).multiply(
                             gasPriceForEstimation).multiply(
                                     baseCost
@@ -349,7 +346,7 @@ public class WalletL1 {
             throw new Error("Not enough balance for deposit. Under the provided gas price, the recommended balance to perform a deposit is " + recommendedETHBalance + " ETH");
         }
 
-        if (transaction.tokenAddress != ZkSyncAddresses.ETH_ADDRESS && getAllowanceL1(transaction.tokenAddress).join().compareTo(transaction.amount) < 0){
+        if (!Objects.equals(transaction.tokenAddress, ZkSyncAddresses.ETH_ADDRESS) && getAllowanceL1(transaction.tokenAddress).join().compareTo(transaction.amount) < 0){
             throw new Error("Not enough allowance to cover the deposit");
         }
 
@@ -382,7 +379,7 @@ public class WalletL1 {
         transaction.customBridgeData = transaction.customBridgeData == null ? Numeric.hexStringToByteArray("0x") : transaction.customBridgeData;
         if (transaction.bridgeAddress != null){
             String customBridgeData = transaction.customBridgeData == null ?
-                    (transaction.bridgeAddress == l1BridgeContracts.wethL1Bridge.getContractAddress() ? "0x" :
+                    (Objects.equals(transaction.bridgeAddress, l1BridgeContracts.wethL1Bridge.getContractAddress()) ? "0x" :
                             getERC20DefaultBridgeData(transaction.tokenAddress, providerL1, credentials, gasProvider))
                     : Numeric.toHexString(transaction.customBridgeData);
             IL1Bridge bridge = IL1Bridge.load(transaction.tokenAddress, providerL1, transactionManager, gasProvider);
@@ -400,7 +397,7 @@ public class WalletL1 {
         BigInteger gasPriceForEstimation = transaction.options.getMaxFeePerGas() == null ? transaction.options.getGasPrice() : transaction.options.getMaxFeePerGas();
         BigInteger baseCost = contract.l2TransactionBaseCost(gasPriceForEstimation, transaction.l2GasLimit, transaction.gasPerPubdataByte).sendAsync().join();
 
-        if (transaction.tokenAddress == ZkSyncAddresses.ETH_ADDRESS){
+        if (Objects.equals(transaction.tokenAddress, ZkSyncAddresses.ETH_ADDRESS)){
             if (transaction.options.getValue() == null){
                 transaction.options.setValue(baseCost.add(transaction.amount.add(transaction.operatorTip)));
             }

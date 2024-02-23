@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Objects;
 
 import io.zksync.methods.request.Eip712Meta;
 import io.zksync.methods.request.Transaction;
@@ -183,7 +184,7 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
         tx.to = tx.to == null ? tx.from : tx.to;
         tx.options = tx.options == null ? new TransactionOptions() : tx.options;
 
-        if (tx.tokenAddress == ZkSyncAddresses.ETH_ADDRESS){
+        if (tx.tokenAddress.equals(ZkSyncAddresses.ETH_ADDRESS)){
             if (tx.options.getValue() == null){
                 tx.options.setValue(tx.amount);
             }
@@ -209,7 +210,7 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
                 l1WethToken = l2WethBridge.l1TokenAddress(tx.tokenAddress).sendAsync().join();
             }catch (Exception e){}
 
-            tx.bridgeAddress = l1WethToken != ZkSyncAddresses.ETH_ADDRESS ? bridgeAddresses.getL2wETHBridge() : bridgeAddresses.getL2Erc20DefaultBridge();
+            tx.bridgeAddress = !Objects.equals(l1WethToken, ZkSyncAddresses.ETH_ADDRESS) ? bridgeAddresses.getL2wETHBridge() : bridgeAddresses.getL2Erc20DefaultBridge();
         }
         IL2Bridge bridge = IL2Bridge.load(tx.bridgeAddress, this, transactionManager, gasProvider);
         String data  = bridge.encodeWithdraw(tx.to, tx.tokenAddress, tx.amount);

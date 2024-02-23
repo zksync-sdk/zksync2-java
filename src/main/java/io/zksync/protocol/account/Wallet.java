@@ -325,7 +325,7 @@ public class Wallet extends WalletL1{
      * @return Prepared get balance call
      */
     public RemoteCall<BigInteger> getBalance(String address, String token, DefaultBlockParameter at) {
-        if (token == ZkSyncAddresses.ETH_ADDRESS) {
+        if (token.equals(ZkSyncAddresses.ETH_ADDRESS)) {
             return new RemoteCall<>(() ->
                     this.providerL2.ethGetBalance(address, at).sendAsync().join().getBalance());
         } else {
