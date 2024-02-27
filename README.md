@@ -35,7 +35,7 @@ Maven `pom.xml`
     <dependency>
       <groupId>io.zksync</groupId>
       <artifactId>zksync2</artifactId>
-      <version>0.1.1</version>
+      <version>v0.2.0</version>
     </dependency>
   </dependencies>
 </project>
@@ -45,7 +45,7 @@ Gradle `build.gradle`
 
 ```groovy
 dependencies {
-    implementation "io.zksync:zksync2:0.1.1"
+    implementation "io.zksync:zksync2:v0.2.0"
 }
 ```
 
