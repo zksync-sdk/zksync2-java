@@ -74,7 +74,7 @@ public class ZkSyncTransactionManager extends TransactionManager {
                     to,
                     value,
                     data,
-                    BigInteger.valueOf(100000000L),
+                    BigInteger.valueOf(50000000L),
                     gasPrice,
                     getFromAddress(),
                     meta

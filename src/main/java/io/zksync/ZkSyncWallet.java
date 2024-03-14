@@ -493,7 +493,7 @@ public class ZkSyncWallet {
                             transaction.getTo(),
                             transaction.getValueNumber(),
                             transaction.getData(),
-                            BigInteger.valueOf(100000000L), // TODO: Estimate correct one
+                            BigInteger.valueOf(50000000L), // TODO: Estimate correct one
                             gasPrice,
                             transaction.getFrom(),
                             transaction.getEip712Meta()
