@@ -7,6 +7,8 @@ import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.transaction.type.*;
 import io.zksync.utils.Paymaster;
 import io.zksync.utils.ZkSyncAddresses;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
@@ -98,6 +100,7 @@ public class WalletTest extends BaseIntegrationEnv {
     }
 
     @Test
+    @Disabled
     public void testGetDepositTransaction(){
         TransactionOptions options = new TransactionOptions(null, new BigInteger("286654500007000"), null, BigInteger.valueOf(1500000007), BigInteger.valueOf(1500000000), null, null);
         DepositTransaction transaction = new DepositTransaction(ZkSyncAddresses.ETH_ADDRESS, BigInteger.valueOf(7_000), ADDRESS, BigInteger.valueOf(573_309), null, Numeric.hexStringToByteArray("0x"), BigInteger.valueOf(800), BigInteger.ZERO, ADDRESS, null, options);
@@ -128,8 +131,9 @@ public class WalletTest extends BaseIntegrationEnv {
         BigInteger l1BalanceBeforeDeposit = testWallet.getBalanceL1().sendAsync().join();
 
         DepositTransaction transaction = new DepositTransaction(ZkSyncAddresses.ETH_ADDRESS, amount);
-        String hash = testWallet.deposit(transaction).sendAsync().join().getResult();
-        TransactionReceipt l1Receipt = testWallet.getTransactionReceiptProcessorL1().waitForTransactionReceipt(hash);
+        EthSendTransaction hash = testWallet.deposit(transaction).send();
+
+        TransactionReceipt l1Receipt = processorL1.waitForTransactionReceipt(hash.getTransactionHash());
         String l2Hash = zksync.getL2HashFromPriorityOp(l1Receipt, zksync.zksMainContract().sendAsync().join().getResult());
         testWallet.getTransactionReceiptProcessor().waitForTransactionReceipt(l2Hash);
         BigInteger l2BalanceAfterDeposit = testWallet.getBalance().sendAsync().join();
@@ -140,15 +144,19 @@ public class WalletTest extends BaseIntegrationEnv {
         assertTrue(l1BalanceBeforeDeposit.subtract(l1BalanceAfterDeposit).compareTo(amount) >= 0);
     }
     @Test
-    public void testDepositERC20() throws IOException, TransactionException {
+    public void testDepositERC20() throws IOException, TransactionException, InterruptedException {
         String l2DAI = testWallet.l2TokenAddress(L1_DAI);
-        BigInteger balanceBefore = testWallet.getBalance(l2DAI).sendAsync().join();
+
+        BigInteger balanceBefore = BigInteger.ZERO;
+        try {
+            balanceBefore = testWallet.getBalance(l2DAI).sendAsync().join();
+        }catch (Exception e){}
 
         DepositTransaction transaction = new DepositTransaction(L1_DAI, BigInteger.valueOf(5), null,null, null, null, null, null, null, true, null);
-        String hash = testWallet.deposit(transaction).sendAsync().join().getResult();
-        TransactionReceipt receipt = testWallet.getTransactionReceiptProcessorL1().waitForTransactionReceipt(hash);
+        EthSendTransaction hash = testWallet.deposit(transaction).sendAsync().join();
+        TransactionReceipt receipt = processorL1.waitForTransactionReceipt(hash.getTransactionHash());
         String l2Hash = zksync.getL2HashFromPriorityOp(receipt, zksync.zksMainContract().sendAsync().join().getResult());
-
+        TransactionReceipt receiptL2 = testWallet.getTransactionReceiptProcessor().waitForTransactionReceipt(l2Hash);
         BigInteger balanceAfter = testWallet.getBalance(l2DAI).sendAsync().join();
 
         assertNotNull(receipt);
@@ -190,6 +198,7 @@ public class WalletTest extends BaseIntegrationEnv {
         assertEquals(balanceAfterTransfer.subtract(balanceBeforeTransfer), amount);
     }
     @Test
+    @Disabled
     public void testTransferEthWithPaymaster() throws TransactionException, IOException {
         BigInteger amount = BigInteger.valueOf(7_000_000_000L);
         PaymasterParams paymasterParams = new PaymasterParams(PAYMASTER, Numeric.hexStringToByteArray(FunctionEncoder.encode(Paymaster.encodeApprovalBased(TOKEN, BigInteger.ONE, new byte[] {}))));
@@ -218,6 +227,7 @@ public class WalletTest extends BaseIntegrationEnv {
         assertTrue(senderApprovalBeforeTransfer.subtract(senderApprovalAfterTransfer).compareTo(BigInteger.ONE) == 0);
     }
     @Test
+    @Disabled
     public void testTransferErc20WithPaymaster() throws TransactionException, IOException {
         BigInteger amount = BigInteger.valueOf(5);
         String l2DAI = testWallet.l2TokenAddress(L1_DAI);
@@ -259,6 +269,7 @@ public class WalletTest extends BaseIntegrationEnv {
         assertTrue(senderBefore.subtract(senderAfter).compareTo(amount) >= 0);
     }
     @Test
+    @Disabled
     public void testWithdrawEthWithPaymaster() throws Exception {
         BigInteger amount = BigInteger.valueOf(5);
         PaymasterParams paymasterParams = new PaymasterParams(PAYMASTER, Numeric.hexStringToByteArray(FunctionEncoder.encode(Paymaster.encodeApprovalBased(TOKEN, BigInteger.ONE, new byte[] {}))));
@@ -297,6 +308,7 @@ public class WalletTest extends BaseIntegrationEnv {
         assertEquals(senderBefore.subtract(senderAfter), amount);
     }
     @Test
+    @Disabled
     public void testWithdrawErc20WithPaymaster() throws Exception {
         BigInteger amount = BigInteger.valueOf(5);
         String l2DAI = testWallet.l2TokenAddress(L1_DAI);

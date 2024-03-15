@@ -18,5 +18,14 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
+      - name: Run local-setup
+        run: |
+          git clone https://github.com/matter-labs/local-setup.git
+          pushd local-setup
+          docker-compose up -d
+          popd
+      - name: Wait until server is up
+        run: |
+            while ! curl -s -X POST -d '{"jsonrpc":"2.0","method":"net_version","id":1}' -H 'Content-Type: application/json' 0.0.0.0:3050; do sleep 1; done
       - name: Test with Gradle
         run: gradle clean test
