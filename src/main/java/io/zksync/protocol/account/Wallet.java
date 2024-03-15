@@ -112,11 +112,13 @@ public class Wallet extends WalletL1{
      */
     public RemoteCall<TransactionReceipt> transfer(TransferTransaction tx) {
         return new RemoteCall<>(() -> {
+            tx.options = tx.options == null ? new TransactionOptions() : tx.options;
+            BigInteger maxPriorityFeePerGas = tx.options.getMaxPriorityFeePerGas() == null ? BigInteger.ZERO : tx.options.getMaxPriorityFeePerGas();
             BigInteger nonceToUse = getNonce().send();
 
             Transaction estimate = providerL2.getTransferTransaction(tx, transactionManager, gasProvider);
 
-            EthSendTransaction sent = estimateAndSend(estimate, nonceToUse).join();
+            EthSendTransaction sent = estimateAndSend(estimate, nonceToUse, maxPriorityFeePerGas).join();
 
             try {
                 return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
@@ -135,11 +137,13 @@ public class Wallet extends WalletL1{
     public RemoteCall<TransactionReceipt> withdraw(WithdrawTransaction tx) {
         tx.tokenAddress = tx.tokenAddress == null ? ZkSyncAddresses.ETH_ADDRESS : tx.tokenAddress;
         tx.from = tx.from == null ? getAddress() : tx.from;
+        tx.options = tx.options == null ? new TransactionOptions() : tx.options;
+        BigInteger maxPriorityFeePerGas = tx.options.getMaxPriorityFeePerGas() == null ? BigInteger.ZERO : tx.options.getMaxPriorityFeePerGas();
 
         return new RemoteCall<>(() -> {
             Transaction transaction = providerL2.getWithdrawTransaction(tx, gasProvider, transactionManager);
 
-            EthSendTransaction sent = estimateAndSend(transaction, getNonce().send()).join();
+            EthSendTransaction sent = estimateAndSend(transaction, getNonce().send(), maxPriorityFeePerGas).join();
 
             try {
                 return this.transactionReceiptProcessor.waitForTransactionReceipt(sent.getTransactionHash());
@@ -390,8 +394,11 @@ public class Wallet extends WalletL1{
         });
     }
 
-
     private CompletableFuture<EthSendTransaction> estimateAndSend(Transaction transaction, BigInteger nonce) {
+        return estimateAndSend(transaction, nonce, BigInteger.ZERO);
+    }
+
+    private CompletableFuture<EthSendTransaction> estimateAndSend(Transaction transaction, BigInteger nonce, BigInteger maxPriorityFeePerGas) {
         return CompletableFuture
                 .supplyAsync(() -> {
                     long chainId = providerL2.ethChainId().sendAsync().join().getChainId().longValue();
@@ -405,7 +412,7 @@ public class Wallet extends WalletL1{
                             transaction.getTo(),
                             transaction.getValueNumber(),
                             transaction.getData(),
-                            BigInteger.valueOf(100000000L), // TODO: Estimate correct one
+                            maxPriorityFeePerGas,
                             gasPrice,
                             transaction.getFrom(),
                             transaction.getEip712Meta()

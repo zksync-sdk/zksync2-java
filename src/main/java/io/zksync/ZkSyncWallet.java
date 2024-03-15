@@ -480,6 +480,10 @@ public class ZkSyncWallet {
     }
 
     private CompletableFuture<EthSendTransaction> estimateAndSend(Transaction transaction, BigInteger nonce) {
+        return estimateAndSend(transaction, nonce, BigInteger.ZERO);
+    }
+
+    private CompletableFuture<EthSendTransaction> estimateAndSend(Transaction transaction, BigInteger nonce, BigInteger maxPriorityFeePerGas) {
         return CompletableFuture
                 .supplyAsync(() -> {
                     long chainId = signer.getDomain().join().getChainId().getValue().longValue();
@@ -493,7 +497,7 @@ public class ZkSyncWallet {
                             transaction.getTo(),
                             transaction.getValueNumber(),
                             transaction.getData(),
-                            BigInteger.valueOf(100000000L), // TODO: Estimate correct one
+                            maxPriorityFeePerGas,
                             gasPrice,
                             transaction.getFrom(),
                             transaction.getEip712Meta()
