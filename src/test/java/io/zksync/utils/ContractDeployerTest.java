@@ -21,6 +21,18 @@ public class ContractDeployerTest {
     }
 
     @Test
+    public void testApplyAlias(){
+        String nonZeroPadded = WalletUtils.applyL1ToL2Alias("0x702942B8205E5dEdCD3374E5f4419843adA76Eeb");
+        Assertions.assertEquals("0x813A42B8205E5DedCd3374e5f4419843ADa77FFC".toLowerCase(), nonZeroPadded.toLowerCase());
+    }
+
+    @Test
+    public void testUndoAlias(){
+        String nonZeroPadded = WalletUtils.applyL1ToL2Alias("0x702942B8205E5dEdCD3374E5f4419843adA76Eeb");
+        Assertions.assertEquals("0x813A42B8205E5DedCd3374e5f4419843ADa77FFC".toLowerCase(), nonZeroPadded.toLowerCase());
+    }
+
+    @Test
     public void computeL2CreateAddressActual() {
         String expected = "0x5107b7154dfc1d3b7f1c4e19b5087e1d3393bcf4";
 

@@ -130,8 +130,15 @@ public class WalletUtils {
     }
 
     public static String applyL1ToL2Alias(String address){
-        String a = Numeric.toHexStringWithPrefix(Numeric.toBigInt(address).add(Numeric.toBigInt("0x1111000000000000000000000000000000001111")).mod(BigInteger.valueOf(2).pow(160)));
-        return Numeric.toHexStringWithPrefix(Numeric.toBigInt(address).add(Numeric.toBigInt("0x1111000000000000000000000000000000001111")).mod(BigInteger.valueOf(2).pow(160)));
+        return Numeric.toHexStringWithPrefixZeroPadded(Numeric.toBigInt(address).add(Numeric.toBigInt("0x1111000000000000000000000000000000001111")).mod(BigInteger.valueOf(2).pow(160)), 40);
+    }
+
+    public static String undoL1ToL2Alias(String address){
+        BigInteger result = Numeric.toBigInt(address).subtract(Numeric.toBigInt("0x1111000000000000000000000000000000001111"));
+        if (result.compareTo(BigInteger.ZERO) < 0){
+            result.add(BigInteger.valueOf(2).pow(160));
+        }
+        return Numeric.toHexStringWithPrefixZeroPadded(result, 40);
     }
 
     public static String getERC20DefaultBridgeData(String l1TokenAddress, Web3j provider, Credentials credentials, ContractGasProvider gasProvider){
