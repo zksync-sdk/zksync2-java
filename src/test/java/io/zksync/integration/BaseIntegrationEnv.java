@@ -15,10 +15,13 @@ import io.zksync.transaction.fee.DefaultTransactionFeeProvider;
 import io.zksync.transaction.fee.Fee;
 import io.zksync.transaction.fee.ZkTransactionFeeProvider;
 import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
+import io.zksync.transaction.type.DepositTransaction;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.utils.ContractDeployer;
 import io.zksync.wrappers.IZkSync;
 import io.zksync.wrappers.ZkSyncContract;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.protocol.Web3j;
@@ -34,6 +37,8 @@ import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
+import org.web3j.tx.response.PollingTransactionReceiptProcessor;
+import org.web3j.tx.response.TransactionReceiptProcessor;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
 
@@ -58,6 +63,7 @@ public class BaseIntegrationEnv {
     protected final EthSigner signer;
 
     protected final ZkSyncTransactionReceiptProcessor processor;
+    protected final TransactionReceiptProcessor processorL1;
 
     protected final ZkTransactionFeeProvider feeProvider;
 
@@ -89,6 +95,8 @@ public class BaseIntegrationEnv {
 
         this.feeProvider = new DefaultTransactionFeeProvider(zksync, ETH);
 
+        this.processorL1 = new PollingTransactionReceiptProcessor(l1Web3, 500, 200);
+
         this.wallet = new ZkSyncWallet(zksync, signer, ETH);
         TransactionManager manager = new RawTransactionManager(l1Web3, credentials, l1Web3.ethChainId().sendAsync().join().getChainId().longValue());
         try {
@@ -99,8 +107,14 @@ public class BaseIntegrationEnv {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
 
-
+    @Test
+    public void testPrepare() throws IOException, InterruptedException {
+        testWallet.approveERC20(L1_DAI, BigInteger.valueOf(100)).join();
+        DepositTransaction transaction = new DepositTransaction(L1_DAI, BigInteger.valueOf(50), null,null, null, null, null, null, null, true, null);
+        String hash = testWallet.deposit(transaction).sendAsync().join().getResult();
+        Thread.sleep(5000);
     }
 
     protected void sendTestMoney() {
