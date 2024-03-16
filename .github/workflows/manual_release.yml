@@ -25,6 +25,8 @@ jobs:
             echo "Ref $REF is not a tag."
             exit 1
           fi
+          VERSION=${REF:1}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Set up JDK 11
         uses: actions/setup-java@v4
         with:
@@ -33,11 +35,11 @@ jobs:
       - name: Build with Gradle
         run: gradle build -x test
         env:
-          VERSION: ${{ github.event.inputs.release-tag }}
+          VERSION: ${{ env.VERSION }}
       - name: Publish package
         run: gradle -x test clean build sign publish publishToSonatype closeAndReleaseSonatypeStagingRepository
         env:
-          VERSION: ${{ github.event.inputs.release-tag }}
+          VERSION: ${{ env.VERSION }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.PASSPHRASE }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
