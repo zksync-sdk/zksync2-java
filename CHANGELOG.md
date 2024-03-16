@@ -1,3 +1,11 @@
+## [0.2.1](https://github.com/zksync-sdk/zksync2-java/compare/v0.2.0...v0.2.1) (2024-03-16)
+
+
+### Bug Fixes
+
+* **utils:** fix `applyL1ToL2Alias` and `undoL1ToL2Alias` ([9fd3b23](https://github.com/zksync-sdk/zksync2-java/commit/9fd3b234b89729138cba37cfa299e75b76b85341))
+* **wallet:** fix `maxPriorityFeePerGas` hiegher than `maxFeePerGas` ([3f1fcbf](https://github.com/zksync-sdk/zksync2-java/commit/3f1fcbfd2bcbc0c8e2e59b9a9c4664d716e1cdcf))
+
 ## [0.2.0](https://github.com/zksync-sdk/zksync2-java/releases/tag/v0.2.0) (19.02.2024)
 
 ### Features
