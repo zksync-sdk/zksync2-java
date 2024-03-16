@@ -1,5 +1,5 @@
 {
-  "branches": "main",
+  "branches": "master",
   "debug": true,
   "addReleases": "top",
   "npmPublish": false,
