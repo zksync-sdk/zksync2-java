@@ -233,8 +233,7 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
         if (tx.tokenAddress == null || tx.tokenAddress == ZkSyncAddresses.ETH_ADDRESS){
             return new Transaction(tx.from, tx.to, BigInteger.ZERO, gasPrice, tx.amount, "0x", meta);
         }
-        ERC20 token = ERC20.load(tx.tokenAddress, this, transactionManager, gasProvider);
-        String data = token.encodeTransfer(tx.to, tx.amount);
+        String data = ERC20.encodeTransfer(tx.to, tx.amount);
         BigInteger value = tx.options.getValue();
         if (tx.tokenAddress != null && tx.tokenAddress != ZkSyncAddresses.ETH_ADDRESS){
             value = BigInteger.ZERO;
