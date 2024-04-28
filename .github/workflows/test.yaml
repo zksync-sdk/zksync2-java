@@ -1,13 +1,12 @@
 name: Test Java SDK library
 
 on:
-  pull_request:
-    branches:
-      - master
   push:
-    branches:
-      - develop
-
+    branches: [ master, beta ]
+  pull_request:
+    branches: [ master, beta ]
+    types: [ opened, reopened, synchronize ]
+    
 jobs:
   test:
     name: Test java project
@@ -22,10 +21,7 @@ jobs:
         run: |
           git clone https://github.com/matter-labs/local-setup.git
           pushd local-setup
-          docker-compose up -d
+          ./start.sh
           popd
-      - name: Wait until server is up
-        run: |
-            while ! curl -s -X POST -d '{"jsonrpc":"2.0","method":"net_version","id":1}' -H 'Content-Type: application/json' 0.0.0.0:3050; do sleep 1; done
       - name: Test with Gradle
         run: gradle clean test
