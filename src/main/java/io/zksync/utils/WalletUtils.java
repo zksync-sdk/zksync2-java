@@ -1,17 +1,13 @@
 package io.zksync.utils;
 
 import io.zksync.abi.ZkTypeEncoder;
-import io.zksync.methods.response.ZkTransactionReceipt;
 import io.zksync.protocol.ZkSync;
-import io.zksync.protocol.core.L2ToL1MessageProof;
+import io.zksync.protocol.core.BridgeAddresses;
 import io.zksync.transaction.type.L1BridgeContracts;
 import io.zksync.transaction.type.TransactionOptions;
 import io.zksync.wrappers.ERC20;
-import io.zksync.wrappers.IL1Bridge;
 import io.zksync.wrappers.IL2Bridge;
-import io.zksync.wrappers.IZkSync;
 import org.jetbrains.annotations.Nullable;
-import org.web3j.abi.EventValues;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.DynamicBytes;
@@ -20,25 +16,21 @@ import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.Keys;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.response.EthBlock;
-import org.web3j.protocol.core.methods.response.Log;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.tx.Contract;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-
-import static io.zksync.utils.ZkSyncAddresses.L2_ETH_TOKEN_ADDRESS;
-import static io.zksync.wrappers.IL1Messenger.L1MESSAGESENT_EVENT;
 
 public class WalletUtils {
     private static final BigInteger L1_FEE_ESTIMATION_COEF_NUMERATOR = BigInteger.valueOf(12);
@@ -87,28 +79,15 @@ public class WalletUtils {
         return FunctionEncoder.encode(function);
     }
 
-    public static BigInteger estimateDefaultBridgeDepositL2Gas(String tokenAddress, BigInteger amount, String to, ZkSync providerL2, L1BridgeContracts bridgeContracts, @Nullable Web3j providerl1, @Nullable Credentials credentials, @Nullable ContractGasProvider gasProvider, @Nullable String from, @Nullable BigInteger gasPerPubDataByte){
-        if (tokenAddress == ZkSyncAddresses.ETH_ADDRESS){
+    public static BigInteger estimateDefaultBridgeDepositL2Gas(String tokenAddress, BigInteger amount, String to, ZkSync providerL2, @Nullable Web3j providerl1, @Nullable Credentials credentials, @Nullable ContractGasProvider gasProvider, @Nullable String from, @Nullable BigInteger gasPerPubDataByte){
+        if (providerL2.isBaseToken(tokenAddress)){
             return providerL2.estimateL1ToL2Execute(to, Numeric.hexStringToByteArray("0x"), from, null, amount, null, null, gasPerPubDataByte, null).sendAsync().join().getAmountUsed();
         }
         BigInteger value = BigInteger.ZERO;
-        String l1BridgeAddress;
-        String l2BridgeAddress;
-        String bridgeData;
-        String l2WethToken = ZkSyncAddresses.ETH_ADDRESS;
-        try {
-            l2WethToken = bridgeContracts.wethL1Bridge.l2TokenAddress(tokenAddress).sendAsync().join();
-        } catch (Exception e) {}
-        if (l2WethToken != ZkSyncAddresses.ETH_ADDRESS){
-            value = amount;
-            l1BridgeAddress = bridgeContracts.wethL1Bridge.getContractAddress();
-            l2BridgeAddress = providerL2.zksGetBridgeContracts().sendAsync().join().getResult().getL2wETHBridge();
-            bridgeData = "0x";
-        }else{
-            l1BridgeAddress = bridgeContracts.erc20L1Bridge.getContractAddress();
-            l2BridgeAddress = providerL2.zksGetBridgeContracts().sendAsync().join().getResult().getL2Erc20DefaultBridge();
-            bridgeData = getERC20DefaultBridgeData(tokenAddress, providerl1, credentials, gasProvider);
-        }
+        BridgeAddresses bridgeAddresses = providerL2.zksGetBridgeContracts().sendAsync().join().getResult();
+        String l1BridgeAddress = bridgeAddresses.getL1SharedDefaultBridge();
+        String l2BridgeAddress = bridgeAddresses.getL2SharedDefaultBridge();
+        String bridgeData = getERC20DefaultBridgeData(tokenAddress, providerl1, credentials, gasProvider);
 
         return estimateCustomBridgeDepositL2Gas(
                 l1BridgeAddress,
@@ -124,7 +103,7 @@ public class WalletUtils {
     }
 
     public static BigInteger estimateCustomBridgeDepositL2Gas(String l1BridgeAddress, String l2BridgeAddress, String tokenAddress, BigInteger amount, String to, String bridgeData, String from, BigInteger gasPerBudDataByte, BigInteger value, ZkSync provider){
-        String calldata = getERC20BridgeCalldata(tokenAddress, from, to,amount, Numeric.hexStringToByteArray(bridgeData));
+        String calldata = getERC20BridgeCalldata(tokenAddress, from, to, amount, Numeric.hexStringToByteArray(bridgeData));
         return provider.estimateL1ToL2Execute(
                 l2BridgeAddress, Numeric.hexStringToByteArray(calldata), applyL1ToL2Alias(l1BridgeAddress), null, value, null, null, gasPerBudDataByte, null).sendAsync().join().getAmountUsed();
     }
@@ -142,11 +121,14 @@ public class WalletUtils {
     }
 
     public static String getERC20DefaultBridgeData(String l1TokenAddress, Web3j provider, Credentials credentials, ContractGasProvider gasProvider){
+        if (l1TokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS)){
+            l1TokenAddress = ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS;
+        }
         ERC20 token = ERC20.load(l1TokenAddress, provider, credentials, gasProvider);
 
-        String name = token.name().sendAsync().join();
-        String symbol = token.symbol().sendAsync().join();
-        BigInteger decimals = token.decimals().sendAsync().join();
+        String name = l1TokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS) ? "Ether" : token.name().sendAsync().join();
+        String symbol = l1TokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS) ? "ETH" : token.symbol().sendAsync().join();
+        BigInteger decimals = l1TokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS) ? BigInteger.valueOf(18) : token.decimals().sendAsync().join();
 
         String nameEncoded = encode(name);
         String symbolEncoded = encode(symbol);
@@ -196,6 +178,21 @@ public class WalletUtils {
             );
         }
         return true;
+    }
+
+    public static Credentials createRandomCredentials(){
+        ECKeyPair keyPair = null;
+        try {
+            keyPair = Keys.createEcKeyPair();
+        } catch (InvalidAlgorithmParameterException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchProviderException e) {
+            throw new RuntimeException(e);
+        }
+
+        return Credentials.create(keyPair);
     }
 
 }

@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthEstimateGas;
@@ -37,6 +38,11 @@ public interface ZkSync extends Web3j {
      * @return Prepared main contract request
      */
     Request<?, ZksMainContract> zksMainContract();
+
+    /**
+     * Returns address of the Bridgehub smart contract.
+     */
+    Request<?, ZksGetBridgehubContract> zksGetBridgehubContract();
 
     /**
      * Get list of the tokens supported by ZkSync.
@@ -81,6 +87,21 @@ public interface ZkSync extends Web3j {
      * @return Prepared get bridge contract request
      */
     Request<?, ZksBridgeAddresses> zksGetBridgeContracts();
+
+    /**
+     * Returns the L1 base token address.
+     */
+    Request<?, ZksGetBaseTokenContractAddress> zksGetBaseTokenContractAddress();
+
+    /**
+     * Returns whether the chain is ETH-based.
+     */
+    boolean isEthBasedChain();
+
+    /**
+     * Returns whether the `token` is the base token.
+     */
+    boolean isBaseToken(String tokenAddress);
 
     /**
      * Get the proof for the message sent via the IL1Messenger system contract.
@@ -165,6 +186,16 @@ public interface ZkSync extends Web3j {
      */
     Request<?, ZksBlock> zksGetBlockByNumber(
             DefaultBlockParameter defaultBlockParameter, boolean returnFullTransactionObjects);
+
+    /**
+     * Returns the L2 token address equivalent for a L1 token address as they are not necessarily equal.
+     * The ETH address is set to the zero address.
+     *
+     * @remarks Only works for tokens bridged on default zkSync Era bridges.
+     *
+     * @param token The address of the token on L1.
+     */
+    String l2TokenAddress(String tokenAddress);
 
     Request<?, EthEstimateGas> estimateL1ToL2Execute(String contractAddress, byte[] calldata, String caller, @Nullable BigInteger l2GasLimit, @Nullable BigInteger l2Value, @Nullable byte[][] factoryDeps, @Nullable BigInteger operatorTip, @Nullable BigInteger gasPerPubDataByte, @Nullable String refoundRecepient);
 

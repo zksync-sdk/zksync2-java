@@ -1,12 +1,14 @@
 package io.zksync.transaction.response;
 
 import io.zksync.protocol.ZkSync;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.tx.response.TransactionReceiptProcessor;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Optional;
 
 public class ZkSyncTransactionReceiptProcessor extends TransactionReceiptProcessor {
@@ -44,6 +46,41 @@ public class ZkSyncTransactionReceiptProcessor extends TransactionReceiptProcess
                     throw new TransactionException(e);
                 }
 
+                receiptOptional = sendTransactionReceiptRequest(transactionHash);
+            } else {
+                return receiptOptional.get();
+            }
+        }
+
+        throw new TransactionException(
+                "Transaction receipt was not generated after "
+                        + ((sleepDuration * attempts) / 1000
+                        + " seconds for transaction: "
+                        + transactionHash),
+                transactionHash);
+    }
+
+    public TransactionReceipt waitFinalized(String transactionHash)
+            throws IOException, TransactionException {
+        return waitFinalized(transactionHash, sleepDuration, attempts);
+    }
+
+    public TransactionReceipt waitFinalized(
+            String transactionHash, long sleepDuration, int attempts)
+            throws IOException, TransactionException {
+
+        Optional<? extends TransactionReceipt> receiptOptional =
+                sendTransactionReceiptRequest(transactionHash);
+        BigInteger blockNumber = zkSync.ethGetBlockByNumber(DefaultBlockParameterName.FINALIZED, false).sendAsync().join().getBlock().getNumber();
+        for (int i = 0; i < attempts; i++) {
+            if (!receiptOptional.isPresent() || receiptOptional.get().getBlockHash() == null || receiptOptional.get().getBlockNumber().compareTo(blockNumber) > 0) {
+                try {
+                    Thread.sleep(sleepDuration);
+                } catch (InterruptedException e) {
+                    throw new TransactionException(e);
+                }
+
+                blockNumber = zkSync.ethGetBlockByNumber(DefaultBlockParameterName.FINALIZED, false).sendAsync().join().getBlock().getNumber();
                 receiptOptional = sendTransactionReceiptRequest(transactionHash);
             } else {
                 return receiptOptional.get();

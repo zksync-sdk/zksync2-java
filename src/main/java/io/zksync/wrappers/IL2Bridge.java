@@ -3,8 +3,6 @@ package io.zksync.wrappers;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
-
-import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
@@ -24,7 +22,7 @@ import org.web3j.tx.gas.ContractGasProvider;
  * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the 
  * <a href="https://github.com/web3j/web3j/tree/master/codegen">codegen module</a> to update.
  *
- * <p>Generated with web3j version 1.4.2.
+ * <p>Generated with web3j version 1.5.0.
  */
 @SuppressWarnings("rawtypes")
 public class IL2Bridge extends Contract {
@@ -89,16 +87,6 @@ public class IL2Bridge extends Contract {
                 Arrays.<Type>asList(new Address(160, _l1Token)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
         return executeRemoteCallSingleValueReturn(function, String.class);
-    }
-
-    public String encodeWithdraw(String _l1Receiver, String _l2Token, BigInteger _amount) {
-        final Function function = new Function(
-                FUNC_WITHDRAW,
-                Arrays.<Type>asList(new Address(160, _l1Receiver),
-                        new Address(160, _l2Token),
-                        new org.web3j.abi.datatypes.generated.Uint256(_amount)),
-                Collections.<TypeReference<?>>emptyList());
-        return FunctionEncoder.encode(function);
     }
 
     public RemoteFunctionCall<TransactionReceipt> withdraw(String _l1Receiver, String _l2Token, BigInteger _amount) {

@@ -8,7 +8,6 @@ import io.zksync.methods.request.Eip712Meta;
 import io.zksync.methods.response.ZksEstimateFee;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.account.Wallet;
-import io.zksync.protocol.account.WalletL1;
 import io.zksync.protocol.core.Token;
 import io.zksync.protocol.provider.EthereumProvider;
 import io.zksync.transaction.fee.DefaultTransactionFeeProvider;
@@ -18,9 +17,8 @@ import io.zksync.transaction.response.ZkSyncTransactionReceiptProcessor;
 import io.zksync.transaction.type.DepositTransaction;
 import io.zksync.transaction.type.Transaction712;
 import io.zksync.utils.ContractDeployer;
+import io.zksync.wrappers.ITestnetERC20Token;
 import io.zksync.wrappers.IZkSync;
-import io.zksync.wrappers.ZkSyncContract;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -110,8 +108,10 @@ public class BaseIntegrationEnv {
     }
 
     @Test
-    public void testPrepare() throws IOException, InterruptedException {
-        testWallet.approveERC20(L1_DAI, BigInteger.valueOf(100)).join();
+    public void testPrepare() throws Exception {
+        ITestnetERC20Token tokenContract = ITestnetERC20Token.load(L1_DAI, l1Web3, credentials, new StaticGasProvider(l1Web3.ethGasPrice().sendAsync().join().getGasPrice(), BigInteger.valueOf(300_000L)));
+        TransactionReceipt receipt = tokenContract.mint(credentials.getAddress(), BigInteger.valueOf(1000)).send();
+        testWallet.approveERC20(L1_DAI, BigInteger.valueOf(100)).sendAsync().join();
         DepositTransaction transaction = new DepositTransaction(L1_DAI, BigInteger.valueOf(50), null,null, null, null, null, null, null, true, null);
         String hash = testWallet.deposit(transaction).sendAsync().join().getResult();
         Thread.sleep(5000);

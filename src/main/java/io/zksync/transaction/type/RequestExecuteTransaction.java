@@ -1,21 +1,24 @@
 package io.zksync.transaction.type;
 
 import io.zksync.methods.request.Eip712Meta;
+import lombok.AllArgsConstructor;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 
+@AllArgsConstructor
 public class RequestExecuteTransaction{
-    private BigInteger l2GasLimit;
-    private String contractAddress;
-    private byte[] calldata;
-    private BigInteger l2Value;
-    private byte[][] factoryDeps;
-    private BigInteger operatorTip;
-    private BigInteger gasPerPubDataByte;
-    private String refoundRecepient;
-    private TransactionOptions options;
+    public BigInteger l2GasLimit;
+    public String contractAddress;
+    public byte[] calldata;
+    public BigInteger l2Value;
+    public BigInteger mintValue;
+    public byte[][] factoryDeps;
+    public BigInteger operatorTip;
+    public BigInteger gasPerPubDataByte;
+    public String refoundRecepient;
+    public TransactionOptions options;
 
     public RequestExecuteTransaction(BigInteger l2GasLimit, String contractAddress, byte[] calldata, BigInteger l2Value, byte[][] factoryDeps, BigInteger operatorTip, BigInteger gasPerPubDataByte, String refoundRecepient, TransactionOptions transactionOptions) {
         this.l2GasLimit = l2GasLimit;
