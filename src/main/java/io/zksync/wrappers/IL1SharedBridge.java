@@ -1,18 +1,13 @@
 package io.zksync.wrappers;
 
 import io.reactivex.Flowable;
-
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import io.zksync.abi.ZkFunctionEncoder;
 import org.web3j.abi.EventEncoder;
-import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Bool;
@@ -32,10 +27,8 @@ import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.BaseEventResponse;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
-import org.web3j.tx.gas.ContractEIP1559GasProvider;
 import org.web3j.tx.gas.ContractGasProvider;
 
 /**
@@ -48,7 +41,7 @@ import org.web3j.tx.gas.ContractGasProvider;
  * <p>Generated with web3j version 1.5.0.
  */
 @SuppressWarnings("rawtypes")
-public class IL1Bridge extends Contract {
+public class IL1SharedBridge extends Contract {
     public static final String BINARY = "Bin file was not provided";
 
     public static final String FUNC_BRIDGEHUB = "bridgehub";
@@ -61,21 +54,37 @@ public class IL1Bridge extends Contract {
 
     public static final String FUNC_CLAIMFAILEDDEPOSIT = "claimFailedDeposit";
 
-    public static final String FUNC_DEPOSIT = "deposit";
+    public static final String FUNC_CLAIMFAILEDDEPOSITLEGACYERC20BRIDGE = "claimFailedDepositLegacyErc20Bridge";
 
     public static final String FUNC_DEPOSITHAPPENED = "depositHappened";
 
+    public static final String FUNC_DEPOSITLEGACYERC20BRIDGE = "depositLegacyErc20Bridge";
+
     public static final String FUNC_FINALIZEWITHDRAWAL = "finalizeWithdrawal";
 
-    public static final String FUNC_ISWITHDRAWALFINALIZEDSHARED = "isWithdrawalFinalizedShared";
+    public static final String FUNC_FINALIZEWITHDRAWALLEGACYERC20BRIDGE = "finalizeWithdrawalLegacyErc20Bridge";
+
+    public static final String FUNC_ISWITHDRAWALFINALIZED = "isWithdrawalFinalized";
+
+    public static final String FUNC_L1WETHADDRESS = "l1WethAddress";
 
     public static final String FUNC_L2BRIDGEADDRESS = "l2BridgeAddress";
+
+    public static final String FUNC_LEGACYBRIDGE = "legacyBridge";
+
+    public static final String FUNC_RECEIVEETH = "receiveEth";
+
+    public static final String FUNC_SETERAFIRSTPOSTUPGRADEBATCH = "setEraFirstPostUpgradeBatch";
+
+    public static final Event BRIDGEHUBDEPOSITBASETOKENINITIATED_EVENT = new Event("BridgehubDepositBaseTokenInitiated", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Address>(true) {}, new TypeReference<Address>() {}, new TypeReference<Uint256>() {}));
+    ;
 
     public static final Event BRIDGEHUBDEPOSITFINALIZED_EVENT = new Event("BridgehubDepositFinalized", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Bytes32>(true) {}, new TypeReference<Bytes32>(true) {}));
     ;
 
-    public static final Event BRIDGEHUBDEPOSITINITIATEDSHAREDBRIDGE_EVENT = new Event("BridgehubDepositInitiatedSharedBridge", 
+    public static final Event BRIDGEHUBDEPOSITINITIATED_EVENT = new Event("BridgehubDepositInitiated", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Bytes32>(true) {}, new TypeReference<Address>(true) {}, new TypeReference<Address>() {}, new TypeReference<Address>() {}, new TypeReference<Uint256>() {}));
     ;
 
@@ -83,7 +92,7 @@ public class IL1Bridge extends Contract {
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Address>(true) {}, new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}));
     ;
 
-    public static final Event DEPOSITINITIATEDSHAREDBRIDGE_EVENT = new Event("DepositInitiatedSharedBridge", 
+    public static final Event LEGACYDEPOSITINITIATED_EVENT = new Event("LegacyDepositInitiated", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Bytes32>(true) {}, new TypeReference<Address>(true) {}, new TypeReference<Address>() {}, new TypeReference<Address>() {}, new TypeReference<Uint256>() {}));
     ;
 
@@ -92,21 +101,57 @@ public class IL1Bridge extends Contract {
     ;
 
     @Deprecated
-    protected IL1Bridge(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+    protected IL1SharedBridge(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, credentials, gasPrice, gasLimit);
     }
 
-    protected IL1Bridge(String contractAddress, Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
+    protected IL1SharedBridge(String contractAddress, Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
         super(BINARY, contractAddress, web3j, credentials, contractGasProvider);
     }
 
     @Deprecated
-    protected IL1Bridge(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+    protected IL1SharedBridge(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
-    protected IL1Bridge(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
+    protected IL1SharedBridge(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
+    }
+
+    public static List<BridgehubDepositBaseTokenInitiatedEventResponse> getBridgehubDepositBaseTokenInitiatedEvents(TransactionReceipt transactionReceipt) {
+        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(BRIDGEHUBDEPOSITBASETOKENINITIATED_EVENT, transactionReceipt);
+        ArrayList<BridgehubDepositBaseTokenInitiatedEventResponse> responses = new ArrayList<BridgehubDepositBaseTokenInitiatedEventResponse>(valueList.size());
+        for (EventValuesWithLog eventValues : valueList) {
+            BridgehubDepositBaseTokenInitiatedEventResponse typedResponse = new BridgehubDepositBaseTokenInitiatedEventResponse();
+            typedResponse.log = eventValues.getLog();
+            typedResponse.chainId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
+            typedResponse.from = (String) eventValues.getIndexedValues().get(1).getValue();
+            typedResponse.l1Token = (String) eventValues.getNonIndexedValues().get(0).getValue();
+            typedResponse.amount = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public static BridgehubDepositBaseTokenInitiatedEventResponse getBridgehubDepositBaseTokenInitiatedEventFromLog(Log log) {
+        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BRIDGEHUBDEPOSITBASETOKENINITIATED_EVENT, log);
+        BridgehubDepositBaseTokenInitiatedEventResponse typedResponse = new BridgehubDepositBaseTokenInitiatedEventResponse();
+        typedResponse.log = log;
+        typedResponse.chainId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
+        typedResponse.from = (String) eventValues.getIndexedValues().get(1).getValue();
+        typedResponse.l1Token = (String) eventValues.getNonIndexedValues().get(0).getValue();
+        typedResponse.amount = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
+        return typedResponse;
+    }
+
+    public Flowable<BridgehubDepositBaseTokenInitiatedEventResponse> bridgehubDepositBaseTokenInitiatedEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(log -> getBridgehubDepositBaseTokenInitiatedEventFromLog(log));
+    }
+
+    public Flowable<BridgehubDepositBaseTokenInitiatedEventResponse> bridgehubDepositBaseTokenInitiatedEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(BRIDGEHUBDEPOSITBASETOKENINITIATED_EVENT));
+        return bridgehubDepositBaseTokenInitiatedEventFlowable(filter);
     }
 
     public static List<BridgehubDepositFinalizedEventResponse> getBridgehubDepositFinalizedEvents(TransactionReceipt transactionReceipt) {
@@ -143,11 +188,11 @@ public class IL1Bridge extends Contract {
         return bridgehubDepositFinalizedEventFlowable(filter);
     }
 
-    public static List<BridgehubDepositInitiatedSharedBridgeEventResponse> getBridgehubDepositInitiatedSharedBridgeEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(BRIDGEHUBDEPOSITINITIATEDSHAREDBRIDGE_EVENT, transactionReceipt);
-        ArrayList<BridgehubDepositInitiatedSharedBridgeEventResponse> responses = new ArrayList<BridgehubDepositInitiatedSharedBridgeEventResponse>(valueList.size());
+    public static List<BridgehubDepositInitiatedEventResponse> getBridgehubDepositInitiatedEvents(TransactionReceipt transactionReceipt) {
+        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(BRIDGEHUBDEPOSITINITIATED_EVENT, transactionReceipt);
+        ArrayList<BridgehubDepositInitiatedEventResponse> responses = new ArrayList<BridgehubDepositInitiatedEventResponse>(valueList.size());
         for (EventValuesWithLog eventValues : valueList) {
-            BridgehubDepositInitiatedSharedBridgeEventResponse typedResponse = new BridgehubDepositInitiatedSharedBridgeEventResponse();
+            BridgehubDepositInitiatedEventResponse typedResponse = new BridgehubDepositInitiatedEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.chainId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
             typedResponse.txDataHash = (byte[]) eventValues.getIndexedValues().get(1).getValue();
@@ -160,9 +205,9 @@ public class IL1Bridge extends Contract {
         return responses;
     }
 
-    public static BridgehubDepositInitiatedSharedBridgeEventResponse getBridgehubDepositInitiatedSharedBridgeEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BRIDGEHUBDEPOSITINITIATEDSHAREDBRIDGE_EVENT, log);
-        BridgehubDepositInitiatedSharedBridgeEventResponse typedResponse = new BridgehubDepositInitiatedSharedBridgeEventResponse();
+    public static BridgehubDepositInitiatedEventResponse getBridgehubDepositInitiatedEventFromLog(Log log) {
+        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BRIDGEHUBDEPOSITINITIATED_EVENT, log);
+        BridgehubDepositInitiatedEventResponse typedResponse = new BridgehubDepositInitiatedEventResponse();
         typedResponse.log = log;
         typedResponse.chainId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
         typedResponse.txDataHash = (byte[]) eventValues.getIndexedValues().get(1).getValue();
@@ -173,14 +218,14 @@ public class IL1Bridge extends Contract {
         return typedResponse;
     }
 
-    public Flowable<BridgehubDepositInitiatedSharedBridgeEventResponse> bridgehubDepositInitiatedSharedBridgeEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(log -> getBridgehubDepositInitiatedSharedBridgeEventFromLog(log));
+    public Flowable<BridgehubDepositInitiatedEventResponse> bridgehubDepositInitiatedEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(log -> getBridgehubDepositInitiatedEventFromLog(log));
     }
 
-    public Flowable<BridgehubDepositInitiatedSharedBridgeEventResponse> bridgehubDepositInitiatedSharedBridgeEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Flowable<BridgehubDepositInitiatedEventResponse> bridgehubDepositInitiatedEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(BRIDGEHUBDEPOSITINITIATEDSHAREDBRIDGE_EVENT));
-        return bridgehubDepositInitiatedSharedBridgeEventFlowable(filter);
+        filter.addSingleTopic(EventEncoder.encode(BRIDGEHUBDEPOSITINITIATED_EVENT));
+        return bridgehubDepositInitiatedEventFlowable(filter);
     }
 
     public static List<ClaimedFailedDepositSharedBridgeEventResponse> getClaimedFailedDepositSharedBridgeEvents(TransactionReceipt transactionReceipt) {
@@ -219,11 +264,11 @@ public class IL1Bridge extends Contract {
         return claimedFailedDepositSharedBridgeEventFlowable(filter);
     }
 
-    public static List<DepositInitiatedSharedBridgeEventResponse> getDepositInitiatedSharedBridgeEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(DEPOSITINITIATEDSHAREDBRIDGE_EVENT, transactionReceipt);
-        ArrayList<DepositInitiatedSharedBridgeEventResponse> responses = new ArrayList<DepositInitiatedSharedBridgeEventResponse>(valueList.size());
+    public static List<LegacyDepositInitiatedEventResponse> getLegacyDepositInitiatedEvents(TransactionReceipt transactionReceipt) {
+        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(LEGACYDEPOSITINITIATED_EVENT, transactionReceipt);
+        ArrayList<LegacyDepositInitiatedEventResponse> responses = new ArrayList<LegacyDepositInitiatedEventResponse>(valueList.size());
         for (EventValuesWithLog eventValues : valueList) {
-            DepositInitiatedSharedBridgeEventResponse typedResponse = new DepositInitiatedSharedBridgeEventResponse();
+            LegacyDepositInitiatedEventResponse typedResponse = new LegacyDepositInitiatedEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.chainId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
             typedResponse.l2DepositTxHash = (byte[]) eventValues.getIndexedValues().get(1).getValue();
@@ -236,9 +281,9 @@ public class IL1Bridge extends Contract {
         return responses;
     }
 
-    public static DepositInitiatedSharedBridgeEventResponse getDepositInitiatedSharedBridgeEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(DEPOSITINITIATEDSHAREDBRIDGE_EVENT, log);
-        DepositInitiatedSharedBridgeEventResponse typedResponse = new DepositInitiatedSharedBridgeEventResponse();
+    public static LegacyDepositInitiatedEventResponse getLegacyDepositInitiatedEventFromLog(Log log) {
+        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(LEGACYDEPOSITINITIATED_EVENT, log);
+        LegacyDepositInitiatedEventResponse typedResponse = new LegacyDepositInitiatedEventResponse();
         typedResponse.log = log;
         typedResponse.chainId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
         typedResponse.l2DepositTxHash = (byte[]) eventValues.getIndexedValues().get(1).getValue();
@@ -249,14 +294,14 @@ public class IL1Bridge extends Contract {
         return typedResponse;
     }
 
-    public Flowable<DepositInitiatedSharedBridgeEventResponse> depositInitiatedSharedBridgeEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(log -> getDepositInitiatedSharedBridgeEventFromLog(log));
+    public Flowable<LegacyDepositInitiatedEventResponse> legacyDepositInitiatedEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(log -> getLegacyDepositInitiatedEventFromLog(log));
     }
 
-    public Flowable<DepositInitiatedSharedBridgeEventResponse> depositInitiatedSharedBridgeEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Flowable<LegacyDepositInitiatedEventResponse> legacyDepositInitiatedEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(DEPOSITINITIATEDSHAREDBRIDGE_EVENT));
-        return depositInitiatedSharedBridgeEventFlowable(filter);
+        filter.addSingleTopic(EventEncoder.encode(LEGACYDEPOSITINITIATED_EVENT));
+        return legacyDepositInitiatedEventFlowable(filter);
     }
 
     public static List<WithdrawalFinalizedSharedBridgeEventResponse> getWithdrawalFinalizedSharedBridgeEvents(TransactionReceipt transactionReceipt) {
@@ -312,11 +357,12 @@ public class IL1Bridge extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> bridgehubDeposit(BigInteger _chainId, String _prevMsgSender, byte[] _data, BigInteger weiValue) {
+    public RemoteFunctionCall<TransactionReceipt> bridgehubDeposit(BigInteger _chainId, String _prevMsgSender, BigInteger _l2Value, byte[] _data, BigInteger weiValue) {
         final Function function = new Function(
                 FUNC_BRIDGEHUBDEPOSIT, 
                 Arrays.<Type>asList(new Uint256(_chainId),
                 new Address(160, _prevMsgSender),
+                new Uint256(_l2Value),
                 new DynamicBytes(_data)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function, weiValue);
@@ -351,32 +397,21 @@ public class IL1Bridge extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public String encodeDeposit(String _l2Receiver, String _l1Token, BigInteger _amount, BigInteger _l2TxGasLimit, BigInteger _l2TxGasPerPubdataByte, String _refundRecipient, BigInteger weiValue) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_DEPOSIT,
-                Arrays.<Type>asList(new Address(160, _l2Receiver),
-                        new Address(160, _l1Token),
-                        new Uint256(_amount),
-                        new Uint256(_l2TxGasLimit),
-                        new Uint256(_l2TxGasPerPubdataByte),
-                        new Address(160, _refundRecipient)),
-                Collections.<TypeReference<?>>emptyList());
-        return FunctionEncoder.encode(function);
-    }
-
-    public RemoteFunctionCall<TransactionReceipt> deposit(BigInteger _chainId, String _l2Receiver, String _l1Token, BigInteger _mintValue, BigInteger _amount, BigInteger _l2TxGasLimit, BigInteger _l2TxGasPerPubdataByte, String _refundRecipient, BigInteger weiValue) {
+    public RemoteFunctionCall<TransactionReceipt> claimFailedDepositLegacyErc20Bridge(String _depositSender, String _l1Token, BigInteger _amount, byte[] _l2TxHash, BigInteger _l2BatchNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBatch, List<byte[]> _merkleProof) {
         final Function function = new Function(
-                FUNC_DEPOSIT, 
-                Arrays.<Type>asList(new Uint256(_chainId),
-                new Address(160, _l2Receiver),
+                FUNC_CLAIMFAILEDDEPOSITLEGACYERC20BRIDGE, 
+                Arrays.<Type>asList(new Address(160, _depositSender),
                 new Address(160, _l1Token),
-                new Uint256(_mintValue),
                 new Uint256(_amount),
-                new Uint256(_l2TxGasLimit),
-                new Uint256(_l2TxGasPerPubdataByte),
-                new Address(160, _refundRecipient)),
+                new Bytes32(_l2TxHash),
+                new Uint256(_l2BatchNumber),
+                new Uint256(_l2MessageIndex),
+                new org.web3j.abi.datatypes.generated.Uint16(_l2TxNumberInBatch), 
+                new DynamicArray<Bytes32>(
+                        Bytes32.class,
+                        org.web3j.abi.Utils.typeMap(_merkleProof, Bytes32.class))),
                 Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function, weiValue);
+        return executeRemoteCallTransaction(function);
     }
 
     public RemoteFunctionCall<byte[]> depositHappened(BigInteger _chainId, byte[] _l2TxHash) {
@@ -387,29 +422,63 @@ public class IL1Bridge extends Contract {
         return executeRemoteCallSingleValueReturn(function, byte[].class);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> finalizeWithdrawal(BigInteger _chainId, BigInteger _l2BatchNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBatch, byte[] _message, List<byte[]> _merkleProof) throws TransactionException, IOException {
+    public RemoteFunctionCall<TransactionReceipt> depositLegacyErc20Bridge(String _msgSender, String _l2Receiver, String _l1Token, BigInteger _amount, BigInteger _l2TxGasLimit, BigInteger _l2TxGasPerPubdataByte, String _refundRecipient, BigInteger weiValue) {
         final Function function = new Function(
-                FUNC_FINALIZEWITHDRAWAL,
-                Arrays.<Type>asList(new Uint256(_chainId),
-                        new Uint256(_l2BatchNumber),
-                        new Uint256(_l2MessageIndex),
-                        new org.web3j.abi.datatypes.generated.Uint16(_l2TxNumberInBatch),
-                        new DynamicBytes(_message),
-                        new DynamicArray<Bytes32>(
-                                Bytes32.class,
-                                org.web3j.abi.Utils.typeMap(_merkleProof, Bytes32.class))),
+                FUNC_DEPOSITLEGACYERC20BRIDGE, 
+                Arrays.<Type>asList(new Address(160, _msgSender),
+                new Address(160, _l2Receiver),
+                new Address(160, _l1Token),
+                new Uint256(_amount),
+                new Uint256(_l2TxGasLimit),
+                new Uint256(_l2TxGasPerPubdataByte),
+                new Address(160, _refundRecipient)),
                 Collections.<TypeReference<?>>emptyList());
-
-        return new RemoteFunctionCall(function, () -> this.send(this.contractAddress, ZkFunctionEncoder.encode(function), BigInteger.ZERO, this.gasProvider.getGasPrice(FUNC_FINALIZEWITHDRAWAL), this.gasProvider.getGasLimit(FUNC_FINALIZEWITHDRAWAL), false));
+        return executeRemoteCallTransaction(function, weiValue);
     }
 
-    public RemoteFunctionCall<Boolean> isWithdrawalFinalizedShared(BigInteger _chainId, BigInteger _l2BatchNumber, BigInteger _l2MessageIndex) {
-        final Function function = new Function(FUNC_ISWITHDRAWALFINALIZEDSHARED, 
+    public RemoteFunctionCall<TransactionReceipt> finalizeWithdrawal(BigInteger _chainId, BigInteger _l2BatchNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBatch, byte[] _message, List<byte[]> _merkleProof) {
+        final Function function = new Function(
+                FUNC_FINALIZEWITHDRAWAL, 
+                Arrays.<Type>asList(new Uint256(_chainId),
+                new Uint256(_l2BatchNumber),
+                new Uint256(_l2MessageIndex),
+                new org.web3j.abi.datatypes.generated.Uint16(_l2TxNumberInBatch), 
+                new DynamicBytes(_message),
+                new DynamicArray<Bytes32>(
+                        Bytes32.class,
+                        org.web3j.abi.Utils.typeMap(_merkleProof, Bytes32.class))),
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> finalizeWithdrawalLegacyErc20Bridge(BigInteger _l2BatchNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBatch, byte[] _message, List<byte[]> _merkleProof) {
+        final Function function = new Function(
+                FUNC_FINALIZEWITHDRAWALLEGACYERC20BRIDGE, 
+                Arrays.<Type>asList(new Uint256(_l2BatchNumber),
+                new Uint256(_l2MessageIndex),
+                new org.web3j.abi.datatypes.generated.Uint16(_l2TxNumberInBatch), 
+                new DynamicBytes(_message),
+                new DynamicArray<Bytes32>(
+                        Bytes32.class,
+                        org.web3j.abi.Utils.typeMap(_merkleProof, Bytes32.class))),
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<Boolean> isWithdrawalFinalized(BigInteger _chainId, BigInteger _l2BatchNumber, BigInteger _l2MessageIndex) {
+        final Function function = new Function(FUNC_ISWITHDRAWALFINALIZED, 
                 Arrays.<Type>asList(new Uint256(_chainId),
                 new Uint256(_l2BatchNumber),
                 new Uint256(_l2MessageIndex)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
+    }
+
+    public RemoteFunctionCall<String> l1WethAddress() {
+        final Function function = new Function(FUNC_L1WETHADDRESS, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+        return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
     public RemoteFunctionCall<String> l2BridgeAddress(BigInteger _chainId) {
@@ -419,22 +488,45 @@ public class IL1Bridge extends Contract {
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
-    @Deprecated
-    public static IL1Bridge load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
-        return new IL1Bridge(contractAddress, web3j, credentials, gasPrice, gasLimit);
+    public RemoteFunctionCall<String> legacyBridge() {
+        final Function function = new Function(FUNC_LEGACYBRIDGE, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+        return executeRemoteCallSingleValueReturn(function, String.class);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> receiveEth(BigInteger _chainId, BigInteger weiValue) {
+        final Function function = new Function(
+                FUNC_RECEIVEETH, 
+                Arrays.<Type>asList(new Uint256(_chainId)),
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function, weiValue);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> setEraFirstPostUpgradeBatch(BigInteger _eraFirstPostUpgradeBatch) {
+        final Function function = new Function(
+                FUNC_SETERAFIRSTPOSTUPGRADEBATCH, 
+                Arrays.<Type>asList(new Uint256(_eraFirstPostUpgradeBatch)),
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
     }
 
     @Deprecated
-    public static IL1Bridge load(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
-        return new IL1Bridge(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
+    public static IL1SharedBridge load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+        return new IL1SharedBridge(contractAddress, web3j, credentials, gasPrice, gasLimit);
     }
 
-    public static IL1Bridge load(String contractAddress, Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
-        return new IL1Bridge(contractAddress, web3j, credentials, contractGasProvider);
+    @Deprecated
+    public static IL1SharedBridge load(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+        return new IL1SharedBridge(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
-    public static IL1Bridge load(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
-        return new IL1Bridge(contractAddress, web3j, transactionManager, contractGasProvider);
+    public static IL1SharedBridge load(String contractAddress, Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
+        return new IL1SharedBridge(contractAddress, web3j, credentials, contractGasProvider);
+    }
+
+    public static IL1SharedBridge load(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
+        return new IL1SharedBridge(contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
     public static class L2TransactionRequestTwoBridgesInner extends DynamicStruct {
@@ -473,6 +565,16 @@ public class IL1Bridge extends Contract {
         }
     }
 
+    public static class BridgehubDepositBaseTokenInitiatedEventResponse extends BaseEventResponse {
+        public BigInteger chainId;
+
+        public String from;
+
+        public String l1Token;
+
+        public BigInteger amount;
+    }
+
     public static class BridgehubDepositFinalizedEventResponse extends BaseEventResponse {
         public BigInteger chainId;
 
@@ -481,7 +583,7 @@ public class IL1Bridge extends Contract {
         public byte[] l2DepositTxHash;
     }
 
-    public static class BridgehubDepositInitiatedSharedBridgeEventResponse extends BaseEventResponse {
+    public static class BridgehubDepositInitiatedEventResponse extends BaseEventResponse {
         public BigInteger chainId;
 
         public byte[] txDataHash;
@@ -505,7 +607,7 @@ public class IL1Bridge extends Contract {
         public BigInteger amount;
     }
 
-    public static class DepositInitiatedSharedBridgeEventResponse extends BaseEventResponse {
+    public static class LegacyDepositInitiatedEventResponse extends BaseEventResponse {
         public BigInteger chainId;
 
         public byte[] l2DepositTxHash;

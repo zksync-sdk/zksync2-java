@@ -111,7 +111,7 @@ public class DefaultEthereumProvider implements EthereumProvider {
             } else {
                 BigInteger gasLimit = GAS_LIMITS.getOrDefault(token.getL1Address(), BigInteger.valueOf(300000));
                 BigInteger totalAmount = operatorTips.add(baseCost);
-                return l1ERC20Bridge.deposit(userAddress, token.getL1Address(), amount, gasLimit, L1_TO_L2_GAS_PER_PUBDATA, userAddress, totalAmount).sendAsync().join();
+                return l1ERC20Bridge.deposit(web3j.ethChainId().sendAsync().join().getChainId() ,userAddress, token.getL1Address(), BigInteger.ZERO, amount, gasLimit, L1_TO_L2_GAS_PER_PUBDATA, userAddress, totalAmount).sendAsync().join();
             }
         });
     }
@@ -154,7 +154,7 @@ public class DefaultEthereumProvider implements EthereumProvider {
         IL2Bridge il2Bridge = IL2Bridge.load(sender, web3j, transactionManager, gasProvider);
         IL1Bridge il1Bridge = IL1Bridge.load(il2Bridge.l1Bridge().send(), web3j, transactionManager, gasProvider);
 
-        return il1Bridge.finalizeWithdrawal(l1BatchNumber, BigInteger.valueOf(l2ToL1MessageProof.getId()), receipt.getL1BatchTxIndex(), bytes_data, merkle_proof).sendAsync().join();
+        return il1Bridge.finalizeWithdrawal(web3j.ethChainId().sendAsync().join().getChainId() ,l1BatchNumber, BigInteger.valueOf(l2ToL1MessageProof.getId()), receipt.getL1BatchTxIndex(), bytes_data, merkle_proof).sendAsync().join();
     }
 
     public int getWithdrawalLogIndex(List<Log> logs, int index){

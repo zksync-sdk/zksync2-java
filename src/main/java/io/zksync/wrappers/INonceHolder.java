@@ -1,7 +1,6 @@
 package io.zksync.wrappers;
 
 import io.reactivex.Flowable;
-import io.reactivex.functions.Function;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +11,7 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Bool;
 import org.web3j.abi.datatypes.Event;
+import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
@@ -33,7 +33,7 @@ import org.web3j.tx.gas.ContractGasProvider;
  * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the 
  * <a href="https://github.com/web3j/web3j/tree/master/codegen">codegen module</a> to update.
  *
- * <p>Generated with web3j version 1.4.2.
+ * <p>Generated with web3j version 1.5.0.
  */
 @SuppressWarnings("rawtypes")
 public class INonceHolder extends Contract {
@@ -95,19 +95,18 @@ public class INonceHolder extends Contract {
         return responses;
     }
 
+    public static ValueSetUnderNonceEventResponse getValueSetUnderNonceEventFromLog(Log log) {
+        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(VALUESETUNDERNONCE_EVENT, log);
+        ValueSetUnderNonceEventResponse typedResponse = new ValueSetUnderNonceEventResponse();
+        typedResponse.log = log;
+        typedResponse.accountAddress = (String) eventValues.getIndexedValues().get(0).getValue();
+        typedResponse.key = (BigInteger) eventValues.getIndexedValues().get(1).getValue();
+        typedResponse.value = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+        return typedResponse;
+    }
+
     public Flowable<ValueSetUnderNonceEventResponse> valueSetUnderNonceEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(new Function<Log, ValueSetUnderNonceEventResponse>() {
-            @Override
-            public ValueSetUnderNonceEventResponse apply(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(VALUESETUNDERNONCE_EVENT, log);
-                ValueSetUnderNonceEventResponse typedResponse = new ValueSetUnderNonceEventResponse();
-                typedResponse.log = log;
-                typedResponse.accountAddress = (String) eventValues.getIndexedValues().get(0).getValue();
-                typedResponse.key = (BigInteger) eventValues.getIndexedValues().get(1).getValue();
-                typedResponse.value = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
-                return typedResponse;
-            }
-        });
+        return web3j.ethLogFlowable(filter).map(log -> getValueSetUnderNonceEventFromLog(log));
     }
 
     public Flowable<ValueSetUnderNonceEventResponse> valueSetUnderNonceEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
@@ -117,35 +116,35 @@ public class INonceHolder extends Contract {
     }
 
     public RemoteFunctionCall<BigInteger> getDeploymentNonce(String _address) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETDEPLOYMENTNONCE, 
+        final Function function = new Function(FUNC_GETDEPLOYMENTNONCE, 
                 Arrays.<Type>asList(new Address(160, _address)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
     public RemoteFunctionCall<BigInteger> getMinNonce(String _address) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETMINNONCE, 
+        final Function function = new Function(FUNC_GETMINNONCE, 
                 Arrays.<Type>asList(new Address(160, _address)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
     public RemoteFunctionCall<BigInteger> getRawNonce(String _address) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETRAWNONCE, 
+        final Function function = new Function(FUNC_GETRAWNONCE, 
                 Arrays.<Type>asList(new Address(160, _address)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
     public RemoteFunctionCall<BigInteger> getValueUnderNonce(BigInteger _key) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_GETVALUEUNDERNONCE, 
+        final Function function = new Function(FUNC_GETVALUEUNDERNONCE, 
                 Arrays.<Type>asList(new Uint256(_key)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
     public RemoteFunctionCall<TransactionReceipt> increaseMinNonce(BigInteger _value) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+        final Function function = new Function(
                 FUNC_INCREASEMINNONCE, 
                 Arrays.<Type>asList(new Uint256(_value)),
                 Collections.<TypeReference<?>>emptyList());
@@ -153,7 +152,7 @@ public class INonceHolder extends Contract {
     }
 
     public RemoteFunctionCall<TransactionReceipt> incrementDeploymentNonce(String _address) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+        final Function function = new Function(
                 FUNC_INCREMENTDEPLOYMENTNONCE, 
                 Arrays.<Type>asList(new Address(160, _address)),
                 Collections.<TypeReference<?>>emptyList());
@@ -161,7 +160,7 @@ public class INonceHolder extends Contract {
     }
 
     public RemoteFunctionCall<TransactionReceipt> incrementMinNonceIfEquals(BigInteger _expectedNonce) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+        final Function function = new Function(
                 FUNC_INCREMENTMINNONCEIFEQUALS, 
                 Arrays.<Type>asList(new Uint256(_expectedNonce)),
                 Collections.<TypeReference<?>>emptyList());
@@ -169,7 +168,7 @@ public class INonceHolder extends Contract {
     }
 
     public RemoteFunctionCall<Boolean> isNonceUsed(String _address, BigInteger _nonce) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_ISNONCEUSED, 
+        final Function function = new Function(FUNC_ISNONCEUSED, 
                 Arrays.<Type>asList(new Address(160, _address),
                 new Uint256(_nonce)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
@@ -177,7 +176,7 @@ public class INonceHolder extends Contract {
     }
 
     public RemoteFunctionCall<TransactionReceipt> setValueUnderNonce(BigInteger _key, BigInteger _value) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+        final Function function = new Function(
                 FUNC_SETVALUEUNDERNONCE, 
                 Arrays.<Type>asList(new Uint256(_key),
                 new Uint256(_value)),

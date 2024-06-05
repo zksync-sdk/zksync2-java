@@ -1,7 +1,6 @@
 package io.zksync.wrappers;
 
 import io.reactivex.Flowable;
-import io.reactivex.functions.Function;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +13,7 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Bool;
 import org.web3j.abi.datatypes.DynamicBytes;
 import org.web3j.abi.datatypes.Event;
+import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.StaticStruct;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Bytes32;
@@ -38,7 +38,7 @@ import org.web3j.tx.gas.ContractGasProvider;
  * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the 
  * <a href="https://github.com/web3j/web3j/tree/master/codegen">codegen module</a> to update.
  *
- * <p>Generated with web3j version 1.4.2.
+ * <p>Generated with web3j version 1.5.0.
  */
 @SuppressWarnings("rawtypes")
 public class IL1Messenger extends Contract {
@@ -92,17 +92,16 @@ public class IL1Messenger extends Contract {
         return responses;
     }
 
+    public static BytecodeL1PublicationRequestedEventResponse getBytecodeL1PublicationRequestedEventFromLog(Log log) {
+        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BYTECODEL1PUBLICATIONREQUESTED_EVENT, log);
+        BytecodeL1PublicationRequestedEventResponse typedResponse = new BytecodeL1PublicationRequestedEventResponse();
+        typedResponse.log = log;
+        typedResponse._bytecodeHash = (byte[]) eventValues.getNonIndexedValues().get(0).getValue();
+        return typedResponse;
+    }
+
     public Flowable<BytecodeL1PublicationRequestedEventResponse> bytecodeL1PublicationRequestedEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(new Function<Log, BytecodeL1PublicationRequestedEventResponse>() {
-            @Override
-            public BytecodeL1PublicationRequestedEventResponse apply(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(BYTECODEL1PUBLICATIONREQUESTED_EVENT, log);
-                BytecodeL1PublicationRequestedEventResponse typedResponse = new BytecodeL1PublicationRequestedEventResponse();
-                typedResponse.log = log;
-                typedResponse._bytecodeHash = (byte[]) eventValues.getNonIndexedValues().get(0).getValue();
-                return typedResponse;
-            }
-        });
+        return web3j.ethLogFlowable(filter).map(log -> getBytecodeL1PublicationRequestedEventFromLog(log));
     }
 
     public Flowable<BytecodeL1PublicationRequestedEventResponse> bytecodeL1PublicationRequestedEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
@@ -125,19 +124,18 @@ public class IL1Messenger extends Contract {
         return responses;
     }
 
+    public static L1MessageSentEventResponse getL1MessageSentEventFromLog(Log log) {
+        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(L1MESSAGESENT_EVENT, log);
+        L1MessageSentEventResponse typedResponse = new L1MessageSentEventResponse();
+        typedResponse.log = log;
+        typedResponse._sender = (String) eventValues.getIndexedValues().get(0).getValue();
+        typedResponse._hash = (byte[]) eventValues.getIndexedValues().get(1).getValue();
+        typedResponse._message = (byte[]) eventValues.getNonIndexedValues().get(0).getValue();
+        return typedResponse;
+    }
+
     public Flowable<L1MessageSentEventResponse> l1MessageSentEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(new Function<Log, L1MessageSentEventResponse>() {
-            @Override
-            public L1MessageSentEventResponse apply(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(L1MESSAGESENT_EVENT, log);
-                L1MessageSentEventResponse typedResponse = new L1MessageSentEventResponse();
-                typedResponse.log = log;
-                typedResponse._sender = (String) eventValues.getIndexedValues().get(0).getValue();
-                typedResponse._hash = (byte[]) eventValues.getIndexedValues().get(1).getValue();
-                typedResponse._message = (byte[]) eventValues.getNonIndexedValues().get(0).getValue();
-                return typedResponse;
-            }
-        });
+        return web3j.ethLogFlowable(filter).map(log -> getL1MessageSentEventFromLog(log));
     }
 
     public Flowable<L1MessageSentEventResponse> l1MessageSentEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
@@ -158,17 +156,16 @@ public class IL1Messenger extends Contract {
         return responses;
     }
 
+    public static L2ToL1LogSentEventResponse getL2ToL1LogSentEventFromLog(Log log) {
+        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(L2TOL1LOGSENT_EVENT, log);
+        L2ToL1LogSentEventResponse typedResponse = new L2ToL1LogSentEventResponse();
+        typedResponse.log = log;
+        typedResponse._l2log = (L2ToL1Log) eventValues.getNonIndexedValues().get(0);
+        return typedResponse;
+    }
+
     public Flowable<L2ToL1LogSentEventResponse> l2ToL1LogSentEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(new Function<Log, L2ToL1LogSentEventResponse>() {
-            @Override
-            public L2ToL1LogSentEventResponse apply(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(L2TOL1LOGSENT_EVENT, log);
-                L2ToL1LogSentEventResponse typedResponse = new L2ToL1LogSentEventResponse();
-                typedResponse.log = log;
-                typedResponse._l2log = (L2ToL1Log) eventValues.getNonIndexedValues().get(0);
-                return typedResponse;
-            }
-        });
+        return web3j.ethLogFlowable(filter).map(log -> getL2ToL1LogSentEventFromLog(log));
     }
 
     public Flowable<L2ToL1LogSentEventResponse> l2ToL1LogSentEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
@@ -178,7 +175,7 @@ public class IL1Messenger extends Contract {
     }
 
     public RemoteFunctionCall<TransactionReceipt> requestBytecodeL1Publication(byte[] _bytecodeHash) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+        final Function function = new Function(
                 FUNC_REQUESTBYTECODEL1PUBLICATION, 
                 Arrays.<Type>asList(new Bytes32(_bytecodeHash)),
                 Collections.<TypeReference<?>>emptyList());
@@ -186,7 +183,7 @@ public class IL1Messenger extends Contract {
     }
 
     public RemoteFunctionCall<TransactionReceipt> sendL2ToL1Log(Boolean _isService, byte[] _key, byte[] _value) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+        final Function function = new Function(
                 FUNC_SENDL2TOL1LOG, 
                 Arrays.<Type>asList(new Bool(_isService),
                 new Bytes32(_key),
@@ -196,7 +193,7 @@ public class IL1Messenger extends Contract {
     }
 
     public static String encodeSendToL1(byte[] _message) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+        final Function function = new Function(
                 FUNC_SENDTOL1,
                 Arrays.<Type>asList(new DynamicBytes(_message)),
                 Collections.<TypeReference<?>>emptyList());
@@ -204,7 +201,7 @@ public class IL1Messenger extends Contract {
     }
 
     public RemoteFunctionCall<TransactionReceipt> sendToL1(byte[] _message) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+        final Function function = new Function(
                 FUNC_SENDTOL1, 
                 Arrays.<Type>asList(new DynamicBytes(_message)),
                 Collections.<TypeReference<?>>emptyList());

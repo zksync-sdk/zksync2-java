@@ -24,9 +24,11 @@ import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Bytes4;
 import org.web3j.abi.datatypes.generated.StaticArray4;
+import org.web3j.abi.datatypes.generated.Uint128;
 import org.web3j.abi.datatypes.generated.Uint16;
 import org.web3j.abi.datatypes.generated.Uint192;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.abi.datatypes.generated.Uint64;
 import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.abi.datatypes.reflection.Parameterized;
@@ -52,16 +54,26 @@ import org.web3j.tx.gas.ContractGasProvider;
  * <p>Generated with web3j version 1.5.0.
  */
 @SuppressWarnings("rawtypes")
-public class IZkSync extends Contract {
+public class IZkSyncStateTransition extends Contract {
     public static final String BINARY = "Bin file was not provided";
 
     public static final String FUNC_ACCEPTADMIN = "acceptAdmin";
 
-    public static final String FUNC_ACCEPTGOVERNOR = "acceptGovernor";
+    public static final String FUNC_BASETOKENGASPRICEMULTIPLIERDENOMINATOR = "baseTokenGasPriceMultiplierDenominator";
+
+    public static final String FUNC_BASETOKENGASPRICEMULTIPLIERNOMINATOR = "baseTokenGasPriceMultiplierNominator";
+
+    public static final String FUNC_BRIDGEHUBREQUESTL2TRANSACTION = "bridgehubRequestL2Transaction";
+
+    public static final String FUNC_CHANGEFEEPARAMS = "changeFeeParams";
 
     public static final String FUNC_COMMITBATCHES = "commitBatches";
 
+    public static final String FUNC_COMMITBATCHESSHAREDBRIDGE = "commitBatchesSharedBridge";
+
     public static final String FUNC_EXECUTEBATCHES = "executeBatches";
+
+    public static final String FUNC_EXECUTEBATCHESSHAREDBRIDGE = "executeBatchesSharedBridge";
 
     public static final String FUNC_EXECUTEUPGRADE = "executeUpgrade";
 
@@ -77,9 +89,15 @@ public class IZkSync extends Contract {
 
     public static final String FUNC_FREEZEDIAMOND = "freezeDiamond";
 
-    public static final String FUNC_GETFIRSTUNPROCESSEDPRIORITYTX = "getFirstUnprocessedPriorityTx";
+    public static final String FUNC_GETADMIN = "getAdmin";
 
-    public static final String FUNC_GETGOVERNOR = "getGovernor";
+    public static final String FUNC_GETBASETOKEN = "getBaseToken";
+
+    public static final String FUNC_GETBASETOKENBRIDGE = "getBaseTokenBridge";
+
+    public static final String FUNC_GETBRIDGEHUB = "getBridgehub";
+
+    public static final String FUNC_GETFIRSTUNPROCESSEDPRIORITYTX = "getFirstUnprocessedPriorityTx";
 
     public static final String FUNC_GETL2BOOTLOADERBYTECODEHASH = "getL2BootloaderBytecodeHash";
 
@@ -91,13 +109,17 @@ public class IZkSync extends Contract {
 
     public static final String FUNC_GETNAME = "getName";
 
-    public static final String FUNC_GETPENDINGGOVERNOR = "getPendingGovernor";
+    public static final String FUNC_GETPENDINGADMIN = "getPendingAdmin";
 
     public static final String FUNC_GETPRIORITYQUEUESIZE = "getPriorityQueueSize";
 
     public static final String FUNC_GETPRIORITYTXMAXGASLIMIT = "getPriorityTxMaxGasLimit";
 
     public static final String FUNC_GETPROTOCOLVERSION = "getProtocolVersion";
+
+    public static final String FUNC_GETPUBDATAPRICINGMODE = "getPubdataPricingMode";
+
+    public static final String FUNC_GETSTATETRANSITIONMANAGER = "getStateTransitionManager";
 
     public static final String FUNC_GETTOTALBATCHESCOMMITTED = "getTotalBatchesCommitted";
 
@@ -129,6 +151,8 @@ public class IZkSync extends Contract {
 
     public static final String FUNC_PROVEBATCHES = "proveBatches";
 
+    public static final String FUNC_PROVEBATCHESSHAREDBRIDGE = "proveBatchesSharedBridge";
+
     public static final String FUNC_PROVEL1TOL2TRANSACTIONSTATUS = "proveL1ToL2TransactionStatus";
 
     public static final String FUNC_PROVEL2LOGINCLUSION = "proveL2LogInclusion";
@@ -139,19 +163,29 @@ public class IZkSync extends Contract {
 
     public static final String FUNC_REVERTBATCHES = "revertBatches";
 
-    public static final String FUNC_SETPENDINGADMIN = "setPendingAdmin";
+    public static final String FUNC_REVERTBATCHESSHAREDBRIDGE = "revertBatchesSharedBridge";
 
-    public static final String FUNC_SETPENDINGGOVERNOR = "setPendingGovernor";
+    public static final String FUNC_SETPENDINGADMIN = "setPendingAdmin";
 
     public static final String FUNC_SETPORTERAVAILABILITY = "setPorterAvailability";
 
     public static final String FUNC_SETPRIORITYTXMAXGASLIMIT = "setPriorityTxMaxGasLimit";
 
+    public static final String FUNC_SETTOKENMULTIPLIER = "setTokenMultiplier";
+
+    public static final String FUNC_SETTRANSACTIONFILTERER = "setTransactionFilterer";
+
     public static final String FUNC_SETVALIDATOR = "setValidator";
+
+    public static final String FUNC_SETVALIDIUMMODE = "setValidiumMode";
 
     public static final String FUNC_STOREDBATCHHASH = "storedBatchHash";
 
+    public static final String FUNC_TRANSFERETHTOSHAREDBRIDGE = "transferEthToSharedBridge";
+
     public static final String FUNC_UNFREEZEDIAMOND = "unfreezeDiamond";
+
+    public static final String FUNC_UPGRADECHAINFROMVERSION = "upgradeChainFromVersion";
 
     public static final Event BLOCKCOMMIT_EVENT = new Event("BlockCommit", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Bytes32>(true) {}, new TypeReference<Bytes32>(true) {}));
@@ -189,15 +223,15 @@ public class IZkSync extends Contract {
             Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Address>(true) {}));
     ;
 
-    public static final Event NEWGOVERNOR_EVENT = new Event("NewGovernor", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Address>(true) {}));
+    public static final Event NEWBASETOKENMULTIPLIER_EVENT = new Event("NewBaseTokenMultiplier", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<Uint128>() {}, new TypeReference<Uint128>() {}, new TypeReference<Uint128>() {}, new TypeReference<Uint128>() {}));
+    ;
+
+    public static final Event NEWFEEPARAMS_EVENT = new Event("NewFeeParams", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<FeeParams>() {}, new TypeReference<FeeParams>() {}));
     ;
 
     public static final Event NEWPENDINGADMIN_EVENT = new Event("NewPendingAdmin", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Address>(true) {}));
-    ;
-
-    public static final Event NEWPENDINGGOVERNOR_EVENT = new Event("NewPendingGovernor", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Address>(true) {}));
     ;
 
@@ -209,6 +243,14 @@ public class IZkSync extends Contract {
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}, new TypeReference<Uint256>() {}));
     ;
 
+    public static final Event NEWTRANSACTIONFILTERER_EVENT = new Event("NewTransactionFilterer", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Address>() {}));
+    ;
+
+    public static final Event PROPOSETRANSPARENTUPGRADE_EVENT = new Event("ProposeTransparentUpgrade", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<DiamondCutData>() {}, new TypeReference<Uint256>(true) {}, new TypeReference<Bytes32>() {}));
+    ;
+
     public static final Event UNFREEZE_EVENT = new Event("Unfreeze", 
             Arrays.<TypeReference<?>>asList());
     ;
@@ -217,21 +259,25 @@ public class IZkSync extends Contract {
             Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Bool>() {}));
     ;
 
+    public static final Event VALIDIUMMODESTATUSUPDATE_EVENT = new Event("ValidiumModeStatusUpdate", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<Uint8>() {}));
+    ;
+
     @Deprecated
-    protected IZkSync(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+    protected IZkSyncStateTransition(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, credentials, gasPrice, gasLimit);
     }
 
-    protected IZkSync(String contractAddress, Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
+    protected IZkSyncStateTransition(String contractAddress, Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
         super(BINARY, contractAddress, web3j, credentials, contractGasProvider);
     }
 
     @Deprecated
-    protected IZkSync(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+    protected IZkSyncStateTransition(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
-    protected IZkSync(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
+    protected IZkSyncStateTransition(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
@@ -521,36 +567,72 @@ public class IZkSync extends Contract {
         return newAdminEventFlowable(filter);
     }
 
-    public static List<NewGovernorEventResponse> getNewGovernorEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWGOVERNOR_EVENT, transactionReceipt);
-        ArrayList<NewGovernorEventResponse> responses = new ArrayList<NewGovernorEventResponse>(valueList.size());
+    public static List<NewBaseTokenMultiplierEventResponse> getNewBaseTokenMultiplierEvents(TransactionReceipt transactionReceipt) {
+        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWBASETOKENMULTIPLIER_EVENT, transactionReceipt);
+        ArrayList<NewBaseTokenMultiplierEventResponse> responses = new ArrayList<NewBaseTokenMultiplierEventResponse>(valueList.size());
         for (EventValuesWithLog eventValues : valueList) {
-            NewGovernorEventResponse typedResponse = new NewGovernorEventResponse();
+            NewBaseTokenMultiplierEventResponse typedResponse = new NewBaseTokenMultiplierEventResponse();
             typedResponse.log = eventValues.getLog();
-            typedResponse.oldGovernor = (String) eventValues.getIndexedValues().get(0).getValue();
-            typedResponse.newGovernor = (String) eventValues.getIndexedValues().get(1).getValue();
+            typedResponse.oldNominator = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+            typedResponse.oldDenominator = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
+            typedResponse.newNominator = (BigInteger) eventValues.getNonIndexedValues().get(2).getValue();
+            typedResponse.newDenominator = (BigInteger) eventValues.getNonIndexedValues().get(3).getValue();
             responses.add(typedResponse);
         }
         return responses;
     }
 
-    public static NewGovernorEventResponse getNewGovernorEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWGOVERNOR_EVENT, log);
-        NewGovernorEventResponse typedResponse = new NewGovernorEventResponse();
+    public static NewBaseTokenMultiplierEventResponse getNewBaseTokenMultiplierEventFromLog(Log log) {
+        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWBASETOKENMULTIPLIER_EVENT, log);
+        NewBaseTokenMultiplierEventResponse typedResponse = new NewBaseTokenMultiplierEventResponse();
         typedResponse.log = log;
-        typedResponse.oldGovernor = (String) eventValues.getIndexedValues().get(0).getValue();
-        typedResponse.newGovernor = (String) eventValues.getIndexedValues().get(1).getValue();
+        typedResponse.oldNominator = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+        typedResponse.oldDenominator = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
+        typedResponse.newNominator = (BigInteger) eventValues.getNonIndexedValues().get(2).getValue();
+        typedResponse.newDenominator = (BigInteger) eventValues.getNonIndexedValues().get(3).getValue();
         return typedResponse;
     }
 
-    public Flowable<NewGovernorEventResponse> newGovernorEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(log -> getNewGovernorEventFromLog(log));
+    public Flowable<NewBaseTokenMultiplierEventResponse> newBaseTokenMultiplierEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(log -> getNewBaseTokenMultiplierEventFromLog(log));
     }
 
-    public Flowable<NewGovernorEventResponse> newGovernorEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Flowable<NewBaseTokenMultiplierEventResponse> newBaseTokenMultiplierEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(NEWGOVERNOR_EVENT));
-        return newGovernorEventFlowable(filter);
+        filter.addSingleTopic(EventEncoder.encode(NEWBASETOKENMULTIPLIER_EVENT));
+        return newBaseTokenMultiplierEventFlowable(filter);
+    }
+
+    public static List<NewFeeParamsEventResponse> getNewFeeParamsEvents(TransactionReceipt transactionReceipt) {
+        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWFEEPARAMS_EVENT, transactionReceipt);
+        ArrayList<NewFeeParamsEventResponse> responses = new ArrayList<NewFeeParamsEventResponse>(valueList.size());
+        for (EventValuesWithLog eventValues : valueList) {
+            NewFeeParamsEventResponse typedResponse = new NewFeeParamsEventResponse();
+            typedResponse.log = eventValues.getLog();
+            typedResponse.oldFeeParams = (FeeParams) eventValues.getNonIndexedValues().get(0);
+            typedResponse.newFeeParams = (FeeParams) eventValues.getNonIndexedValues().get(1);
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public static NewFeeParamsEventResponse getNewFeeParamsEventFromLog(Log log) {
+        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWFEEPARAMS_EVENT, log);
+        NewFeeParamsEventResponse typedResponse = new NewFeeParamsEventResponse();
+        typedResponse.log = log;
+        typedResponse.oldFeeParams = (FeeParams) eventValues.getNonIndexedValues().get(0);
+        typedResponse.newFeeParams = (FeeParams) eventValues.getNonIndexedValues().get(1);
+        return typedResponse;
+    }
+
+    public Flowable<NewFeeParamsEventResponse> newFeeParamsEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(log -> getNewFeeParamsEventFromLog(log));
+    }
+
+    public Flowable<NewFeeParamsEventResponse> newFeeParamsEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(NEWFEEPARAMS_EVENT));
+        return newFeeParamsEventFlowable(filter);
     }
 
     public static List<NewPendingAdminEventResponse> getNewPendingAdminEvents(TransactionReceipt transactionReceipt) {
@@ -583,38 +665,6 @@ public class IZkSync extends Contract {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
         filter.addSingleTopic(EventEncoder.encode(NEWPENDINGADMIN_EVENT));
         return newPendingAdminEventFlowable(filter);
-    }
-
-    public static List<NewPendingGovernorEventResponse> getNewPendingGovernorEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWPENDINGGOVERNOR_EVENT, transactionReceipt);
-        ArrayList<NewPendingGovernorEventResponse> responses = new ArrayList<NewPendingGovernorEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
-            NewPendingGovernorEventResponse typedResponse = new NewPendingGovernorEventResponse();
-            typedResponse.log = eventValues.getLog();
-            typedResponse.oldPendingGovernor = (String) eventValues.getIndexedValues().get(0).getValue();
-            typedResponse.newPendingGovernor = (String) eventValues.getIndexedValues().get(1).getValue();
-            responses.add(typedResponse);
-        }
-        return responses;
-    }
-
-    public static NewPendingGovernorEventResponse getNewPendingGovernorEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWPENDINGGOVERNOR_EVENT, log);
-        NewPendingGovernorEventResponse typedResponse = new NewPendingGovernorEventResponse();
-        typedResponse.log = log;
-        typedResponse.oldPendingGovernor = (String) eventValues.getIndexedValues().get(0).getValue();
-        typedResponse.newPendingGovernor = (String) eventValues.getIndexedValues().get(1).getValue();
-        return typedResponse;
-    }
-
-    public Flowable<NewPendingGovernorEventResponse> newPendingGovernorEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(log -> getNewPendingGovernorEventFromLog(log));
-    }
-
-    public Flowable<NewPendingGovernorEventResponse> newPendingGovernorEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
-        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(NEWPENDINGGOVERNOR_EVENT));
-        return newPendingGovernorEventFlowable(filter);
     }
 
     public static List<NewPriorityRequestEventResponse> getNewPriorityRequestEvents(TransactionReceipt transactionReceipt) {
@@ -687,6 +737,72 @@ public class IZkSync extends Contract {
         return newPriorityTxMaxGasLimitEventFlowable(filter);
     }
 
+    public static List<NewTransactionFiltererEventResponse> getNewTransactionFiltererEvents(TransactionReceipt transactionReceipt) {
+        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWTRANSACTIONFILTERER_EVENT, transactionReceipt);
+        ArrayList<NewTransactionFiltererEventResponse> responses = new ArrayList<NewTransactionFiltererEventResponse>(valueList.size());
+        for (EventValuesWithLog eventValues : valueList) {
+            NewTransactionFiltererEventResponse typedResponse = new NewTransactionFiltererEventResponse();
+            typedResponse.log = eventValues.getLog();
+            typedResponse.oldTransactionFilterer = (String) eventValues.getNonIndexedValues().get(0).getValue();
+            typedResponse.newTransactionFilterer = (String) eventValues.getNonIndexedValues().get(1).getValue();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public static NewTransactionFiltererEventResponse getNewTransactionFiltererEventFromLog(Log log) {
+        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWTRANSACTIONFILTERER_EVENT, log);
+        NewTransactionFiltererEventResponse typedResponse = new NewTransactionFiltererEventResponse();
+        typedResponse.log = log;
+        typedResponse.oldTransactionFilterer = (String) eventValues.getNonIndexedValues().get(0).getValue();
+        typedResponse.newTransactionFilterer = (String) eventValues.getNonIndexedValues().get(1).getValue();
+        return typedResponse;
+    }
+
+    public Flowable<NewTransactionFiltererEventResponse> newTransactionFiltererEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(log -> getNewTransactionFiltererEventFromLog(log));
+    }
+
+    public Flowable<NewTransactionFiltererEventResponse> newTransactionFiltererEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(NEWTRANSACTIONFILTERER_EVENT));
+        return newTransactionFiltererEventFlowable(filter);
+    }
+
+    public static List<ProposeTransparentUpgradeEventResponse> getProposeTransparentUpgradeEvents(TransactionReceipt transactionReceipt) {
+        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(PROPOSETRANSPARENTUPGRADE_EVENT, transactionReceipt);
+        ArrayList<ProposeTransparentUpgradeEventResponse> responses = new ArrayList<ProposeTransparentUpgradeEventResponse>(valueList.size());
+        for (EventValuesWithLog eventValues : valueList) {
+            ProposeTransparentUpgradeEventResponse typedResponse = new ProposeTransparentUpgradeEventResponse();
+            typedResponse.log = eventValues.getLog();
+            typedResponse.proposalId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
+            typedResponse.diamondCut = (DiamondCutData) eventValues.getNonIndexedValues().get(0);
+            typedResponse.proposalSalt = (byte[]) eventValues.getNonIndexedValues().get(1).getValue();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public static ProposeTransparentUpgradeEventResponse getProposeTransparentUpgradeEventFromLog(Log log) {
+        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(PROPOSETRANSPARENTUPGRADE_EVENT, log);
+        ProposeTransparentUpgradeEventResponse typedResponse = new ProposeTransparentUpgradeEventResponse();
+        typedResponse.log = log;
+        typedResponse.proposalId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
+        typedResponse.diamondCut = (DiamondCutData) eventValues.getNonIndexedValues().get(0);
+        typedResponse.proposalSalt = (byte[]) eventValues.getNonIndexedValues().get(1).getValue();
+        return typedResponse;
+    }
+
+    public Flowable<ProposeTransparentUpgradeEventResponse> proposeTransparentUpgradeEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(log -> getProposeTransparentUpgradeEventFromLog(log));
+    }
+
+    public Flowable<ProposeTransparentUpgradeEventResponse> proposeTransparentUpgradeEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(PROPOSETRANSPARENTUPGRADE_EVENT));
+        return proposeTransparentUpgradeEventFlowable(filter);
+    }
+
     public static List<UnfreezeEventResponse> getUnfreezeEvents(TransactionReceipt transactionReceipt) {
         List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(UNFREEZE_EVENT, transactionReceipt);
         ArrayList<UnfreezeEventResponse> responses = new ArrayList<UnfreezeEventResponse>(valueList.size());
@@ -747,6 +863,36 @@ public class IZkSync extends Contract {
         return validatorStatusUpdateEventFlowable(filter);
     }
 
+    public static List<ValidiumModeStatusUpdateEventResponse> getValidiumModeStatusUpdateEvents(TransactionReceipt transactionReceipt) {
+        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(VALIDIUMMODESTATUSUPDATE_EVENT, transactionReceipt);
+        ArrayList<ValidiumModeStatusUpdateEventResponse> responses = new ArrayList<ValidiumModeStatusUpdateEventResponse>(valueList.size());
+        for (EventValuesWithLog eventValues : valueList) {
+            ValidiumModeStatusUpdateEventResponse typedResponse = new ValidiumModeStatusUpdateEventResponse();
+            typedResponse.log = eventValues.getLog();
+            typedResponse.validiumMode = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public static ValidiumModeStatusUpdateEventResponse getValidiumModeStatusUpdateEventFromLog(Log log) {
+        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(VALIDIUMMODESTATUSUPDATE_EVENT, log);
+        ValidiumModeStatusUpdateEventResponse typedResponse = new ValidiumModeStatusUpdateEventResponse();
+        typedResponse.log = log;
+        typedResponse.validiumMode = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+        return typedResponse;
+    }
+
+    public Flowable<ValidiumModeStatusUpdateEventResponse> validiumModeStatusUpdateEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(log -> getValidiumModeStatusUpdateEventFromLog(log));
+    }
+
+    public Flowable<ValidiumModeStatusUpdateEventResponse> validiumModeStatusUpdateEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(VALIDIUMMODESTATUSUPDATE_EVENT));
+        return validiumModeStatusUpdateEventFlowable(filter);
+    }
+
     public RemoteFunctionCall<TransactionReceipt> acceptAdmin() {
         final Function function = new Function(
                 FUNC_ACCEPTADMIN, 
@@ -755,10 +901,32 @@ public class IZkSync extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> acceptGovernor() {
-        final Function function = new Function(
-                FUNC_ACCEPTGOVERNOR, 
+    public RemoteFunctionCall<BigInteger> baseTokenGasPriceMultiplierDenominator() {
+        final Function function = new Function(FUNC_BASETOKENGASPRICEMULTIPLIERDENOMINATOR, 
                 Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint128>() {}));
+        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
+    }
+
+    public RemoteFunctionCall<BigInteger> baseTokenGasPriceMultiplierNominator() {
+        final Function function = new Function(FUNC_BASETOKENGASPRICEMULTIPLIERNOMINATOR, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint128>() {}));
+        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> bridgehubRequestL2Transaction(BridgehubL2TransactionRequest _request, BigInteger weiValue) {
+        final Function function = new Function(
+                FUNC_BRIDGEHUBREQUESTL2TRANSACTION, 
+                Arrays.<Type>asList(_request), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function, weiValue);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> changeFeeParams(FeeParams _newFeeParams) {
+        final Function function = new Function(
+                FUNC_CHANGEFEEPARAMS, 
+                Arrays.<Type>asList(_newFeeParams), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -772,10 +940,29 @@ public class IZkSync extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
+    public RemoteFunctionCall<TransactionReceipt> commitBatchesSharedBridge(BigInteger _chainId, StoredBatchInfo _lastCommittedBatchData, List<CommitBatchInfo> _newBatchesData) {
+        final Function function = new Function(
+                FUNC_COMMITBATCHESSHAREDBRIDGE, 
+                Arrays.<Type>asList(new Uint256(_chainId),
+                _lastCommittedBatchData, 
+                new DynamicArray<CommitBatchInfo>(CommitBatchInfo.class, _newBatchesData)),
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
     public RemoteFunctionCall<TransactionReceipt> executeBatches(List<StoredBatchInfo> _batchesData) {
         final Function function = new Function(
                 FUNC_EXECUTEBATCHES, 
                 Arrays.<Type>asList(new DynamicArray<StoredBatchInfo>(StoredBatchInfo.class, _batchesData)),
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> executeBatchesSharedBridge(BigInteger _chainId, List<StoredBatchInfo> _batchesData) {
+        final Function function = new Function(
+                FUNC_EXECUTEBATCHESSHAREDBRIDGE, 
+                Arrays.<Type>asList(new Uint256(_chainId),
+                new DynamicArray<StoredBatchInfo>(StoredBatchInfo.class, _batchesData)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -862,18 +1049,39 @@ public class IZkSync extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
+    public RemoteFunctionCall<String> getAdmin() {
+        final Function function = new Function(FUNC_GETADMIN, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+        return executeRemoteCallSingleValueReturn(function, String.class);
+    }
+
+    public RemoteFunctionCall<String> getBaseToken() {
+        final Function function = new Function(FUNC_GETBASETOKEN, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+        return executeRemoteCallSingleValueReturn(function, String.class);
+    }
+
+    public RemoteFunctionCall<String> getBaseTokenBridge() {
+        final Function function = new Function(FUNC_GETBASETOKENBRIDGE, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+        return executeRemoteCallSingleValueReturn(function, String.class);
+    }
+
+    public RemoteFunctionCall<String> getBridgehub() {
+        final Function function = new Function(FUNC_GETBRIDGEHUB, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+        return executeRemoteCallSingleValueReturn(function, String.class);
+    }
+
     public RemoteFunctionCall<BigInteger> getFirstUnprocessedPriorityTx() {
         final Function function = new Function(FUNC_GETFIRSTUNPROCESSEDPRIORITYTX, 
                 Arrays.<Type>asList(), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-    }
-
-    public RemoteFunctionCall<String> getGovernor() {
-        final Function function = new Function(FUNC_GETGOVERNOR, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-        return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
     public RemoteFunctionCall<byte[]> getL2BootloaderBytecodeHash() {
@@ -911,8 +1119,8 @@ public class IZkSync extends Contract {
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
-    public RemoteFunctionCall<String> getPendingGovernor() {
-        final Function function = new Function(FUNC_GETPENDINGGOVERNOR, 
+    public RemoteFunctionCall<String> getPendingAdmin() {
+        final Function function = new Function(FUNC_GETPENDINGADMIN, 
                 Arrays.<Type>asList(), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
         return executeRemoteCallSingleValueReturn(function, String.class);
@@ -937,6 +1145,20 @@ public class IZkSync extends Contract {
                 Arrays.<Type>asList(), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
+    }
+
+    public RemoteFunctionCall<BigInteger> getPubdataPricingMode() {
+        final Function function = new Function(FUNC_GETPUBDATAPRICINGMODE, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint8>() {}));
+        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
+    }
+
+    public RemoteFunctionCall<String> getStateTransitionManager() {
+        final Function function = new Function(FUNC_GETSTATETRANSITIONMANAGER, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+        return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
     public RemoteFunctionCall<BigInteger> getTotalBatchesCommitted() {
@@ -1050,6 +1272,17 @@ public class IZkSync extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
+    public RemoteFunctionCall<TransactionReceipt> proveBatchesSharedBridge(BigInteger _chainId, StoredBatchInfo _prevBatch, List<StoredBatchInfo> _committedBatches, ProofInput _proof) {
+        final Function function = new Function(
+                FUNC_PROVEBATCHESSHAREDBRIDGE, 
+                Arrays.<Type>asList(new Uint256(_chainId),
+                _prevBatch, 
+                new DynamicArray<StoredBatchInfo>(StoredBatchInfo.class, _committedBatches),
+                _proof), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
     public RemoteFunctionCall<Boolean> proveL1ToL2TransactionStatus(byte[] _l2TxHash, BigInteger _l2BatchNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBatch, List<byte[]> _merkleProof, BigInteger _status) {
         final Function function = new Function(FUNC_PROVEL1TOL2TRANSACTIONSTATUS, 
                 Arrays.<Type>asList(new Bytes32(_l2TxHash),
@@ -1064,9 +1297,9 @@ public class IZkSync extends Contract {
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
-    public RemoteFunctionCall<Boolean> proveL2LogInclusion(BigInteger _l2BatchNumber, BigInteger _index, L2Log _log, List<byte[]> _proof) {
+    public RemoteFunctionCall<Boolean> proveL2LogInclusion(BigInteger _batchNumber, BigInteger _index, L2Log _log, List<byte[]> _proof) {
         final Function function = new Function(FUNC_PROVEL2LOGINCLUSION, 
-                Arrays.<Type>asList(new Uint256(_l2BatchNumber),
+                Arrays.<Type>asList(new Uint256(_batchNumber),
                 new Uint256(_index),
                 _log, 
                 new DynamicArray<Bytes32>(
@@ -1076,9 +1309,9 @@ public class IZkSync extends Contract {
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
-    public RemoteFunctionCall<Boolean> proveL2MessageInclusion(BigInteger _l2BatchNumber, BigInteger _index, L2Message _message, List<byte[]> _proof) {
+    public RemoteFunctionCall<Boolean> proveL2MessageInclusion(BigInteger _batchNumber, BigInteger _index, L2Message _message, List<byte[]> _proof) {
         final Function function = new Function(FUNC_PROVEL2MESSAGEINCLUSION, 
-                Arrays.<Type>asList(new Uint256(_l2BatchNumber),
+                Arrays.<Type>asList(new Uint256(_batchNumber),
                 new Uint256(_index),
                 _message, 
                 new DynamicArray<Bytes32>(
@@ -1112,18 +1345,19 @@ public class IZkSync extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> setPendingAdmin(String _newPendingAdmin) {
+    public RemoteFunctionCall<TransactionReceipt> revertBatchesSharedBridge(BigInteger _chainId, BigInteger _newLastBatch) {
         final Function function = new Function(
-                FUNC_SETPENDINGADMIN, 
-                Arrays.<Type>asList(new Address(160, _newPendingAdmin)),
+                FUNC_REVERTBATCHESSHAREDBRIDGE, 
+                Arrays.<Type>asList(new Uint256(_chainId),
+                new Uint256(_newLastBatch)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> setPendingGovernor(String _newPendingGovernor) {
+    public RemoteFunctionCall<TransactionReceipt> setPendingAdmin(String _newPendingAdmin) {
         final Function function = new Function(
-                FUNC_SETPENDINGGOVERNOR, 
-                Arrays.<Type>asList(new Address(160, _newPendingGovernor)),
+                FUNC_SETPENDINGADMIN, 
+                Arrays.<Type>asList(new Address(160, _newPendingAdmin)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -1144,11 +1378,36 @@ public class IZkSync extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
+    public RemoteFunctionCall<TransactionReceipt> setTokenMultiplier(BigInteger _nominator, BigInteger _denominator) {
+        final Function function = new Function(
+                FUNC_SETTOKENMULTIPLIER, 
+                Arrays.<Type>asList(new Uint128(_nominator),
+                new Uint128(_denominator)),
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> setTransactionFilterer(String _transactionFilterer) {
+        final Function function = new Function(
+                FUNC_SETTRANSACTIONFILTERER, 
+                Arrays.<Type>asList(new Address(160, _transactionFilterer)),
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
     public RemoteFunctionCall<TransactionReceipt> setValidator(String _validator, Boolean _active) {
         final Function function = new Function(
                 FUNC_SETVALIDATOR, 
                 Arrays.<Type>asList(new Address(160, _validator),
                 new Bool(_active)),
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> setValidiumMode(BigInteger _validiumMode) {
+        final Function function = new Function(
+                FUNC_SETVALIDIUMMODE, 
+                Arrays.<Type>asList(new Uint8(_validiumMode)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -1160,6 +1419,14 @@ public class IZkSync extends Contract {
         return executeRemoteCallSingleValueReturn(function, byte[].class);
     }
 
+    public RemoteFunctionCall<TransactionReceipt> transferEthToSharedBridge() {
+        final Function function = new Function(
+                FUNC_TRANSFERETHTOSHAREDBRIDGE, 
+                Arrays.<Type>asList(), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
     public RemoteFunctionCall<TransactionReceipt> unfreezeDiamond() {
         final Function function = new Function(
                 FUNC_UNFREEZEDIAMOND, 
@@ -1168,22 +1435,31 @@ public class IZkSync extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    @Deprecated
-    public static IZkSync load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
-        return new IZkSync(contractAddress, web3j, credentials, gasPrice, gasLimit);
+    public RemoteFunctionCall<TransactionReceipt> upgradeChainFromVersion(BigInteger _protocolVersion, DiamondCutData _cutData) {
+        final Function function = new Function(
+                FUNC_UPGRADECHAINFROMVERSION, 
+                Arrays.<Type>asList(new Uint256(_protocolVersion),
+                _cutData), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
     }
 
     @Deprecated
-    public static IZkSync load(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
-        return new IZkSync(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
+    public static IZkSyncStateTransition load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+        return new IZkSyncStateTransition(contractAddress, web3j, credentials, gasPrice, gasLimit);
     }
 
-    public static IZkSync load(String contractAddress, Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
-        return new IZkSync(contractAddress, web3j, credentials, contractGasProvider);
+    @Deprecated
+    public static IZkSyncStateTransition load(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+        return new IZkSyncStateTransition(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
-    public static IZkSync load(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
-        return new IZkSync(contractAddress, web3j, transactionManager, contractGasProvider);
+    public static IZkSyncStateTransition load(String contractAddress, Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
+        return new IZkSyncStateTransition(contractAddress, web3j, credentials, contractGasProvider);
+    }
+
+    public static IZkSyncStateTransition load(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
+        return new IZkSyncStateTransition(contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
     public static class FacetCut extends DynamicStruct {
@@ -1214,6 +1490,45 @@ public class IZkSync extends Contract {
             this.action = action.getValue();
             this.isFreezable = isFreezable.getValue();
             this.selectors = selectors.getValue().stream().map(v -> v.getValue()).collect(Collectors.toList());
+        }
+    }
+
+    public static class FeeParams extends StaticStruct {
+        public BigInteger pubdataPricingMode;
+
+        public BigInteger batchOverheadL1Gas;
+
+        public BigInteger maxPubdataPerBatch;
+
+        public BigInteger maxL2GasPerBatch;
+
+        public BigInteger priorityTxMaxPubdata;
+
+        public BigInteger minimalL2GasPrice;
+
+        public FeeParams(BigInteger pubdataPricingMode, BigInteger batchOverheadL1Gas, BigInteger maxPubdataPerBatch, BigInteger maxL2GasPerBatch, BigInteger priorityTxMaxPubdata, BigInteger minimalL2GasPrice) {
+            super(new Uint8(pubdataPricingMode),
+                    new Uint32(batchOverheadL1Gas),
+                    new Uint32(maxPubdataPerBatch),
+                    new Uint32(maxL2GasPerBatch),
+                    new Uint32(priorityTxMaxPubdata),
+                    new Uint64(minimalL2GasPrice));
+            this.pubdataPricingMode = pubdataPricingMode;
+            this.batchOverheadL1Gas = batchOverheadL1Gas;
+            this.maxPubdataPerBatch = maxPubdataPerBatch;
+            this.maxL2GasPerBatch = maxL2GasPerBatch;
+            this.priorityTxMaxPubdata = priorityTxMaxPubdata;
+            this.minimalL2GasPrice = minimalL2GasPrice;
+        }
+
+        public FeeParams(Uint8 pubdataPricingMode, Uint32 batchOverheadL1Gas, Uint32 maxPubdataPerBatch, Uint32 maxL2GasPerBatch, Uint32 priorityTxMaxPubdata, Uint64 minimalL2GasPrice) {
+            super(pubdataPricingMode, batchOverheadL1Gas, maxPubdataPerBatch, maxL2GasPerBatch, priorityTxMaxPubdata, minimalL2GasPrice);
+            this.pubdataPricingMode = pubdataPricingMode.getValue();
+            this.batchOverheadL1Gas = batchOverheadL1Gas.getValue();
+            this.maxPubdataPerBatch = maxPubdataPerBatch.getValue();
+            this.maxL2GasPerBatch = maxL2GasPerBatch.getValue();
+            this.priorityTxMaxPubdata = priorityTxMaxPubdata.getValue();
+            this.minimalL2GasPrice = minimalL2GasPrice.getValue();
         }
     }
 
@@ -1310,6 +1625,62 @@ public class IZkSync extends Contract {
         }
     }
 
+    public static class BridgehubL2TransactionRequest extends DynamicStruct {
+        public String sender;
+
+        public String contractL2;
+
+        public BigInteger mintValue;
+
+        public BigInteger l2Value;
+
+        public byte[] l2Calldata;
+
+        public BigInteger l2GasLimit;
+
+        public BigInteger l2GasPerPubdataByteLimit;
+
+        public List<byte[]> factoryDeps;
+
+        public String refundRecipient;
+
+        public BridgehubL2TransactionRequest(String sender, String contractL2, BigInteger mintValue, BigInteger l2Value, byte[] l2Calldata, BigInteger l2GasLimit, BigInteger l2GasPerPubdataByteLimit, List<byte[]> factoryDeps, String refundRecipient) {
+            super(new Address(160, sender),
+                    new Address(160, contractL2),
+                    new Uint256(mintValue),
+                    new Uint256(l2Value),
+                    new DynamicBytes(l2Calldata),
+                    new Uint256(l2GasLimit),
+                    new Uint256(l2GasPerPubdataByteLimit),
+                    new DynamicArray<DynamicBytes>(
+                            DynamicBytes.class,
+                            org.web3j.abi.Utils.typeMap(factoryDeps, DynamicBytes.class)),
+                    new Address(160, refundRecipient));
+            this.sender = sender;
+            this.contractL2 = contractL2;
+            this.mintValue = mintValue;
+            this.l2Value = l2Value;
+            this.l2Calldata = l2Calldata;
+            this.l2GasLimit = l2GasLimit;
+            this.l2GasPerPubdataByteLimit = l2GasPerPubdataByteLimit;
+            this.factoryDeps = factoryDeps;
+            this.refundRecipient = refundRecipient;
+        }
+
+        public BridgehubL2TransactionRequest(Address sender, Address contractL2, Uint256 mintValue, Uint256 l2Value, DynamicBytes l2Calldata, Uint256 l2GasLimit, Uint256 l2GasPerPubdataByteLimit, DynamicArray<DynamicBytes> factoryDeps, Address refundRecipient) {
+            super(sender, contractL2, mintValue, l2Value, l2Calldata, l2GasLimit, l2GasPerPubdataByteLimit, factoryDeps, refundRecipient);
+            this.sender = sender.getValue();
+            this.contractL2 = contractL2.getValue();
+            this.mintValue = mintValue.getValue();
+            this.l2Value = l2Value.getValue();
+            this.l2Calldata = l2Calldata.getValue();
+            this.l2GasLimit = l2GasLimit.getValue();
+            this.l2GasPerPubdataByteLimit = l2GasPerPubdataByteLimit.getValue();
+            this.factoryDeps = factoryDeps.getValue().stream().map(v -> v.getValue()).collect(Collectors.toList());
+            this.refundRecipient = refundRecipient.getValue();
+        }
+    }
+
     public static class StoredBatchInfo extends StaticStruct {
         public BigInteger batchNumber;
 
@@ -1378,9 +1749,9 @@ public class IZkSync extends Contract {
 
         public byte[] systemLogs;
 
-        public byte[] totalL2ToL1Pubdata;
+        public byte[] pubdataCommitments;
 
-        public CommitBatchInfo(BigInteger batchNumber, BigInteger timestamp, BigInteger indexRepeatedStorageChanges, byte[] newStateRoot, BigInteger numberOfLayer1Txs, byte[] priorityOperationsHash, byte[] bootloaderHeapInitialContentsHash, byte[] eventsQueueStateHash, byte[] systemLogs, byte[] totalL2ToL1Pubdata) {
+        public CommitBatchInfo(BigInteger batchNumber, BigInteger timestamp, BigInteger indexRepeatedStorageChanges, byte[] newStateRoot, BigInteger numberOfLayer1Txs, byte[] priorityOperationsHash, byte[] bootloaderHeapInitialContentsHash, byte[] eventsQueueStateHash, byte[] systemLogs, byte[] pubdataCommitments) {
             super(new Uint64(batchNumber),
                     new Uint64(timestamp),
                     new Uint64(indexRepeatedStorageChanges),
@@ -1390,7 +1761,7 @@ public class IZkSync extends Contract {
                     new Bytes32(bootloaderHeapInitialContentsHash),
                     new Bytes32(eventsQueueStateHash),
                     new DynamicBytes(systemLogs),
-                    new DynamicBytes(totalL2ToL1Pubdata));
+                    new DynamicBytes(pubdataCommitments));
             this.batchNumber = batchNumber;
             this.timestamp = timestamp;
             this.indexRepeatedStorageChanges = indexRepeatedStorageChanges;
@@ -1400,11 +1771,11 @@ public class IZkSync extends Contract {
             this.bootloaderHeapInitialContentsHash = bootloaderHeapInitialContentsHash;
             this.eventsQueueStateHash = eventsQueueStateHash;
             this.systemLogs = systemLogs;
-            this.totalL2ToL1Pubdata = totalL2ToL1Pubdata;
+            this.pubdataCommitments = pubdataCommitments;
         }
 
-        public CommitBatchInfo(Uint64 batchNumber, Uint64 timestamp, Uint64 indexRepeatedStorageChanges, Bytes32 newStateRoot, Uint256 numberOfLayer1Txs, Bytes32 priorityOperationsHash, Bytes32 bootloaderHeapInitialContentsHash, Bytes32 eventsQueueStateHash, DynamicBytes systemLogs, DynamicBytes totalL2ToL1Pubdata) {
-            super(batchNumber, timestamp, indexRepeatedStorageChanges, newStateRoot, numberOfLayer1Txs, priorityOperationsHash, bootloaderHeapInitialContentsHash, eventsQueueStateHash, systemLogs, totalL2ToL1Pubdata);
+        public CommitBatchInfo(Uint64 batchNumber, Uint64 timestamp, Uint64 indexRepeatedStorageChanges, Bytes32 newStateRoot, Uint256 numberOfLayer1Txs, Bytes32 priorityOperationsHash, Bytes32 bootloaderHeapInitialContentsHash, Bytes32 eventsQueueStateHash, DynamicBytes systemLogs, DynamicBytes pubdataCommitments) {
+            super(batchNumber, timestamp, indexRepeatedStorageChanges, newStateRoot, numberOfLayer1Txs, priorityOperationsHash, bootloaderHeapInitialContentsHash, eventsQueueStateHash, systemLogs, pubdataCommitments);
             this.batchNumber = batchNumber.getValue();
             this.timestamp = timestamp.getValue();
             this.indexRepeatedStorageChanges = indexRepeatedStorageChanges.getValue();
@@ -1414,7 +1785,7 @@ public class IZkSync extends Contract {
             this.bootloaderHeapInitialContentsHash = bootloaderHeapInitialContentsHash.getValue();
             this.eventsQueueStateHash = eventsQueueStateHash.getValue();
             this.systemLogs = systemLogs.getValue();
-            this.totalL2ToL1Pubdata = totalL2ToL1Pubdata.getValue();
+            this.pubdataCommitments = pubdataCommitments.getValue();
         }
     }
 
@@ -1650,22 +2021,26 @@ public class IZkSync extends Contract {
         public String newAdmin;
     }
 
-    public static class NewGovernorEventResponse extends BaseEventResponse {
-        public String oldGovernor;
+    public static class NewBaseTokenMultiplierEventResponse extends BaseEventResponse {
+        public BigInteger oldNominator;
 
-        public String newGovernor;
+        public BigInteger oldDenominator;
+
+        public BigInteger newNominator;
+
+        public BigInteger newDenominator;
+    }
+
+    public static class NewFeeParamsEventResponse extends BaseEventResponse {
+        public FeeParams oldFeeParams;
+
+        public FeeParams newFeeParams;
     }
 
     public static class NewPendingAdminEventResponse extends BaseEventResponse {
         public String oldPendingAdmin;
 
         public String newPendingAdmin;
-    }
-
-    public static class NewPendingGovernorEventResponse extends BaseEventResponse {
-        public String oldPendingGovernor;
-
-        public String newPendingGovernor;
     }
 
     public static class NewPriorityRequestEventResponse extends BaseEventResponse {
@@ -1686,6 +2061,20 @@ public class IZkSync extends Contract {
         public BigInteger newPriorityTxMaxGasLimit;
     }
 
+    public static class NewTransactionFiltererEventResponse extends BaseEventResponse {
+        public String oldTransactionFilterer;
+
+        public String newTransactionFilterer;
+    }
+
+    public static class ProposeTransparentUpgradeEventResponse extends BaseEventResponse {
+        public BigInteger proposalId;
+
+        public DiamondCutData diamondCut;
+
+        public byte[] proposalSalt;
+    }
+
     public static class UnfreezeEventResponse extends BaseEventResponse {
     }
 
@@ -1693,5 +2082,9 @@ public class IZkSync extends Contract {
         public String validatorAddress;
 
         public Boolean isActive;
+    }
+
+    public static class ValidiumModeStatusUpdateEventResponse extends BaseEventResponse {
+        public BigInteger validiumMode;
     }
 }

@@ -1,6 +1,7 @@
 package io.zksync.transaction.type;
 
 import io.zksync.wrappers.IL1Bridge;
+import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.request.Transaction;
@@ -10,6 +11,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Objects;
 
+@AllArgsConstructor
 public class DepositTransaction {
     public String tokenAddress;
     public BigInteger amount;
@@ -21,7 +23,10 @@ public class DepositTransaction {
     public BigInteger operatorTip;
     public String refoundRecepient;
     public Boolean approveERC20;
+    public Boolean approveBaseERC20;
     public TransactionOptions options;
+    public TransactionOptions approveOptions;
+    public TransactionOptions approveBaseOptions;
 
     public DepositTransaction(String tokenAddress, BigInteger amount, @Nullable String to, @Nullable BigInteger l2GasLimit, @Nullable String bridgeAddress, @Nullable byte[] customBridgeData, @Nullable BigInteger gasPerPubdataByte, @Nullable BigInteger operatorTip, @Nullable String refoundRecepient, @Nullable Boolean approveERC20, @Nullable TransactionOptions options) {
         this.tokenAddress = tokenAddress;
@@ -37,6 +42,19 @@ public class DepositTransaction {
         this.options = options;
     }
 
+    public DepositTransaction(String tokenAddress, BigInteger amount, Boolean approveBaseERC20) {
+        this.tokenAddress = tokenAddress;
+        this.amount = amount;
+        this.approveBaseERC20 = approveBaseERC20;
+    }
+
+    public DepositTransaction(String tokenAddress, BigInteger amount, Boolean approveBaseERC20, Boolean approveERC20) {
+        this.tokenAddress = tokenAddress;
+        this.amount = amount;
+        this.approveBaseERC20 = approveBaseERC20;
+        this.approveERC20 = approveERC20;
+    }
+
     public DepositTransaction(String tokenAddress, BigInteger amount) {
         this.tokenAddress = tokenAddress;
         this.amount = amount;
@@ -48,6 +66,20 @@ public class DepositTransaction {
                 mainContractAddress,
                 Numeric.hexStringToByteArray("0x"),
                 amount,
+                null,
+                operatorTip,
+                gasPerPubdataByte,
+                refoundRecepient,
+                options);
+    }
+
+    public RequestExecuteTransaction toRequestExecute(String mainContractAddress, BigInteger mintValue){
+        return new RequestExecuteTransaction(
+                l2GasLimit,
+                mainContractAddress,
+                Numeric.hexStringToByteArray("0x"),
+                amount,
+                mintValue,
                 null,
                 operatorTip,
                 gasPerPubdataByte,

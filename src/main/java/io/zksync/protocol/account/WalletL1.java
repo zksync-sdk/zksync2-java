@@ -11,11 +11,21 @@ import io.zksync.protocol.core.L2ToL1MessageProof;
 import io.zksync.protocol.core.Token;
 import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.transaction.type.*;
+import io.zksync.utils.WalletUtils;
 import io.zksync.utils.ZkSyncAddresses;
-import io.zksync.wrappers.*;
+import io.zksync.wrappers.ERC20;
+import io.zksync.wrappers.IBridgehub;
+import io.zksync.wrappers.IL1Bridge;
+import io.zksync.wrappers.IZkSync;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.abi.EventValues;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.RawTransaction;
@@ -23,7 +33,10 @@ import org.web3j.crypto.TransactionEncoder;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.*;
 import org.web3j.protocol.core.methods.request.Transaction;
-import org.web3j.protocol.core.methods.response.*;
+import org.web3j.protocol.core.methods.response.EthEstimateGas;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
+import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Contract;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
@@ -33,7 +46,6 @@ import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.tx.response.TransactionReceiptProcessor;
 import org.web3j.utils.Numeric;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,8 +56,8 @@ import java.util.concurrent.CompletableFuture;
 import static io.zksync.transaction.manager.ZkSyncTransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
 import static io.zksync.transaction.manager.ZkSyncTransactionManager.DEFAULT_POLLING_FREQUENCY;
 import static io.zksync.utils.WalletUtils.*;
-import static io.zksync.utils.ZkSyncAddresses.L2_ETH_TOKEN_ADDRESS;
 import static io.zksync.utils.ZkSyncAddresses.MESSENGER_ADDRESS;
+import static io.zksync.wrappers.IBridgehub.FUNC_REQUESTL2TRANSACTIONDIRECT;
 import static io.zksync.wrappers.IL1Messenger.L1MESSAGESENT_EVENT;
 
 @Getter
@@ -95,13 +107,18 @@ public class WalletL1 {
         return contract;
     }
 
+    public IBridgehub getBridgehubContract(){
+        String address = providerL2.zksGetBridgehubContract().sendAsync().join().getResult();
+        return IBridgehub.load(address, providerL1, transactionManager, gasProvider);
+    }
+
     /**
      * Get balance of wallet in native coin (wallet address gets from {@link EthSigner})
      *
      * @return Prepared get balance call
      */
     public RemoteCall<BigInteger> getBalanceL1() {
-        return getBalanceL1(signer.getAddress(), ZkSyncAddresses.ETH_ADDRESS, DefaultBlockParameterName.LATEST);
+        return getBalanceL1(signer.getAddress(), ZkSyncAddresses.LEGACY_ETH_ADDRESS, DefaultBlockParameterName.LATEST);
     }
 
     /**
@@ -135,7 +152,7 @@ public class WalletL1 {
      * @return Prepared get balance call
      */
     public RemoteCall<BigInteger> getBalanceL1(String address, String token, DefaultBlockParameter at) {
-        if (token == ZkSyncAddresses.ETH_ADDRESS) {
+        if (ZkSyncAddresses.isEth(token)) {
             return new RemoteCall<>(() ->
                     this.providerL1.ethGetBalance(address, at).sendAsync().join().getBalance());
         } else {
@@ -143,76 +160,125 @@ public class WalletL1 {
             return erc20.balanceOf(address);
         }
     }
-    public CompletableFuture<TransactionReceipt> approveERC20(String token, BigInteger amount) {
+    public RemoteFunctionCall<TransactionReceipt> approveERC20(String token, BigInteger amount) {
         return approveERC20(token, amount, null);
     }
-    public CompletableFuture<TransactionReceipt> approveERC20(String token, @Nullable BigInteger amount, @Nullable String bridgeAddress) {
-        if (token == ZkSyncAddresses.ETH_ADDRESS){
+
+    public CompletableFuture<BigInteger> getBalanceL1Async(String address, String token, DefaultBlockParameter at) {
+        if (ZkSyncAddresses.isEth(token)) {
+            return this.providerL1.ethGetBalance(address, at).sendAsync()
+                    .thenApply(ethGetBalance -> ethGetBalance.getBalance())
+                    .exceptionally(ex -> {
+                        System.err.println("Failed to get ETH balance: " + ex.getMessage());
+                        return BigInteger.ZERO;
+                    });
+        } else {
+            ERC20 erc20 = ERC20.load(token, this.providerL2, transactionManager, gasProvider);
+            return erc20.balanceOf(address).sendAsync()
+                    .exceptionally(ex -> {
+                        System.err.println("Failed to get ERC20 balance: " + ex.getMessage());
+                        return BigInteger.ZERO;
+                    });
+        }
+    }
+
+    /**
+     * Bridging ERC20 tokens from L1 requires approving the tokens to the zkSync Era smart contract.
+     *
+     * @param token         The L1 address of the token.
+     * @param amount        The amount of the token to be approved.
+     * @param bridgeAddress Bridge address to be used.
+     * @throws {Error} If attempting to approve an ETH token.
+     * @returns A promise that resolves to the response of the approval transaction.
+     */
+    public RemoteFunctionCall<TransactionReceipt> approveERC20(String token, @Nullable BigInteger amount, @Nullable String bridgeAddress) {
+        if (ZkSyncAddresses.isEth(token)){
             throw new Error("ETH token can't be approved! The address of the token does not exist on L1.");
         }
         ERC20 tokenContract = ERC20.load(token, providerL1, transactionManager,
                 gasProvider);
 
         if (bridgeAddress == null){
-            L1BridgeContracts bridgeContracts = getL1BridgeContracts();
-            String l2WethAddress = ZkSyncAddresses.ETH_ADDRESS;
-            try{
-                l2WethAddress = bridgeContracts.wethL1Bridge.l2TokenAddress(token).sendAsync().join();
-            }catch (Exception e){}
-            bridgeAddress = l2WethAddress != ZkSyncAddresses.ETH_ADDRESS ? bridgeContracts.wethL1Bridge.getContractAddress() : bridgeContracts.erc20L1Bridge.getContractAddress();
+            bridgeAddress = providerL2.zksGetBridgeContracts().sendAsync().join().getResult().getL1SharedDefaultBridge();
         }
 
-        return tokenContract.approve(bridgeAddress, amount).sendAsync();
+        return tokenContract.approve(bridgeAddress, amount);
     }
 
-    public CompletableFuture<BigInteger> getAllowanceL1(String token){
+    public RemoteFunctionCall<BigInteger> getAllowanceL1(String token){
         return getAllowanceL1(token, null);
     }
 
-    public CompletableFuture<BigInteger> getAllowanceL1(String token, @Nullable String bridgeAddress){
+    /**
+     * Returns the amount of approved tokens for a specific L1 bridge.
+     *
+     * @param token         The Ethereum address of the token.
+     * @param bridgeAddress The address of the bridge contract to be used.
+     *                      Defaults to the default zkSync Era bridge, either `L1EthBridge` or `L1Erc20Bridge`.
+     */
+    public RemoteFunctionCall<BigInteger> getAllowanceL1(String token, @Nullable String bridgeAddress){
         if (bridgeAddress == null){
-            L1BridgeContracts bridgeContracts = getL1BridgeContracts();
-            String l2WethToken = ZkSyncAddresses.ETH_ADDRESS;
-            try{
-                l2WethToken = bridgeContracts.wethL1Bridge.l2TokenAddress(token).sendAsync().join();
-            }catch (Exception e){}
-            bridgeAddress = l2WethToken != ZkSyncAddresses.ETH_ADDRESS ? bridgeContracts.wethL1Bridge.getContractAddress() : bridgeContracts.erc20L1Bridge.getContractAddress();
+            bridgeAddress = providerL2.zksGetBridgeContracts().sendAsync().join().getResult().getL1SharedDefaultBridge();
         }
         ERC20 erc20 = ERC20.load(token, providerL1, transactionManager, gasProvider);
-        return erc20.allowance(signer.getAddress(), bridgeAddress).sendAsync();
+        return erc20.allowance(signer.getAddress(), bridgeAddress);
     }
 
+    /**
+     * Returns the L2 token address equivalent for a L1 token address as they are not necessarily equal.
+     * The ETH address is set to the zero address.
+     *
+     * @remarks Only works for tokens bridged on default zkSync Era bridges.
+     *
+     * @param l1Address The address of the token on L1.
+     */
     public String l2TokenAddress(String l1Address){
-        if (ZkSyncAddresses.ETH_ADDRESS == l1Address){
-            return ZkSyncAddresses.ETH_ADDRESS;
-        }
-
-        L1BridgeContracts bridgeContracts = getL1BridgeContracts();
-        IL1Bridge bridge = bridgeContracts.erc20L1Bridge;
-        String l2WethAddress = ZkSyncAddresses.ETH_ADDRESS;
-        try{
-            l2WethAddress = bridgeContracts.wethL1Bridge.l2TokenAddress(l1Address).sendAsync().join();
-            if (l2WethAddress == ZkSyncAddresses.ETH_ADDRESS){
-                return l2WethAddress;
-            }
-        }catch (Exception e){}
-        return bridgeContracts.erc20L1Bridge.l2TokenAddress(l1Address).sendAsync().join();
+        return providerL2.l2TokenAddress(l1Address);
     }
 
     private EthSigner getSigner() {
         return signer;
     }
 
+    /**
+     * Returns L1 bridge contracts.
+     *
+     * @remarks There is no separate Ether bridge contract, {@link } is used instead.
+     */
     public L1BridgeContracts getL1BridgeContracts(){
         BridgeAddresses bridgeAddresses = providerL2.zksGetBridgeContracts().sendAsync().join().getResult();
-        return new L1BridgeContracts(bridgeAddresses.getL1Erc20DefaultBridge(), bridgeAddresses.getL1wETHBridge(), providerL1, transactionManager, gasProvider);
+        return new L1BridgeContracts(bridgeAddresses.getL1Erc20DefaultBridge(),bridgeAddresses.getL1SharedDefaultBridge(), bridgeAddresses.getL1SharedDefaultBridge(), providerL1, transactionManager, gasProvider);
     }
 
-    public CompletableFuture<BigInteger> getBaseCost(BigInteger gasLimit) {
+    /**
+     * Returns the address of the base token on L1.
+     */
+    public RemoteCall<String> getBaseToken(){
+        IBridgehub bridgehub = getBridgehubContract();
+        BigInteger chainId = providerL2.ethChainId().sendAsync().join().getChainId();
+        return bridgehub.baseToken(chainId);
+    }
+
+    /**
+     * Returns whether the chain is ETH-based.
+     */
+    public boolean isETHBasedChain(){
+        return providerL2.isEthBasedChain();
+    }
+
+    public RemoteFunctionCall<BigInteger> getBaseCost(BigInteger gasLimit) {
         return getBaseCost(gasLimit, null, null);
     }
 
-    public CompletableFuture<BigInteger> getBaseCost(BigInteger gasLimit, @Nullable BigInteger gasPerPubdataByte, @Nullable BigInteger gasPrice) {
+    /**
+     * Returns the base cost for an L2 transaction.
+     *
+     * @param gasLimit The gasLimit for the L2 contract call.
+     * @param gasPerPubdataByte The L2 gas price for each published L1 calldata byte.
+     * @param gasPrice The L1 gas price of the L1 transaction that will send the request for an execute call.
+     */
+    public RemoteFunctionCall<BigInteger> getBaseCost(BigInteger gasLimit, @Nullable BigInteger gasPerPubdataByte, @Nullable BigInteger gasPrice) {
+        IBridgehub bridgehub = getBridgehubContract();
         if (gasPrice == null){
             gasPrice = providerL1.ethGasPrice().sendAsync().join().getGasPrice();
         }
@@ -220,11 +286,44 @@ public class WalletL1 {
             gasPerPubdataByte = L1_TO_L2_GAS_PER_PUBDATA;
         }
 
-        return contract.l2TransactionBaseCost(gasPrice, gasLimit, gasPerPubdataByte).sendAsync();
+        return bridgehub.l2TransactionBaseCost(providerL2.ethChainId().sendAsync().join().getChainId() ,gasPrice, gasLimit, gasPerPubdataByte);
     }
 
-    public RequestExecuteTransaction getRequestExecuteTransaction(RequestExecuteTransaction transaction){
+    public List<AllowanceParams> getDepositAllowanceParams(String tokenAddress, BigInteger amount) throws Exception {
+        if (tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS)){
+            tokenAddress = ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS;
+        }
 
+        String baseTokenAddress = getBaseToken().sendAsync().join();
+        boolean isEthBasedChain = isETHBasedChain();
+
+        List<AllowanceParams> result = new ArrayList<>();
+        if (isEthBasedChain && tokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)){
+            throw new Error("ETH token can't be approved! The address of the token does not exist on L1.");
+        }else if (baseTokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)){
+            result.add(new AllowanceParams(tokenAddress, amount));
+            return result;
+        } else if (tokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)) {
+            result.add(new AllowanceParams(baseTokenAddress,
+                    _getDepositETHOnNonETHBasedChainTx(
+                            new DepositTransaction(tokenAddress, amount)).mintValue));
+            return result;
+        } else if (tokenAddress.equalsIgnoreCase(baseTokenAddress)) {
+            result.add(new AllowanceParams(baseTokenAddress,
+                    _getDepositBaseTokenOnNonETHBasedChainTx(
+                            new DepositTransaction(tokenAddress, amount)).mintValue));
+            return result;
+        }
+        // A deposit of a non-base token to a non-ETH-based chain requires two approvals.
+        result.add(new AllowanceParams(baseTokenAddress,
+                _getDepositNonBaseTokenToNonETHBasedChain(
+                        new DepositTransaction(tokenAddress, amount)).mintValue));
+        result.add(new AllowanceParams(tokenAddress, amount));
+        return result;
+    }
+
+    public RawTransaction getRequestExecuteTransaction(RequestExecuteTransaction transaction){
+        boolean isEthBasedChain = isETHBasedChain();
         if (transaction.getOperatorTip() == null){
             transaction.setOperatorTip(BigInteger.valueOf(0));
         }
@@ -247,172 +346,579 @@ public class WalletL1 {
 
         BigInteger gasPriceForestimation = transaction.getOptions().getMaxFeePerGas() != null ? transaction.getOptions().getMaxFeePerGas() : transaction.getOptions().getGasPrice();
 
-        BigInteger baseCost = getBaseCost(transaction.getL2GasLimit(), transaction.getGasPerPubDataByte(), gasPriceForestimation).join();
+        BigInteger baseCost = getBaseCost(transaction.getL2GasLimit(), transaction.getGasPerPubDataByte(), gasPriceForestimation).sendAsync().join();
+        BigInteger l2Cost = baseCost.add(transaction.operatorTip.add(transaction.l2Value));
+        BigInteger providedValue = isEthBasedChain  ? transaction.options.value : transaction.mintValue;
 
-        if (transaction.getOptions().getValue() == null){
-            transaction.getOptions().setValue(baseCost.add(transaction.getL2Value().add(transaction.getOperatorTip())));
-        }
-
-        checkBaseCost(baseCost, transaction.getOptions().getValue());
-
-        return transaction;
-    }
-
-    public Request<?, EthSendTransaction> deposit(DepositTransaction transaction) throws IOException {
-        transaction = getDepositTransaction(transaction);
-
-        if (transaction.tokenAddress == ZkSyncAddresses.ETH_ADDRESS){
-            BigInteger baseGasLimit = estimateGasRequestExecute(transaction.toRequestExecute(mainContractAddress)).sendAsync().join().getAmountUsed();
-            BigInteger gasLimit = scaleGasLimit(baseGasLimit);
-
-            if (transaction.options.getGasLimit() == null)
-                transaction.options.setGasLimit(gasLimit);
-            return requestExecute(transaction.toRequestExecute(mainContractAddress));
-        }
-        L1BridgeContracts bridgeContracts = getL1BridgeContracts();
-        IL1Bridge bridge = bridgeContracts.erc20L1Bridge;
-        if (transaction.bridgeAddress == null){
-            String l2WethAddress = ZkSyncAddresses.ETH_ADDRESS;
-            try{
-                l2WethAddress = bridgeContracts.wethL1Bridge.l2TokenAddress(transaction.tokenAddress).sendAsync().join();
-                bridge = bridgeContracts.wethL1Bridge;
-            }catch (Exception e){}
-            transaction.bridgeAddress = l2WethAddress != ZkSyncAddresses.ETH_ADDRESS ? bridgeContracts.wethL1Bridge.getContractAddress() : bridgeContracts.erc20L1Bridge.getContractAddress();
-        }
-        if (transaction.approveERC20 != null || transaction.approveERC20){
-            BigInteger allowance = getAllowanceL1(transaction.tokenAddress, transaction.bridgeAddress).join();
-            if (transaction.amount.compareTo(allowance) > 0){
-                approveERC20(transaction.tokenAddress, transaction.amount, transaction.bridgeAddress).join();
+        if (transaction.options.value == null || transaction.options.value.equals(BigInteger.ZERO)){
+            providedValue = l2Cost;
+            if (isEthBasedChain){
+                transaction.options.value = providedValue;
             }
         }
 
-        String data = bridge.encodeDeposit(signer.getAddress(), transaction.tokenAddress, transaction.amount, transaction.l2GasLimit, transaction.gasPerPubdataByte, transaction.refoundRecepient, transaction.options.getValue());
-        Transaction a = transaction.toTx(signer.getAddress(), data);
-        BigInteger baseGasLimit = providerL1.ethEstimateGas(a).sendAsync().join().getAmountUsed();
-        BigInteger gasLimit = scaleGasLimit(baseGasLimit);
-        RawTransaction tx = RawTransaction.createTransaction(transaction.options.getChainId().longValue(), transaction.options.getNonce(), gasLimit, bridge.getContractAddress(), transaction.options.getValue(), data, transaction.options.getMaxPriorityFeePerGas(), transaction.options.getMaxFeePerGas());
-        byte[] message = TransactionEncoder.signMessage(tx, credentials);
+        checkBaseCost(baseCost, providedValue);
+
+        IBridgehub.L2TransactionRequestDirect request = new IBridgehub.L2TransactionRequestDirect(
+                providerL2.ethChainId().sendAsync().join().getChainId(),
+                providedValue,
+                transaction.getContractAddress(),
+                transaction.getL2Value(),
+                transaction.getCalldata(),
+                transaction.getL2GasLimit(),
+                transaction.getGasPerPubDataByte(),
+                Collections.emptyList(),
+                transaction.getRefoundRecepient());
+        final Function function = new Function(
+                FUNC_REQUESTL2TRANSACTIONDIRECT,
+                Arrays.<Type>asList(request),
+                Collections.<TypeReference<?>>emptyList());
+        String data = FunctionEncoder.encode(function);
+
+        return RawTransaction.createTransaction(transaction.getOptions().getChainId().longValue(), transaction.getOptions().getNonce(), transaction.getOptions().getGasLimit(), getBridgehubContract().getContractAddress(), transaction.getOptions().getValue(), data, transaction.getOptions().getMaxPriorityFeePerGas(), transaction.getOptions().getMaxFeePerGas());
+    }
+
+    public Request<?, EthSendTransaction> deposit(DepositTransaction transaction) throws Exception {
+        if (transaction.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS)){
+            transaction.tokenAddress = ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS;
+        }
+
+        String baseTokenAddress = getBaseToken().sendAsync().join();
+        boolean isEthBasedChain = baseTokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS);
+
+        if (isEthBasedChain && transaction.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)){
+            return _depositETHToETHBasedChain(transaction);
+        }else if (baseTokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)){
+            return _depositTokenToETHBasedChain(transaction);
+        }else if (transaction.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)){
+            return _depositETHToNonETHBasedChain(transaction);
+        } else if (transaction.tokenAddress.equalsIgnoreCase(baseTokenAddress)) {
+            return _depositBaseTokenToNonETHBasedChain(transaction);
+        }
+        return _depositNonBaseTokenToNonETHBasedChain(transaction);
+    }
+
+    private Request<?, EthSendTransaction> _depositNonBaseTokenToNonETHBasedChain(DepositTransaction transaction) {
+        String baseTokenAddress = getBaseToken().sendAsync().join();
+        L1BridgeContracts bridgeContracts = getL1BridgeContracts();
+
+        GetDepositTransaction depositTransaction = _getDepositNonBaseTokenToNonETHBasedChain(transaction);
+        Transaction tx = depositTransaction.tx;
+        BigInteger mintValue = depositTransaction.mintValue;
+
+        if (transaction.approveBaseERC20){
+            BigInteger allowance = getAllowanceL1(baseTokenAddress, bridgeContracts.sharedL1Bridge.getContractAddress()).sendAsync().join();
+
+            if (allowance.compareTo(mintValue) < 0){
+                approveERC20(
+                        baseTokenAddress, mintValue, bridgeContracts.sharedL1Bridge.getContractAddress()).sendAsync().join();
+            }
+        }
+        if (transaction.approveERC20){
+            String bridgeAddress = transaction.bridgeAddress == null || transaction.bridgeAddress.isEmpty()
+                    ? bridgeContracts.sharedL1Bridge.getContractAddress()
+                    : transaction.bridgeAddress;
+            BigInteger allowance = getAllowanceL1(transaction.tokenAddress, bridgeAddress).sendAsync().join();
+
+            if (allowance.compareTo(mintValue) < 0){
+                approveERC20(
+                        transaction.tokenAddress, transaction.amount, bridgeAddress).sendAsync().join();
+            }
+        }
+
+        BigInteger gasLimit = tx.getGas() != null ? Numeric.toBigInt(tx.getGas()) : BigInteger.ZERO;
+        if (gasLimit.equals(BigInteger.ZERO)){
+            BigInteger baseGasLimit = providerL1.ethEstimateGas(tx).sendAsync().join().getAmountUsed();
+            gasLimit = scaleGasLimit(baseGasLimit);
+        }
+
+        BigInteger nonceToUse = tx.getNonce() == null
+                ? providerL1.ethGetTransactionCount(credentials.getAddress(),
+                DefaultBlockParameterName.LATEST).sendAsync().join().getTransactionCount()
+                : Numeric.toBigInt(tx.getNonce());
+
+        RawTransaction prepared = RawTransaction.createTransaction(
+                Numeric.toBigInt(tx.getChainId()).longValue(),
+                nonceToUse,
+                gasLimit,
+                tx.getTo(),
+                Numeric.toBigInt(tx.getValue()),
+                tx.getData(),
+                Numeric.toBigInt(tx.getMaxPriorityFeePerGas()),
+                Numeric.toBigInt(tx.getMaxFeePerGas()));
+        byte[] message = TransactionEncoder.signMessage(prepared, credentials);
         return providerL1.ethSendRawTransaction(Numeric.toHexString(message));
     }
 
-    public BigInteger estimateGasDeposit(DepositTransaction transaction){
-        transaction = getDepositTransaction(transaction);
-        BigInteger baseGasLimit = BigInteger.ZERO;
-        if (transaction.tokenAddress == ZkSyncAddresses.ETH_ADDRESS){
-            String address = providerL2.zksMainContract().sendAsync().join().getResult();
-            baseGasLimit = estimateGasRequestExecute(new RequestExecuteTransaction(transaction.l2GasLimit, address, transaction.customBridgeData, transaction.amount, null, transaction.operatorTip, transaction.gasPerPubdataByte, transaction.refoundRecepient, transaction.options)).sendAsync().join().getAmountUsed();
-        } else {
-            L1BridgeContracts l1BridgeContracts = getL1BridgeContracts();
-            String l2WethToken = ZkSyncAddresses.ETH_ADDRESS;
-            try {
-                l2WethToken = l1BridgeContracts.wethL1Bridge.l2TokenAddress(transaction.tokenAddress).sendAsync().join();
-            } catch (Exception e) {}
+    private Request<?, EthSendTransaction> _depositBaseTokenToNonETHBasedChain(DepositTransaction transaction) {
+        IBridgehub bridgehub = getBridgehubContract();
+        BigInteger chainId = providerL2.ethChainId().sendAsync().join().getChainId();
+        String baseTokenAddress = getBaseToken().sendAsync().join();
+        IL1Bridge sharedL1Bridge = getL1BridgeContracts().sharedL1Bridge;
 
-            IL1Bridge l1Bridge = l2WethToken != ZkSyncAddresses.ETH_ADDRESS ? l1BridgeContracts.wethL1Bridge : l1BridgeContracts.erc20L1Bridge;
-            baseGasLimit = providerL1.ethEstimateGas(transaction.toFunctionCallTx(signer.getAddress(), l1Bridge)).sendAsync().join().getAmountUsed();
+        GetDepositTransaction depositTransaction = _getDepositBaseTokenOnNonETHBasedChainTx(transaction);
+        RequestExecuteTransaction tx = depositTransaction.requestExecuteTransaction;
+        BigInteger mintValue = depositTransaction.mintValue;
 
+        if (transaction.approveERC20 || transaction.approveBaseERC20){
+            BigInteger allowance = getAllowanceL1(baseTokenAddress, sharedL1Bridge.getContractAddress()).sendAsync().join();
+
+            if (allowance.compareTo(mintValue) < 0){
+                approveERC20(
+                        baseTokenAddress, mintValue, sharedL1Bridge.getContractAddress()).sendAsync().join();
+            }
         }
-        return scaleGasLimit(baseGasLimit);
+
+        if (tx.options.gasLimit == null){
+            BigInteger baseGasLimit = estimateGasRequestExecute(tx).sendAsync().join().getAmountUsed();
+            tx.options.gasLimit = scaleGasLimit(baseGasLimit);
+        }
+
+        return requestExecute(tx);
     }
 
-    public FullDepositFee getFullRequiredDepositFee(DepositTransaction transaction){
-        L1BridgeContracts l1BridgeContracts = getL1BridgeContracts();
-        transaction.amount = BigInteger.valueOf(1);
+    private Request<?, EthSendTransaction> _depositETHToNonETHBasedChain(DepositTransaction transaction) throws Exception {
+        String baseTokenAddress = getBaseToken().sendAsync().join();
+        IL1Bridge sharedL1Bridge = getL1BridgeContracts().sharedL1Bridge;
 
-        transaction.options = insertGasPriceInTransactionOptions(transaction.options, providerL1);
+        GetDepositTransaction depositTransaction = _getDepositETHOnNonETHBasedChainTx(transaction);
+        Transaction tx = depositTransaction.tx;
+        BigInteger mintValue = depositTransaction.mintValue;
 
-        BigInteger gasPriceForEstimation = transaction.options.getMaxFeePerGas() != null ? transaction.options.getMaxFeePerGas() : transaction.options.getGasPrice();
+        if (transaction.approveBaseERC20){
+            String proposedBridge = sharedL1Bridge.getContractAddress();
+            String bridgeAddress = transaction.bridgeAddress == null || transaction.bridgeAddress.isEmpty()
+                    ? proposedBridge
+                    : transaction.bridgeAddress;
 
-        transaction.to = transaction.to == null ? signer.getAddress() : transaction.to;
-        transaction.gasPerPubdataByte = transaction.gasPerPubdataByte == null ? L1_TO_L2_GAS_PER_PUBDATA : transaction.gasPerPubdataByte;
+            BigInteger allowance = getAllowanceL1(baseTokenAddress, bridgeAddress).sendAsync().join();
+
+            if (allowance.compareTo(mintValue) < 0){
+                approveERC20(
+                        baseTokenAddress, mintValue, bridgeAddress).sendAsync().join();
+            }
+        }
+
+        BigInteger gasLimit = tx.getGas() != null ? Numeric.toBigInt(tx.getGas()) : BigInteger.ZERO;
+        if (gasLimit.equals(BigInteger.ZERO)){
+            BigInteger baseGasLimit = providerL1.ethEstimateGas(tx).sendAsync().join().getAmountUsed();
+            gasLimit = scaleGasLimit(baseGasLimit);
+        }
+
+        BigInteger nonceToUse = tx.getNonce() == null
+                ? providerL1.ethGetTransactionCount(credentials.getAddress(),
+                DefaultBlockParameterName.LATEST).sendAsync().join().getTransactionCount()
+                : Numeric.toBigInt(tx.getNonce());
+
+        RawTransaction prepared = RawTransaction.createTransaction(
+                Numeric.toBigInt(tx.getChainId()).longValue(),
+                nonceToUse,
+                gasLimit,
+                tx.getTo(),
+                Numeric.toBigInt(tx.getValue()),
+                tx.getData(),
+                Numeric.toBigInt(tx.getMaxPriorityFeePerGas()),
+                Numeric.toBigInt(tx.getMaxFeePerGas()));
+        byte[] message = TransactionEncoder.signMessage(prepared, credentials);
+        return providerL1.ethSendRawTransaction(Numeric.toHexString(message));
+    }
+
+    private Request<?, EthSendTransaction> _depositTokenToETHBasedChain(DepositTransaction transaction) {
+        L1BridgeContracts bridgeContracts = getL1BridgeContracts();
+        Transaction tx = _getDepositTokenOnETHBasedChainTx(transaction);
+
+        if (transaction.approveERC20){
+            String proposedBridge = bridgeContracts.sharedL1Bridge.getContractAddress();
+            String bridgeAddress = transaction.bridgeAddress == null || transaction.bridgeAddress.isEmpty()
+                    ? proposedBridge
+                    : transaction.bridgeAddress;
+
+            BigInteger allowance = getAllowanceL1(transaction.tokenAddress, bridgeAddress).sendAsync().join();
+
+            if (allowance.compareTo(transaction.amount) < 0){
+                approveERC20(
+                        transaction.tokenAddress, transaction.amount, bridgeAddress).sendAsync().join();
+            }
+        }
+
+        BigInteger gasLimit = tx.getGas() != null ? Numeric.toBigInt(tx.getGas()) : BigInteger.ZERO;
+        if (gasLimit.equals(BigInteger.ZERO)){
+            BigInteger baseGasLimit = providerL1.ethEstimateGas(tx).sendAsync().join().getAmountUsed();
+            gasLimit = scaleGasLimit(baseGasLimit);
+        }
+
+        BigInteger nonceToUse = tx.getNonce() == null
+                ? providerL1.ethGetTransactionCount(credentials.getAddress(),
+                                                    DefaultBlockParameterName.LATEST).sendAsync().join().getTransactionCount()
+                : Numeric.toBigInt(tx.getNonce());
+
+        RawTransaction prepared = RawTransaction.createTransaction(
+                Numeric.toBigInt(tx.getChainId()).longValue(),
+                nonceToUse,
+                gasLimit,
+                tx.getTo(),
+                Numeric.toBigInt(tx.getValue()),
+                tx.getData(),
+                Numeric.toBigInt(tx.getMaxPriorityFeePerGas()),
+                Numeric.toBigInt(tx.getMaxFeePerGas()));
+        byte[] message = TransactionEncoder.signMessage(prepared, credentials);
+        return providerL1.ethSendRawTransaction(Numeric.toHexString(message));
+    }
+
+    private Request<?, EthSendTransaction> _depositETHToETHBasedChain(DepositTransaction transaction) {
+        RequestExecuteTransaction tx = _getDepositEthOnEthBasedChain(transaction);
+
+        if (tx.options.gasLimit == null){
+            BigInteger baseGasLimit = estimateGasRequestExecute(tx).sendAsync().join().getAmountUsed();
+            tx.options.gasLimit = scaleGasLimit(baseGasLimit);
+        }
+
+        return requestExecute(tx);
+    }
+
+    private GetDepositTransaction _getDepositNonBaseTokenToNonETHBasedChain(DepositTransaction transaction) {
+        IBridgehub bridgehub = getBridgehubContract();
+        BigInteger chainId = providerL2.ethChainId().sendAsync().join().getChainId();
+        L1BridgeContracts bridgeContracts = getL1BridgeContracts();
+
+        _getDepositTxWithDefaults(transaction);
+
+        BigInteger gasPriceForestimation = transaction.options.maxFeePerGas != null ?
+                transaction.options.maxFeePerGas : transaction.options.getGasPrice();
+        BigInteger baseCost = getBaseCost(
+                transaction.l2GasLimit,
+                transaction.gasPerPubdataByte,
+                gasPriceForestimation).sendAsync().join();
+
+        BigInteger mintValue = baseCost.add(transaction.operatorTip);
+        checkBaseCost(baseCost, mintValue);
+        transaction.options.value = BigInteger.ZERO;
+
+        Function f = new Function(null,
+                Arrays.asList(new Address(transaction.tokenAddress), new Uint256(transaction.amount), new Address(transaction.to)),
+                Collections.emptyList());
+        String secondBridgeCalldata = Numeric.prependHexPrefix(FunctionEncoder.encode(f));
+
+        String calldata = bridgehub.encodeRequestL2TransactionTwoBridges(
+                new IBridgehub.L2TransactionRequestTwoBridgesOuter(
+                        chainId,
+                        mintValue,
+                        BigInteger.ZERO,
+                        transaction.l2GasLimit,
+                        transaction.gasPerPubdataByte,
+                        transaction.refoundRecepient,
+                        bridgeContracts.sharedL1Bridge.getContractAddress(),
+                        BigInteger.ZERO,
+                        Numeric.hexStringToByteArray(secondBridgeCalldata)));
+
+        Transaction tx =  new Transaction(
+                credentials.getAddress(),
+                transaction.options.nonce,
+                null,
+                transaction.options.gasLimit,
+                bridgehub.getContractAddress(),
+                BigInteger.ZERO,
+                calldata,
+                providerL1.ethChainId().sendAsync().join().getChainId().longValue(),
+                transaction.options.maxPriorityFeePerGas,
+                transaction.options.maxFeePerGas);
+
+        return new GetDepositTransaction(tx, mintValue, null);
+    }
+
+    private GetDepositTransaction _getDepositBaseTokenOnNonETHBasedChainTx(DepositTransaction transaction) {
+        IBridgehub bridgehub = getBridgehubContract();
+        BigInteger chainId = providerL2.ethChainId().sendAsync().join().getChainId();
+
+        _getDepositTxWithDefaults(transaction);
+
+        BigInteger gasPriceForestimation = transaction.options.maxFeePerGas != null ?
+                transaction.options.maxFeePerGas : transaction.options.getGasPrice();
+        BigInteger baseCost = getBaseCost(
+                transaction.l2GasLimit,
+                transaction.gasPerPubdataByte,
+                gasPriceForestimation).sendAsync().join();
+
+        transaction.options.value = BigInteger.ZERO;
+        BigInteger mintValue = baseCost.add(transaction.operatorTip.add(transaction.amount));
+        return new GetDepositTransaction(null, mintValue, transaction.toRequestExecute(transaction.to));
+    }
+
+    private GetDepositTransaction _getDepositETHOnNonETHBasedChainTx(DepositTransaction transaction) throws Exception {
+        IBridgehub bridgehub = getBridgehubContract();
+        BigInteger chainId = providerL2.ethChainId().sendAsync().join().getChainId();
+        IL1Bridge sharedBridge = getL1BridgeContracts().sharedL1Bridge;
+
+        _getDepositTxWithDefaults(transaction);
+
+        BigInteger gasPriceForestimation = transaction.options.maxFeePerGas != null ?
+                transaction.options.maxFeePerGas : transaction.options.getGasPrice();
+        BigInteger baseCost = getBaseCost(
+                transaction.l2GasLimit,
+                transaction.gasPerPubdataByte,
+                gasPriceForestimation).sendAsync().join();
+
+        transaction.options.value = transaction.options.value != null ? transaction.options.value : transaction.amount;
+        BigInteger mintValue = baseCost.add(transaction.operatorTip);
+        checkBaseCost(baseCost, mintValue);
+
+        Function f = new Function(null,
+                Arrays.asList(new Address(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS), new Uint256(BigInteger.ZERO), new Address(transaction.to)),
+                Collections.emptyList());
+        String secondBridgeCalldata = Numeric.prependHexPrefix(FunctionEncoder.encode(f));
+
+        String calldata = bridgehub.encodeRequestL2TransactionTwoBridges(
+                new IBridgehub.L2TransactionRequestTwoBridgesOuter(
+                        chainId,
+                        mintValue,
+                        BigInteger.ZERO,
+                        transaction.l2GasLimit,
+                        transaction.gasPerPubdataByte,
+                        transaction.refoundRecepient,
+                        sharedBridge.getContractAddress(),
+                        transaction.amount,
+                        Numeric.hexStringToByteArray(secondBridgeCalldata)));
+        BigInteger a = getBalanceL1().send();
+        String aaa = bridgehub.requestL2TransactionTwoBridges(
+                new IBridgehub.L2TransactionRequestTwoBridgesOuter(
+                        chainId,
+                        mintValue,
+                        BigInteger.ZERO,
+                        transaction.l2GasLimit,
+                        transaction.gasPerPubdataByte,
+                        transaction.refoundRecepient,
+                        sharedBridge.getContractAddress(),
+                        transaction.amount,
+                        Numeric.hexStringToByteArray(secondBridgeCalldata)), BigInteger.ZERO).encodeFunctionCall();
+        BigInteger b = getBalanceL1().send();
+
+        Transaction tx =  new Transaction(
+                credentials.getAddress(),
+                transaction.options.nonce,
+                null,
+                transaction.options.gasLimit,
+                bridgehub.getContractAddress(),
+                transaction.amount,
+                calldata,
+                providerL1.ethChainId().sendAsync().join().getChainId().longValue(),
+                transaction.options.maxPriorityFeePerGas,
+                transaction.options.maxFeePerGas);
+
+        return new GetDepositTransaction(tx, mintValue, null);
+    }
+
+    private Transaction _getDepositTokenOnETHBasedChainTx(DepositTransaction transaction){
+        IBridgehub bridgehub = getBridgehubContract();
+        BigInteger chainId = providerL2.ethChainId().sendAsync().join().getChainId();
+
+        _getDepositTxWithDefaults(transaction);
+
+        BigInteger gasPriceForestimation = transaction.options.maxFeePerGas != null ?
+                transaction.options.maxFeePerGas : transaction.options.getGasPrice();
+        BigInteger baseCost = getBaseCost(
+                transaction.l2GasLimit,
+                transaction.gasPerPubdataByte,
+                gasPriceForestimation).sendAsync().join();
+
+        BigInteger mintValue = baseCost.add(transaction.operatorTip);
+        transaction.options.value = transaction.options.value != null ? transaction.options.value : mintValue;
+        checkBaseCost(baseCost, mintValue);
+
+        String secondBridgeAddress;
+        String secondBridgeCalldata;
         if (transaction.bridgeAddress != null){
-            String customBridgeData = transaction.customBridgeData == null ?
-                    (transaction.bridgeAddress == l1BridgeContracts.wethL1Bridge.getContractAddress() ? "0x" :
-                            getERC20DefaultBridgeData(transaction.tokenAddress, providerL1, credentials, gasProvider))
-                    : Numeric.toHexString(transaction.customBridgeData);
-
-        } else {
-            transaction.l2GasLimit = estimateDefaultBridgeDepositL2Gas(
-                    transaction.tokenAddress, transaction.amount, transaction.to, providerL2, getL1BridgeContracts(), providerL1, credentials,gasProvider, signer.getAddress(), transaction.gasPerPubdataByte);
-        }
-
-        BigInteger baseCost = contract.l2TransactionBaseCost(gasPriceForEstimation, transaction.l2GasLimit, transaction.gasPerPubdataByte).sendAsync().join();
-
-        BigInteger balance = getBalanceL1().sendAsync().join();
-
-        if (baseCost.compareTo(balance.add(transaction.amount)) >= 0){
-            BigInteger recommendedETHBalance = (transaction.tokenAddress == ZkSyncAddresses.ETH_ADDRESS ?
-                    L1_RECOMMENDED_MIN_ETH_DEPOSIT_GAS_LIMIT : L1_RECOMMENDED_MIN_ERC20_DEPOSIT_GAS_LIMIT).multiply(
-                            gasPriceForEstimation).multiply(
-                                    baseCost
-            );
-            throw new Error("Not enough balance for deposit. Under the provided gas price, the recommended balance to perform a deposit is " + recommendedETHBalance + " ETH");
-        }
-
-        if (transaction.tokenAddress != ZkSyncAddresses.ETH_ADDRESS && getAllowanceL1(transaction.tokenAddress).join().compareTo(transaction.amount) < 0){
-            throw new Error("Not enough allowance to cover the deposit");
-        }
-
-        FullDepositFee fullFee = new FullDepositFee();
-        if (transaction.options.getGasPrice() != null){
-            fullFee.gasPrice = transaction.options.getGasPrice();
+            secondBridgeAddress = transaction.bridgeAddress;
+            secondBridgeCalldata = getERC20DefaultBridgeData(transaction.tokenAddress, providerL1, credentials, gasProvider);
         }else{
-            fullFee.maxFeePerGas = transaction.options.getMaxFeePerGas();
-            fullFee.maxPriorityFeePerGas = transaction.options.getMaxPriorityFeePerGas();
+            secondBridgeAddress = getL1BridgeContracts().sharedL1Bridge.getContractAddress();
+            Function f = new Function(null,
+                    Arrays.asList(new Address(transaction.tokenAddress), new Uint256(transaction.amount), new Address(transaction.to)),
+                    Collections.emptyList());
+            secondBridgeCalldata = Numeric.prependHexPrefix(FunctionEncoder.encode(f));
         }
 
-        transaction.options.setGasPrice(null);
-        transaction.options.setMaxPriorityFeePerGas(null);
-        transaction.options.setMaxFeePerGas(null);
-
-        fullFee.l1GasLimit = estimateGasDeposit(transaction);
-        fullFee.baseCost = baseCost;
-        fullFee.l2GasLimit = transaction.l2GasLimit;
-
-        return fullFee;
+        String calldata = bridgehub.encodeRequestL2TransactionTwoBridges(
+                new IBridgehub.L2TransactionRequestTwoBridgesOuter(
+                        chainId,
+                        mintValue,
+                        BigInteger.ZERO,
+                        transaction.l2GasLimit,
+                        transaction.gasPerPubdataByte,
+                        transaction.refoundRecepient,
+                        secondBridgeAddress,
+                        BigInteger.ZERO,
+                        Numeric.hexStringToByteArray(secondBridgeCalldata)));
+        return new Transaction(
+                credentials.getAddress(),
+                transaction.options.nonce,
+                null,
+                transaction.options.gasLimit,
+                bridgehub.getContractAddress(),
+                mintValue,
+                calldata,
+                providerL1.ethChainId().sendAsync().join().getChainId().longValue(),
+                transaction.options.maxPriorityFeePerGas,
+                transaction.options.maxFeePerGas);
     }
-    public DepositTransaction getDepositTransaction(DepositTransaction transaction){
-        L1BridgeContracts l1BridgeContracts = getL1BridgeContracts();
 
-        l1BridgeContracts.erc20L1Bridge = transaction.bridgeAddress != null ? IL1Bridge.load(transaction.bridgeAddress, providerL1, credentials, gasProvider) : l1BridgeContracts.erc20L1Bridge;
+    private RequestExecuteTransaction _getDepositEthOnEthBasedChain(DepositTransaction transaction){
+        IBridgehub bridgehub = getBridgehubContract();
+        BigInteger chainId = providerL2.ethChainId().sendAsync().join().getChainId();
+
+        _getDepositTxWithDefaults(transaction);
+
+        BigInteger gasPriceForestimation = transaction.options.getMaxFeePerGas() != null ?
+                transaction.options.getMaxFeePerGas() : transaction.options.getGasPrice();
+        BigInteger baseCost = getBaseCost(transaction.l2GasLimit, transaction.gasPerPubdataByte, gasPriceForestimation).sendAsync().join();
+
+        transaction.options.setValue(baseCost.add(transaction.operatorTip.add(transaction.amount)));
+
+        return transaction.toRequestExecute(transaction.to);
+    }
+
+    private DepositTransaction _getDepositTxWithDefaults(DepositTransaction transaction){
         transaction.to = transaction.to == null ? signer.getAddress() : transaction.to;
         transaction.refoundRecepient = transaction.refoundRecepient == null ? signer.getAddress() : transaction.refoundRecepient;
         transaction.operatorTip = transaction.operatorTip == null ? BigInteger.ZERO : transaction.operatorTip;
         transaction.gasPerPubdataByte = transaction.gasPerPubdataByte == null ? L1_TO_L2_GAS_PER_PUBDATA : transaction.gasPerPubdataByte;
-        transaction.customBridgeData = transaction.customBridgeData == null ? Numeric.hexStringToByteArray("0x") : transaction.customBridgeData;
-        if (transaction.bridgeAddress != null){
-            String customBridgeData = transaction.customBridgeData == null ?
-                    (transaction.bridgeAddress == l1BridgeContracts.wethL1Bridge.getContractAddress() ? "0x" :
-                            getERC20DefaultBridgeData(transaction.tokenAddress, providerL1, credentials, gasProvider))
-                    : Numeric.toHexString(transaction.customBridgeData);
-            IL1Bridge bridge = IL1Bridge.load(transaction.tokenAddress, providerL1, transactionManager, gasProvider);
-            String l2Address = bridge.l2Bridge().sendAsync().join();
-            if (transaction.l2GasLimit == null){
-                transaction.l2GasLimit = estimateCustomBridgeDepositL2Gas(transaction.bridgeAddress, l2Address, transaction.tokenAddress, transaction.amount, transaction.to, customBridgeData, signer.getAddress(), transaction.gasPerPubdataByte, transaction.options.getValue(), providerL2);
-            }
-        } else {
-            transaction.l2GasLimit = estimateDefaultBridgeDepositL2Gas(
-                    transaction.tokenAddress, transaction.amount, transaction.to, providerL2, getL1BridgeContracts(), providerL1, credentials, gasProvider, signer.getAddress(), transaction.gasPerPubdataByte);
-        }
-        transaction.options = insertGasPriceInTransactionOptions(transaction.options, providerL1);
-        transaction.options.setChainId(transaction.options.getChainId() == null ? providerL1.ethChainId().sendAsync().join().getChainId() : transaction.options.getChainId());
-        transaction.options.setNonce(transaction.options.getNonce() == null ? providerL1.ethGetTransactionCount(signer.getAddress(), DefaultBlockParameterName.LATEST).sendAsync().join().getTransactionCount() : transaction.options.getNonce());
-        BigInteger gasPriceForEstimation = transaction.options.getMaxFeePerGas() == null ? transaction.options.getGasPrice() : transaction.options.getMaxFeePerGas();
-        BigInteger baseCost = contract.l2TransactionBaseCost(gasPriceForEstimation, transaction.l2GasLimit, transaction.gasPerPubdataByte).sendAsync().join();
+        transaction.options = transaction.options == null ? new TransactionOptions() : transaction.options;
+        transaction.l2GasLimit = transaction.l2GasLimit == null ? _getL2GasLimit(transaction) : transaction.l2GasLimit;
 
-        if (transaction.tokenAddress == ZkSyncAddresses.ETH_ADDRESS){
-            if (transaction.options.getValue() == null){
-                transaction.options.setValue(baseCost.add(transaction.amount.add(transaction.operatorTip)));
-            }
-            return transaction;
-        }
-        if (transaction.options.getValue() == null){
-            transaction.options.setValue(baseCost.add(transaction.operatorTip));
-        }
-
-        checkBaseCost(baseCost, transaction.options.getValue());
+        insertGasPriceInTransactionOptions(transaction.options, providerL1);
 
         return transaction;
+    }
+
+    private BigInteger _getL2GasLimit(DepositTransaction transaction){
+        if (transaction.bridgeAddress != null){
+            return _getL2GasLimitFromCustomBridge(transaction);
+        }
+        return estimateDefaultBridgeDepositL2Gas(
+                transaction.tokenAddress, transaction.amount, transaction.to, providerL2, providerL1, credentials,gasProvider, signer.getAddress(), transaction.gasPerPubdataByte);
+    }
+
+    private BigInteger _getL2GasLimitFromCustomBridge(DepositTransaction transaction){
+        String bridgeData = transaction.customBridgeData != null ?
+                Numeric.toHexString(transaction.customBridgeData) :
+                getERC20DefaultBridgeData(transaction.tokenAddress, providerL1, credentials, gasProvider);
+
+        IL1Bridge bridge = IL1Bridge.load(transaction.tokenAddress, providerL1, credentials, gasProvider);
+        BigInteger chainId = providerL2.ethChainId().sendAsync().join().getChainId();
+        String l2Address = bridge.l2BridgeAddress(chainId).sendAsync().join();
+
+        return WalletUtils.estimateCustomBridgeDepositL2Gas(
+                transaction.bridgeAddress,
+                l2Address,
+                transaction.tokenAddress,
+                transaction.amount,
+                transaction.to,
+                bridgeData,
+                credentials.getAddress(),
+                transaction.gasPerPubdataByte,
+                BigInteger.ZERO,
+                providerL2
+        );
+    }
+
+    public BigInteger estimateGasDeposit(DepositTransaction transaction) throws Exception {
+        if (transaction.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS)){
+            transaction.tokenAddress = ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS;
+        }
+
+        String baseTokenAddress = getBaseToken().sendAsync().join();
+        boolean isEthBasedChain = baseTokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS);
+
+        BigInteger baseGasLimit = BigInteger.ZERO;
+        if (isEthBasedChain && transaction.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)){
+            RequestExecuteTransaction tx = _getDepositEthOnEthBasedChain(transaction);
+            baseGasLimit = estimateGasRequestExecute(tx).sendAsync().join().getAmountUsed();
+        }else if (baseTokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)){
+            Transaction tx = _getDepositTokenOnETHBasedChainTx(transaction);
+            baseGasLimit = providerL1.ethEstimateGas(tx).sendAsync().join().getAmountUsed();
+        }else if (transaction.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)){
+            Transaction tx = _getDepositETHOnNonETHBasedChainTx(transaction).tx;
+            baseGasLimit = providerL1.ethEstimateGas(tx).sendAsync().join().getAmountUsed();
+        } else if (transaction.tokenAddress.equalsIgnoreCase(baseTokenAddress)) {
+            RequestExecuteTransaction tx = _getDepositBaseTokenOnNonETHBasedChainTx(transaction).requestExecuteTransaction;
+            baseGasLimit = estimateGasRequestExecute(tx).sendAsync().join().getAmountUsed();
+        }else{
+            Transaction tx = _getDepositNonBaseTokenToNonETHBasedChain(transaction).tx;
+            baseGasLimit = providerL1.ethEstimateGas(tx).sendAsync().join().getAmountUsed();
+        }
+        return scaleGasLimit(baseGasLimit);
+    }
+
+    public RemoteCall<FullDepositFee> getFullRequiredDepositFee(DepositTransaction transaction){
+        return new RemoteCall<>(() -> {
+            if (transaction.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS)){
+                transaction.tokenAddress = ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS;
+            }
+            transaction.amount = BigInteger.valueOf(1);
+            IBridgehub bridgehub = getBridgehubContract();
+            String baseTokenAddress = getBaseToken().sendAsync().join();
+            BigInteger chainId = providerL2.ethChainId().sendAsync().join().getChainId();
+            boolean isEthBasedChain = isETHBasedChain();
+
+            _getDepositTxWithDefaults(transaction);
+
+            BigInteger gasPriceForestimation = transaction.options.maxFeePerGas != null ?
+                    transaction.options.maxFeePerGas : transaction.options.getGasPrice();
+            BigInteger baseCost = getBaseCost(
+                    transaction.l2GasLimit,
+                    transaction.gasPerPubdataByte,
+                    gasPriceForestimation).sendAsync().join();
+
+            if (isEthBasedChain){
+                BigInteger selfBalanceEth = getBalanceL1().sendAsync().join();
+                if (baseCost.compareTo(selfBalanceEth.add(transaction.amount)) >= 0){
+                    BigInteger recommendedL1GasLimit = transaction.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS)
+                            ? L1_RECOMMENDED_MIN_ETH_DEPOSIT_GAS_LIMIT
+                            : L1_RECOMMENDED_MIN_ERC20_DEPOSIT_GAS_LIMIT;
+                    BigInteger recommendedETHBalance = recommendedL1GasLimit.multiply(gasPriceForestimation).add(baseCost);
+                    throw new Error("Not enough balance for deposit. Under the provided gas price, the recommended balance to perform a deposit is " + recommendedETHBalance + " ETH");
+                }
+                if (!transaction.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS) &&
+                        getAllowanceL1(transaction.tokenAddress, transaction.bridgeAddress).sendAsync().join().compareTo(transaction.amount) < 0){
+                    throw new Error("Not enough allowance to cover the deposit!");
+                }
+            }else{
+                BigInteger mintValue = baseCost.add(transaction.operatorTip);
+
+                if (getAllowanceL1(baseTokenAddress).sendAsync().join().compareTo(mintValue) < 0){
+                    throw new Error("Not enough base token allowance to cover the deposit!");
+                }
+                if (transaction.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS) ||
+                        transaction.tokenAddress.equalsIgnoreCase(baseTokenAddress)){
+                    transaction.options.value = transaction.amount;
+                }else{
+                    transaction.options.value = BigInteger.ZERO;
+                    if (getAllowanceL1(transaction.tokenAddress).sendAsync().join().compareTo(transaction.amount) < 0){
+                        throw new Error("Not enough token allowance to cover the deposit!");
+                    }
+                }
+            }
+            FullDepositFee fullFee = new FullDepositFee();
+            if (transaction.options.getGasPrice() != null){
+                fullFee.gasPrice = transaction.options.getGasPrice();
+            }else{
+                fullFee.maxFeePerGas = transaction.options.getMaxFeePerGas();
+                fullFee.maxPriorityFeePerGas = transaction.options.getMaxPriorityFeePerGas();
+            }
+
+            transaction.options.setGasPrice(null);
+            transaction.options.setMaxPriorityFeePerGas(null);
+            transaction.options.setMaxFeePerGas(null);
+
+            fullFee.l1GasLimit = estimateGasDeposit(transaction);
+            fullFee.baseCost = baseCost;
+            fullFee.l2GasLimit = transaction.l2GasLimit;
+
+            return fullFee;
+        });
+    }
+
+    public void getPriorityOpConfirmation(String txHash, int index){
+
     }
 
     public RemoteFunctionCall<TransactionReceipt> finalizeWithdraw(String txHash, int index) throws Exception {
@@ -433,17 +939,10 @@ public class WalletL1 {
         for (int i = 0 ; i < l2ToL1MessageProof.getProof().size() ; i++){
             merkle_proof.add(Numeric.hexStringToByteArray(l2ToL1MessageProof.getProof().get(i)));
         }
-        byte[] senderBytes = Numeric.hexStringToByteArray(log.getTopics().get(1));
-        String sender = Numeric.toHexString(Arrays.copyOfRange(senderBytes, 12, senderBytes.length));
 
-        if (sender.equals(L2_ETH_TOKEN_ADDRESS)){
-            return contract.finalizeEthWithdrawal(l1BatchNumber, BigInteger.valueOf(l2ToL1MessageProof.getId()), receipt.getL1BatchTxIndex(), bytes_data, merkle_proof);
-        }
-        IL2Bridge il2Bridge = IL2Bridge.load(sender, providerL2, credentials, gasProvider);
-        String a = il2Bridge.l1Bridge().send();
-        IL1Bridge il1Bridge = IL1Bridge.load(il2Bridge.l1Bridge().send(), providerL1, transactionManager, gasProvider);
+        IL1Bridge il1Bridge = IL1Bridge.load(getL1BridgeContracts().sharedL1Bridge.getContractAddress(), providerL1, transactionManager, gasProvider);
 
-        return il1Bridge.finalizeWithdrawal(l1BatchNumber, BigInteger.valueOf(l2ToL1MessageProof.getId()), receipt.getL1BatchTxIndex(), bytes_data, merkle_proof);
+        return il1Bridge.finalizeWithdrawal(providerL2.ethChainId().sendAsync().join().getChainId(), l1BatchNumber, BigInteger.valueOf(l2ToL1MessageProof.getId()), receipt.getL1BatchTxIndex(), bytes_data, merkle_proof);
     }
 
     public int getWithdrawalLogIndex(List<Log> logs, int index){
@@ -471,22 +970,50 @@ public class WalletL1 {
         return logIndex.get(index);
     }
 
-    public Request<?, EthSendTransaction> requestExecute(RequestExecuteTransaction transaction) throws IOException {
-        transaction = getRequestExecuteTransaction(transaction);
-        String data = contract.encodeRequestL2Transaction(transaction.getContractAddress(), transaction.getL2Value(), transaction.getCalldata(), transaction.getL2GasLimit(), transaction.getGasPerPubDataByte(), Collections.emptyList(), transaction.getRefoundRecepient(), transaction.getOptions().getValue());
-        RawTransaction tx = RawTransaction.createTransaction(transaction.getOptions().getChainId().longValue(), transaction.getOptions().getNonce(), transaction.getOptions().getGasLimit(), transaction.getContractAddress(), transaction.getOptions().getValue(), data, transaction.getOptions().getMaxPriorityFeePerGas(), transaction.getOptions().getMaxFeePerGas());
+    public Request<?, EthSendTransaction> requestExecute(RequestExecuteTransaction transaction) {
+        RawTransaction tx = getRequestExecuteTransaction(transaction);
         byte[] message = TransactionEncoder.signMessage(tx, credentials);
         return providerL1.ethSendRawTransaction(Numeric.toHexString(message));
     }
 
     public Request<?, EthEstimateGas> estimateGasRequestExecute(RequestExecuteTransaction transaction){
-        transaction = getRequestExecuteTransaction(transaction);
-        transaction.getOptions().setGasPrice(null);
-        transaction.getOptions().setMaxFeePerGas(null);
-        transaction.getOptions().setMaxPriorityFeePerGas(null);
-        String data = contract.encodeRequestL2Transaction(transaction.getContractAddress(), transaction.getL2Value(), transaction.getCalldata(), transaction.getL2GasLimit(), transaction.getGasPerPubDataByte(), Collections.emptyList(), transaction.getRefoundRecepient(), transaction.getOptions().getValue());
-        org.web3j.protocol.core.methods.request.Transaction tr = Transaction.createEthCallTransaction(signer.getAddress(), transaction.getContractAddress(), data, transaction.getOptions().getValue());
+        RawTransaction tx = getRequestExecuteTransaction(transaction);
+
+        org.web3j.protocol.core.methods.request.Transaction tr = Transaction.createEthCallTransaction(signer.getAddress(), tx.getTo(), tx.getData(), tx.getValue());
         return providerL1.ethEstimateGas(tr);
     }
 
+    public AllowanceParams getRequestExecuteAllowanceParams(RequestExecuteTransaction transaction){
+        boolean isEthBasedChain = isETHBasedChain();
+
+        if (isEthBasedChain){
+            throw new Error("ETH token can't be approved! The address of the token does not exist on L1.");
+        }
+
+        if (transaction.getOperatorTip() == null){
+            transaction.setOperatorTip(BigInteger.valueOf(0));
+        }
+        if (transaction.getGasPerPubDataByte() == null){
+            transaction.setGasPerPubDataByte(BigInteger.valueOf(800));
+        }
+        if (transaction.getRefoundRecepient() == null){
+            transaction.setRefoundRecepient(signer.getAddress());
+        }
+        if (transaction.l2Value == null){
+            transaction.l2Value = BigInteger.ZERO;
+        }
+        if (transaction.getL2GasLimit() == null){
+            transaction.setL2GasLimit(providerL2.estimateL1ToL2Execute(transaction.getContractAddress(), transaction.getCalldata(), getSigner().getAddress(), null, transaction.l2Value, transaction.getFactoryDeps(), transaction.getOperatorTip(), transaction.getGasPerPubDataByte(), transaction.getRefoundRecepient()).sendAsync().join().getAmountUsed());
+        }
+        if (transaction.getFactoryDeps() == null)
+            transaction.setFactoryDeps(new byte[1][]);
+
+        insertGasPriceInTransactionOptions(transaction.options, providerL1);
+
+        BigInteger gasPriceForestimation = transaction.getOptions().getMaxFeePerGas() != null ? transaction.getOptions().getMaxFeePerGas() : transaction.getOptions().getGasPrice();
+
+        BigInteger baseCost = getBaseCost(transaction.getL2GasLimit(), transaction.getGasPerPubDataByte(), gasPriceForestimation).sendAsync().join();
+
+        return new AllowanceParams(getBaseToken().sendAsync().join(), baseCost.add(transaction.operatorTip.add(transaction.l2Value)));
+    }
 }

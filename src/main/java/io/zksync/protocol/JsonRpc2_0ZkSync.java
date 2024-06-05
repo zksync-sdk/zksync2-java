@@ -13,16 +13,19 @@ import io.zksync.transaction.type.TransactionOptions;
 import io.zksync.transaction.type.TransferTransaction;
 import io.zksync.transaction.type.WithdrawTransaction;
 import io.zksync.utils.TransactionStatus;
+import io.zksync.utils.WalletUtils;
 import io.zksync.utils.ZkSyncAddresses;
 import io.zksync.wrappers.ERC20;
 import io.zksync.wrappers.IEthToken;
 import io.zksync.wrappers.IL2Bridge;
 import org.jetbrains.annotations.Nullable;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.protocol.Web3jService;
-import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.JsonRpc2_0Web3j;
-import org.web3j.protocol.core.Request;
+import org.web3j.protocol.core.*;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthEstimateGas;
 import org.web3j.protocol.core.methods.response.Log;
@@ -30,6 +33,8 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Numeric;
+
+import static io.zksync.wrappers.IL2Bridge.FUNC_WITHDRAW;
 
 public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
 
@@ -48,6 +53,11 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     @Override
     public Request<?, ZksMainContract> zksMainContract() {
         return new Request<>("zks_getMainContract", Collections.emptyList(), web3jService, ZksMainContract.class);
+    }
+
+    @Override
+    public Request<?, ZksGetBridgehubContract> zksGetBridgehubContract() {
+        return new Request<>("zks_getBridgehubContract", Collections.emptyList(), web3jService, ZksGetBridgehubContract.class);
     }
 
     @Override
@@ -87,6 +97,21 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     @Override
     public Request<?, ZksBridgeAddresses> zksGetBridgeContracts() {
         return new Request<>("zks_getBridgeContracts", Collections.emptyList(), web3jService, ZksBridgeAddresses.class);
+    }
+
+    @Override
+    public Request<?, ZksGetBaseTokenContractAddress> zksGetBaseTokenContractAddress() {
+        return new Request<>("zks_getBaseTokenL1Address", Collections.emptyList(), web3jService, ZksGetBaseTokenContractAddress.class);
+    }
+    @Override
+    public boolean isEthBasedChain() {
+        String baseTokenAddress = zksGetBaseTokenContractAddress().sendAsync().join().getResult();
+        return ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS.equalsIgnoreCase(baseTokenAddress);
+    }
+    @Override
+    public boolean isBaseToken(String tokenAddress) {
+        String baseTokenAddress = zksGetBaseTokenContractAddress().sendAsync().join().getResult();
+        return tokenAddress.equalsIgnoreCase(baseTokenAddress) || tokenAddress.equalsIgnoreCase(ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS);
     }
 
     @Override
@@ -162,6 +187,23 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
                 EthEstimateGas.class);
     }
 
+    public String l2TokenAddress(String tokenAddress){
+        if (tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS)){
+            tokenAddress = ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS;
+        }
+
+        String baseToken = zksGetBaseTokenContractAddress().sendAsync().join().getResult();
+        if (baseToken.equalsIgnoreCase(tokenAddress)){
+            return ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS;
+        }
+
+        BridgeAddresses bridgeAddresses = zksGetBridgeContracts().sendAsync().join().getResult();
+        BigInteger gas = ethGasPrice().sendAsync().join().getGasPrice();
+        IL2Bridge shared = IL2Bridge.load(bridgeAddresses.getL2SharedDefaultBridge(), this, WalletUtils.createRandomCredentials(), gas, gas);
+
+        return shared.l2TokenAddress(tokenAddress).sendAsync().join();
+    }
+
     public Request<?, EthEstimateGas> estimateL1ToL2Execute(String contractAddress, byte[] calldata, String caller, @Nullable BigInteger l2GasLimit, @Nullable BigInteger l2Value, @Nullable byte[][] factoryDeps, @Nullable BigInteger operatorTip, @Nullable BigInteger gasPerPubDataByte, @Nullable String refoundRecepient) {
         if (gasPerPubDataByte == null){
             gasPerPubDataByte = BigInteger.valueOf(800);
@@ -176,6 +218,22 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     }
 
     public Transaction getWithdrawTransaction(WithdrawTransaction tx, ContractGasProvider gasProvider, TransactionManager transactionManager) throws Exception {
+        boolean isEthBasedChain = isEthBasedChain();
+
+        if (tx.tokenAddress != null &&
+                !tx.tokenAddress.isEmpty() &&
+                tx.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS) &&
+                !isEthBasedChain){
+            tx.tokenAddress = l2TokenAddress(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS);
+        } else if (tx.tokenAddress == null ||
+                tx.tokenAddress.isEmpty() ||
+                isBaseToken(tx.tokenAddress)){
+            tx.tokenAddress = ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS;
+        }
+
+        if (tx.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS)){
+            tx.tokenAddress = ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS;
+        }
         if (tx.from == null && tx.to == null){
             throw new Error("Withdrawal target address is undefined!");
         }
@@ -183,7 +241,7 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
         tx.to = tx.to == null ? tx.from : tx.to;
         tx.options = tx.options == null ? new TransactionOptions() : tx.options;
 
-        if (tx.tokenAddress == ZkSyncAddresses.ETH_ADDRESS){
+        if (ZkSyncAddresses.isEth(tx.tokenAddress)){
             if (tx.options.getValue() == null){
                 tx.options.setValue(tx.amount);
             }
@@ -202,23 +260,34 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
         }
         if (tx.bridgeAddress == null){
             BridgeAddresses bridgeAddresses = zksGetBridgeContracts().sendAsync().join().getResult();
-            IL2Bridge l2WethBridge = IL2Bridge.load(bridgeAddresses.getL2wETHBridge(), this, transactionManager, gasProvider);
-
-            String l1WethToken = ZkSyncAddresses.ETH_ADDRESS;
-            try{
-                l1WethToken = l2WethBridge.l1TokenAddress(tx.tokenAddress).sendAsync().join();
-            }catch (Exception e){}
-
-            tx.bridgeAddress = l1WethToken != ZkSyncAddresses.ETH_ADDRESS ? bridgeAddresses.getL2wETHBridge() : bridgeAddresses.getL2Erc20DefaultBridge();
+            tx.bridgeAddress = bridgeAddresses.getL2SharedDefaultBridge();
         }
-        IL2Bridge bridge = IL2Bridge.load(tx.bridgeAddress, this, transactionManager, gasProvider);
-        String data  = bridge.encodeWithdraw(tx.to, tx.tokenAddress, tx.amount);
+        final Function function = new Function(
+                FUNC_WITHDRAW,
+                Arrays.<Type>asList(new Address(160, tx.to),
+                        new Address(160, tx.tokenAddress),
+                        new org.web3j.abi.datatypes.generated.Uint256(tx.amount)),
+                Collections.<TypeReference<?>>emptyList());
+        String data  = FunctionEncoder.encode(function);
         Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(50000), null, null, tx.paymasterParams);
 
         return new Transaction(tx.from, tx.bridgeAddress, BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO, data, meta);
     }
 
     public Transaction getTransferTransaction(TransferTransaction tx, TransactionManager transactionManager, ContractGasProvider gasProvider){
+        boolean isEthBasedChain = isEthBasedChain();
+
+        if (tx.tokenAddress != null &&
+                !tx.tokenAddress.isEmpty() &&
+                tx.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS) &&
+                !isEthBasedChain){
+            tx.tokenAddress = l2TokenAddress(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS);
+        } else if (tx.tokenAddress == null ||
+                tx.tokenAddress.isEmpty() ||
+                isBaseToken(tx.tokenAddress)){
+            tx.tokenAddress = ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS;
+        }
+
         tx.to = tx.to == null ? tx.from : tx.to;
         tx.options = tx.options == null ? new TransactionOptions() : tx.options;
         BigInteger gasPrice = tx.options.getGasPrice();
@@ -230,7 +299,7 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
         }
         Eip712Meta meta = new Eip712Meta(tx.gasPerPubData, null, null, tx.paymasterParams);
 
-        if (tx.tokenAddress == null || tx.tokenAddress == ZkSyncAddresses.ETH_ADDRESS){
+        if (tx.tokenAddress == null || tx.tokenAddress == ZkSyncAddresses.LEGACY_ETH_ADDRESS || isBaseToken(tx.tokenAddress)){
             return new Transaction(tx.from, tx.to, BigInteger.ZERO, gasPrice, tx.amount, "0x", meta);
         }
         ERC20 token = ERC20.load(tx.tokenAddress, this, transactionManager, gasProvider);

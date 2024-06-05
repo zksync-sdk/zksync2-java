@@ -3,13 +3,13 @@ package io.zksync.transaction.type;
 import java.math.BigInteger;
 
 public class TransactionOptions {
-    private BigInteger nonce;
-    private BigInteger value;
-    private BigInteger gasPrice;
-    private BigInteger maxFeePerGas;
-    private BigInteger maxPriorityFeePerGas;
-    private BigInteger gasLimit;
-    private BigInteger chainId;
+    public BigInteger nonce;
+    public BigInteger value;
+    public BigInteger gasPrice;
+    public BigInteger maxFeePerGas;
+    public BigInteger maxPriorityFeePerGas;
+    public BigInteger gasLimit;
+    public BigInteger chainId;
 
     public TransactionOptions(BigInteger nonce, BigInteger value, BigInteger gasPrice, BigInteger maxFeePerGas, BigInteger maxPriorityFeePerGas, BigInteger gasLimit, BigInteger chainId) {
         this.nonce = nonce;

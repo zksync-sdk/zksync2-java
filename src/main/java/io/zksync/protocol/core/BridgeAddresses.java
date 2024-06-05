@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 public class BridgeAddresses {
     private String l1Erc20DefaultBridge;
     private String l2Erc20DefaultBridge;
-    private String l1wETHBridge;
-    private String l2wETHBridge;
+    private String l1WethBridge;
+    private String l2WethBridge;
+    private String l1SharedDefaultBridge;
+    private String l2SharedDefaultBridge;
 }

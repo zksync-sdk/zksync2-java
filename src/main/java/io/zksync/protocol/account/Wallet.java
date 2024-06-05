@@ -51,11 +51,11 @@ import static io.zksync.transaction.manager.ZkSyncTransactionManager.DEFAULT_POL
 @Getter
 public class Wallet extends WalletL1{
 
-    private final TransactionReceiptProcessor transactionReceiptProcessor;
+    private final ZkSyncTransactionReceiptProcessor transactionReceiptProcessor;
     private final ZkTransactionFeeProvider feeProviderL2;
     protected final EthSigner signerL2;
 
-    public Wallet(Web3j providerL1, ZkSync providerL2, TransactionManager transactionManager, ContractGasProvider feeProviderL1, ZkTransactionFeeProvider feeProviderL2, TransactionReceiptProcessor transactionReceiptProcessor, Credentials credentials) {
+    public Wallet(Web3j providerL1, ZkSync providerL2, TransactionManager transactionManager, ContractGasProvider feeProviderL1, ZkTransactionFeeProvider feeProviderL2, ZkSyncTransactionReceiptProcessor transactionReceiptProcessor, Credentials credentials) {
         super(providerL1, providerL2, transactionManager, feeProviderL1, credentials);
         this.transactionReceiptProcessor = transactionReceiptProcessor;
         this.feeProviderL2 = feeProviderL2;
@@ -97,7 +97,7 @@ public class Wallet extends WalletL1{
      */
     public L2BridgeContracts getL2BridgeContracts(){
         BridgeAddresses bridgeAddresses = providerL2.zksGetBridgeContracts().sendAsync().join().getResult();
-        return new L2BridgeContracts(bridgeAddresses.getL2Erc20DefaultBridge(), bridgeAddresses.getL2wETHBridge(), providerL2, transactionManager, feeProviderL2);
+        return new L2BridgeContracts(bridgeAddresses.getL2Erc20DefaultBridge(), bridgeAddresses.getL2WethBridge(), providerL2, transactionManager, feeProviderL2);
     }
 
     public CompletableFuture<BigInteger> getDeploymentNonce(){
@@ -135,7 +135,7 @@ public class Wallet extends WalletL1{
      * @return Prepared remote call of transaction
      */
     public RemoteCall<TransactionReceipt> withdraw(WithdrawTransaction tx) {
-        tx.tokenAddress = tx.tokenAddress == null ? ZkSyncAddresses.ETH_ADDRESS : tx.tokenAddress;
+        tx.tokenAddress = tx.tokenAddress == null ? ZkSyncAddresses.LEGACY_ETH_ADDRESS : tx.tokenAddress;
         tx.from = tx.from == null ? getAddress() : tx.from;
         tx.options = tx.options == null ? new TransactionOptions() : tx.options;
         BigInteger maxPriorityFeePerGas = tx.options.getMaxPriorityFeePerGas() == null ? BigInteger.ZERO : tx.options.getMaxPriorityFeePerGas();
@@ -295,7 +295,7 @@ public class Wallet extends WalletL1{
      * @return Prepared get balance call
      */
     public RemoteCall<BigInteger> getBalance() {
-        return getBalance(getAddress(), ZkSyncAddresses.ETH_ADDRESS, ZkBlockParameterName.COMMITTED);
+        return getBalance(getAddress(), getBaseToken().sendAsync().join(), ZkBlockParameterName.COMMITTED);
     }
 
     /**
@@ -329,7 +329,10 @@ public class Wallet extends WalletL1{
      * @return Prepared get balance call
      */
     public RemoteCall<BigInteger> getBalance(String address, String token, DefaultBlockParameter at) {
-        if (token == ZkSyncAddresses.ETH_ADDRESS) {
+        if (token.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS)){
+            token = ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS;
+        }
+        if (providerL2.isBaseToken(token)) {
             return new RemoteCall<>(() ->
                     this.providerL2.ethGetBalance(address, at).sendAsync().join().getBalance());
         } else {
