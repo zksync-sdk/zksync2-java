@@ -434,8 +434,9 @@ public class WalletTest extends BaseIntegrationEnv {
         TransactionReceipt result = testWallet.withdraw(transaction).sendAsync().join();
         TransactionReceipt receipt = testWallet.getTransactionReceiptProcessor().waitFinalized(result.getTransactionHash());
 
-        TransactionReceipt finalizeWithdraw = testWallet.finalizeWithdraw(receipt.getTransactionHash(), 0).sendAsync().join();
-
+        assertFalse(testWallet.isWithdrawalFinalized(receipt.getTransactionHash(), 0).join());
+        EthSendTransaction finalizeWithdraw = testWallet.finalizeWithdraw(receipt.getTransactionHash(), 0).join();
+        assertNotNull(finalizeWithdraw.getResult());
         BigInteger senderAfter = testWallet.getBalance().sendAsync().join();
 
         assertNotNull(receipt);
@@ -476,7 +477,8 @@ public class WalletTest extends BaseIntegrationEnv {
         TransactionReceipt result = testWallet.withdraw(transaction).sendAsync().join();
         TransactionReceipt receipt = testWallet.getTransactionReceiptProcessor().waitFinalized(result.getTransactionHash());
 
-        TransactionReceipt finalizeWithdraw = testWallet.finalizeWithdraw(receipt.getTransactionHash(), 0).sendAsync().join();
+        EthSendTransaction finalizeWithdraw = testWallet.finalizeWithdraw(receipt.getTransactionHash(), 0).join();
+        assertNotNull(finalizeWithdraw.getResult());
         BigInteger senderAfter = testWallet.getBalance(l2DAI).sendAsync().join();
 
         assertNotNull(receipt);

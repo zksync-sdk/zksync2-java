@@ -943,7 +943,7 @@ public class WalletL1 {
         return sharedBridge.isWithdrawalFinalized(chainId.join().getChainId(), receipt.getL1BatchNumber(), BigInteger.valueOf(proof.join().getId())).sendAsync();
     }
 
-    public RemoteFunctionCall<TransactionReceipt> finalizeWithdraw(String txHash, int index) throws Exception {
+    public CompletableFuture<EthSendTransaction> finalizeWithdraw(String txHash, int index) throws Exception {
         ZkTransactionReceipt receipt = providerL2.zksGetTransactionReceipt(txHash).sendAsync().join().getResult();
 
         int logIndex = getWithdrawalLogIndex(receipt.getLogs(), index);
@@ -962,9 +962,21 @@ public class WalletL1 {
             merkle_proof.add(Numeric.hexStringToByteArray(l2ToL1MessageProof.getProof().get(i)));
         }
 
-        IL1Bridge il1Bridge = IL1Bridge.load(getL1BridgeContracts().sharedL1Bridge.getContractAddress(), providerL1, transactionManager, gasProvider);
+        String il1BridgeAddress = getL1BridgeContracts().sharedL1Bridge.getContractAddress();
 
-        return il1Bridge.finalizeWithdrawal(providerL2.ethChainId().sendAsync().join().getChainId(), l1BatchNumber, BigInteger.valueOf(l2ToL1MessageProof.getId()), receipt.getL1BatchTxIndex(), bytes_data, merkle_proof);
+        String calldata = IL1SharedBridge.encodeFinalizeWithdrawal(
+                providerL2.ethChainId().sendAsync().join().getChainId(),
+                l1BatchNumber,
+                BigInteger.valueOf(l2ToL1MessageProof.getId()),
+                receipt.getL1BatchTxIndex(),
+                bytes_data,
+                merkle_proof
+        );
+
+        Transaction tx = Transaction.createEthCallTransaction(credentials.getAddress(), il1BridgeAddress, calldata);
+        BigInteger gas = providerL1.ethEstimateGas(tx).sendAsync().join().getAmountUsed();
+
+        return providerL1.ethSendRawTransaction(Numeric.toHexStringNoPrefix(TransactionEncoder.signMessage(RawTransaction.createTransaction(providerL1.ethGetTransactionCount(signer.getAddress(), DefaultBlockParameterName.LATEST).sendAsync().join().getTransactionCount(), providerL1.ethGasPrice().sendAsync().join().getGasPrice(), gas, il1BridgeAddress, calldata), credentials))).sendAsync();
     }
 
     public int getWithdrawalLogIndex(List<Log> logs, int index){

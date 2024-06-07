@@ -188,17 +188,15 @@ public class ZkTypeEncoder {
         byte[] value = bytesType.getValue();
         int length = value.length;
         int mod = length % MAX_BYTE_LENGTH;
-        String val = Numeric.toHexString(value);
         byte[] dest;
         if (mod != 0) {
             int padding = MAX_BYTE_LENGTH - mod;
             dest = new byte[padding];
-            return Numeric.toHexStringNoPrefix(dest) + Numeric.toHexStringNoPrefix(value);
+            return Numeric.toHexStringNoPrefix(value) + Numeric.toHexStringNoPrefix(dest);
         } else {
             dest = value;
         }
 
-        String x = Numeric.toHexString(value);
         return Numeric.toHexStringNoPrefix(dest);
     }
 
