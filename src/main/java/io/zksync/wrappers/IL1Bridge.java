@@ -1,18 +1,13 @@
 package io.zksync.wrappers;
 
 import io.reactivex.Flowable;
-
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import io.zksync.abi.ZkFunctionEncoder;
 import org.web3j.abi.EventEncoder;
-import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Bool;
@@ -32,10 +27,8 @@ import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.BaseEventResponse;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
-import org.web3j.tx.gas.ContractEIP1559GasProvider;
 import org.web3j.tx.gas.ContractGasProvider;
 
 /**
@@ -351,19 +344,6 @@ public class IL1Bridge extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public String encodeDeposit(String _l2Receiver, String _l1Token, BigInteger _amount, BigInteger _l2TxGasLimit, BigInteger _l2TxGasPerPubdataByte, String _refundRecipient, BigInteger weiValue) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
-                FUNC_DEPOSIT,
-                Arrays.<Type>asList(new Address(160, _l2Receiver),
-                        new Address(160, _l1Token),
-                        new Uint256(_amount),
-                        new Uint256(_l2TxGasLimit),
-                        new Uint256(_l2TxGasPerPubdataByte),
-                        new Address(160, _refundRecipient)),
-                Collections.<TypeReference<?>>emptyList());
-        return FunctionEncoder.encode(function);
-    }
-
     public RemoteFunctionCall<TransactionReceipt> deposit(BigInteger _chainId, String _l2Receiver, String _l1Token, BigInteger _mintValue, BigInteger _amount, BigInteger _l2TxGasLimit, BigInteger _l2TxGasPerPubdataByte, String _refundRecipient, BigInteger weiValue) {
         final Function function = new Function(
                 FUNC_DEPOSIT, 
@@ -387,20 +367,19 @@ public class IL1Bridge extends Contract {
         return executeRemoteCallSingleValueReturn(function, byte[].class);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> finalizeWithdrawal(BigInteger _chainId, BigInteger _l2BatchNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBatch, byte[] _message, List<byte[]> _merkleProof) throws TransactionException, IOException {
+    public RemoteFunctionCall<TransactionReceipt> finalizeWithdrawal(BigInteger _chainId, BigInteger _l2BatchNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBatch, byte[] _message, List<byte[]> _merkleProof) {
         final Function function = new Function(
-                FUNC_FINALIZEWITHDRAWAL,
+                FUNC_FINALIZEWITHDRAWAL, 
                 Arrays.<Type>asList(new Uint256(_chainId),
-                        new Uint256(_l2BatchNumber),
-                        new Uint256(_l2MessageIndex),
-                        new org.web3j.abi.datatypes.generated.Uint16(_l2TxNumberInBatch),
-                        new DynamicBytes(_message),
-                        new DynamicArray<Bytes32>(
-                                Bytes32.class,
-                                org.web3j.abi.Utils.typeMap(_merkleProof, Bytes32.class))),
+                new Uint256(_l2BatchNumber),
+                new Uint256(_l2MessageIndex),
+                new org.web3j.abi.datatypes.generated.Uint16(_l2TxNumberInBatch), 
+                new DynamicBytes(_message),
+                new DynamicArray<Bytes32>(
+                        Bytes32.class,
+                        org.web3j.abi.Utils.typeMap(_merkleProof, Bytes32.class))),
                 Collections.<TypeReference<?>>emptyList());
-
-        return new RemoteFunctionCall(function, () -> this.send(this.contractAddress, ZkFunctionEncoder.encode(function), BigInteger.ZERO, this.gasProvider.getGasPrice(FUNC_FINALIZEWITHDRAWAL), this.gasProvider.getGasLimit(FUNC_FINALIZEWITHDRAWAL), false));
+        return executeRemoteCallTransaction(function);
     }
 
     public RemoteFunctionCall<Boolean> isWithdrawalFinalizedShared(BigInteger _chainId, BigInteger _l2BatchNumber, BigInteger _l2MessageIndex) {

@@ -97,7 +97,7 @@ public class Wallet extends WalletL1{
      */
     public L2BridgeContracts getL2BridgeContracts(){
         BridgeAddresses bridgeAddresses = providerL2.zksGetBridgeContracts().sendAsync().join().getResult();
-        return new L2BridgeContracts(bridgeAddresses.getL2Erc20DefaultBridge(), bridgeAddresses.getL2WethBridge(), providerL2, transactionManager, feeProviderL2);
+        return new L2BridgeContracts(bridgeAddresses.l2Erc20DefaultBridge, bridgeAddresses.l2WethBridge, bridgeAddresses.l2SharedDefaultBridge, providerL2, transactionManager, feeProviderL2);
     }
 
     public CompletableFuture<BigInteger> getDeploymentNonce(){
@@ -295,7 +295,7 @@ public class Wallet extends WalletL1{
      * @return Prepared get balance call
      */
     public RemoteCall<BigInteger> getBalance() {
-        return getBalance(getAddress(), getBaseToken().sendAsync().join(), ZkBlockParameterName.COMMITTED);
+        return getBalance(getAddress(), ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS, ZkBlockParameterName.COMMITTED);
     }
 
     /**
@@ -329,10 +329,10 @@ public class Wallet extends WalletL1{
      * @return Prepared get balance call
      */
     public RemoteCall<BigInteger> getBalance(String address, String token, DefaultBlockParameter at) {
-        if (token.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS)){
-            token = ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS;
+        if (token.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS) || token.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)){
+            token = l2TokenAddress(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS);
         }
-        if (providerL2.isBaseToken(token)) {
+        if (token.equalsIgnoreCase(ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS)) {
             return new RemoteCall<>(() ->
                     this.providerL2.ethGetBalance(address, at).sendAsync().join().getBalance());
         } else {

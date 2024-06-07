@@ -13,10 +13,7 @@ import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.transaction.type.*;
 import io.zksync.utils.WalletUtils;
 import io.zksync.utils.ZkSyncAddresses;
-import io.zksync.wrappers.ERC20;
-import io.zksync.wrappers.IBridgehub;
-import io.zksync.wrappers.IL1Bridge;
-import io.zksync.wrappers.IZkSync;
+import io.zksync.wrappers.*;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.abi.EventValues;
@@ -71,7 +68,7 @@ public class WalletL1 {
     protected final TransactionReceiptProcessor transactionReceiptProcessorL1;
     protected final ContractGasProvider gasProvider;
     protected final String mainContractAddress;
-    protected final IZkSync contract;
+    protected final IZkSyncHyperchain contract;
     protected final EthSigner signer;
     protected final Credentials credentials;
     public WalletL1(Web3j providerL1, ZkSync providerL2, TransactionManager transactionManager, ContractGasProvider gasProvider, Credentials credentials) {
@@ -80,7 +77,7 @@ public class WalletL1 {
         this.transactionManager = transactionManager;
         this.gasProvider = gasProvider;
         this.mainContractAddress = providerL2.zksMainContract().sendAsync().join().getResult();
-        this.contract = IZkSync.load(providerL2.zksMainContract().sendAsync().join().getResult(), providerL1, transactionManager, gasProvider);
+        this.contract = IZkSyncHyperchain.load(providerL2.zksMainContract().sendAsync().join().getResult(), providerL1, transactionManager, gasProvider);
         this.credentials = credentials;
         this.signer = new PrivateKeyEthSigner(credentials, providerL1.ethChainId().sendAsync().join().getChainId().longValue());
         this.transactionReceiptProcessorL1 = new PollingTransactionReceiptProcessor(providerL1, DEFAULT_POLLING_FREQUENCY, DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
@@ -100,9 +97,9 @@ public class WalletL1 {
      *
      * @return IZkSync
      */
-    public IZkSync getMainContract(){
+    public IZkSyncHyperchain getMainContract(){
         if (contract == null){
-            return IZkSync.load(providerL2.zksMainContract().sendAsync().join().getResult(), providerL1, transactionManager, gasProvider);
+            return IZkSyncHyperchain.load(providerL2.zksMainContract().sendAsync().join().getResult(), providerL1, transactionManager, gasProvider);
         }
         return contract;
     }
