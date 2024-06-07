@@ -183,8 +183,8 @@ public class WalletL1 {
      * @param token         The L1 address of the token.
      * @param amount        The amount of the token to be approved.
      * @param bridgeAddress Bridge address to be used.
-     * @throws {Error} If attempting to approve an ETH token.
-     * @returns A promise that resolves to the response of the approval transaction.
+     * @throws Error If attempting to approve an ETH token.
+     * @return A promise that resolves to the response of the approval transaction.
      */
     public RemoteFunctionCall<TransactionReceipt> approveERC20(String token, @Nullable BigInteger amount, @Nullable String bridgeAddress) {
         if (ZkSyncAddresses.isEth(token)){
@@ -223,7 +223,7 @@ public class WalletL1 {
      * Returns the L2 token address equivalent for a L1 token address as they are not necessarily equal.
      * The ETH address is set to the zero address.
      *
-     * @remarks Only works for tokens bridged on default zkSync Era bridges.
+     * Only works for tokens bridged on default zkSync Era bridges.
      *
      * @param l1Address The address of the token on L1.
      */
@@ -238,7 +238,7 @@ public class WalletL1 {
     /**
      * Returns L1 bridge contracts.
      *
-     * @remarks There is no separate Ether bridge contract, {@link } is used instead.
+     * There is no separate Ether bridge contract, {@link } is used instead.
      */
     public L1BridgeContracts getL1BridgeContracts(){
         BridgeAddresses bridgeAddresses = providerL2.zksGetBridgeContracts().sendAsync().join().getResult();

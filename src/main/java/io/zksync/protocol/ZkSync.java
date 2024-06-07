@@ -191,9 +191,9 @@ public interface ZkSync extends Web3j {
      * Returns the L2 token address equivalent for a L1 token address as they are not necessarily equal.
      * The ETH address is set to the zero address.
      *
-     * @remarks Only works for tokens bridged on default zkSync Era bridges.
+     * Only works for tokens bridged on default zkSync Era bridges.
      *
-     * @param token The address of the token on L1.
+     * @param tokenAddress The address of the token on L1.
      */
     String l2TokenAddress(String tokenAddress);
 
