@@ -7,7 +7,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import io.zksync.abi.ZkFunctionEncoder;
 import org.web3j.abi.EventEncoder;
+import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Bool;
@@ -445,6 +448,21 @@ public class IL1SharedBridge extends Contract {
                 new Address(160, _refundRecipient)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function, weiValue);
+    }
+
+    public static String encodeFinalizeWithdrawal(BigInteger _chainId, BigInteger _l2BatchNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBatch, byte[] _message, List<byte[]> _merkleProof) {
+        final Function function = new Function(
+                FUNC_FINALIZEWITHDRAWAL,
+                Arrays.<Type>asList(new Uint256(_chainId),
+                        new Uint256(_l2BatchNumber),
+                        new Uint256(_l2MessageIndex),
+                        new org.web3j.abi.datatypes.generated.Uint16(_l2TxNumberInBatch),
+                        new DynamicBytes(_message),
+                        new DynamicArray<Bytes32>(
+                                Bytes32.class,
+                                org.web3j.abi.Utils.typeMap(_merkleProof, Bytes32.class))),
+                Collections.<TypeReference<?>>emptyList());
+        return ZkFunctionEncoder.encode(function);
     }
 
     public RemoteFunctionCall<TransactionReceipt> finalizeWithdrawal(BigInteger _chainId, BigInteger _l2BatchNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBatch, byte[] _message, List<byte[]> _merkleProof) {
