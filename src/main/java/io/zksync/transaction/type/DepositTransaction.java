@@ -91,22 +91,6 @@ public class DepositTransaction {
         return new Transaction(from, options.getNonce(), options.getGasPrice(), BigInteger.ZERO, bridgeAddress, options.getValue(), calldata, options.getChainId().longValue(), options.getMaxPriorityFeePerGas(), options.getMaxFeePerGas());
     }
 
-    public Transaction toFunctionCallTx(String from, IL1Bridge bridge){
-        String data = bridge.encodeDeposit(from, tokenAddress, amount, l2GasLimit, gasPerPubdataByte, refoundRecepient, options.getValue());
-        return new Transaction(
-                from,
-                options.getNonce(),
-                options.getGasPrice(),
-                options.getGasLimit(),
-                bridge.getContractAddress(),
-                options.getValue(),
-                data,
-                options.getChainId().longValue(),
-                options.getMaxPriorityFeePerGas(),
-                options.getMaxFeePerGas());
-    }
-
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;

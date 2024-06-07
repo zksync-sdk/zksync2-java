@@ -56,7 +56,7 @@ public class IL2Bridge extends Contract {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> finalizeDeposit(String _l1Sender, String _l2Receiver, String _l1Token, BigInteger _amount, byte[] _data, BigInteger weiValue) {
+    public RemoteFunctionCall<TransactionReceipt> finalizeDeposit(String _l1Sender, String _l2Receiver, String _l1Token, BigInteger _amount, byte[] _data) {
         final Function function = new Function(
                 FUNC_FINALIZEDEPOSIT, 
                 Arrays.<Type>asList(new Address(160, _l1Sender),
@@ -65,7 +65,7 @@ public class IL2Bridge extends Contract {
                 new org.web3j.abi.datatypes.generated.Uint256(_amount), 
                 new org.web3j.abi.datatypes.DynamicBytes(_data)), 
                 Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function, weiValue);
+        return executeRemoteCallTransaction(function);
     }
 
     public RemoteFunctionCall<String> l1Bridge() {

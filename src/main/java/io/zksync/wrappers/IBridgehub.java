@@ -58,7 +58,7 @@ public class IBridgehub extends Contract {
 
     public static final String FUNC_CREATENEWCHAIN = "createNewChain";
 
-    public static final String FUNC_GETSTATETRANSITION = "getStateTransition";
+    public static final String FUNC_GETHYPERCHAIN = "getHyperchain";
 
     public static final String FUNC_L2TRANSACTIONBASECOST = "l2TransactionBaseCost";
 
@@ -258,8 +258,8 @@ public class IBridgehub extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<String> getStateTransition(BigInteger _chainId) {
-        final Function function = new Function(FUNC_GETSTATETRANSITION, 
+    public RemoteFunctionCall<String> getHyperchain(BigInteger _chainId) {
+        final Function function = new Function(FUNC_GETHYPERCHAIN, 
                 Arrays.<Type>asList(new Uint256(_chainId)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
         return executeRemoteCallSingleValueReturn(function, String.class);

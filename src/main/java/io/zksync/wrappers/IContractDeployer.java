@@ -9,15 +9,11 @@ import java.util.List;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Bool;
-import org.web3j.abi.datatypes.DynamicBytes;
-import org.web3j.abi.datatypes.DynamicStruct;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.StaticStruct;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Bytes32;
-import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
@@ -51,12 +47,6 @@ public class IContractDeployer extends Contract {
     public static final String FUNC_CREATE2ACCOUNT = "create2Account";
 
     public static final String FUNC_CREATEACCOUNT = "createAccount";
-
-    public static final String FUNC_EXTENDEDACCOUNTVERSION = "extendedAccountVersion";
-
-    public static final String FUNC_FORCEDEPLOYONADDRESS = "forceDeployOnAddress";
-
-    public static final String FUNC_FORCEDEPLOYONADDRESSES = "forceDeployOnAddresses";
 
     public static final String FUNC_GETACCOUNTINFO = "getAccountInfo";
 
@@ -201,7 +191,7 @@ public class IContractDeployer extends Contract {
                 FUNC_CREATE, 
                 Arrays.<Type>asList(new Bytes32(_salt),
                 new Bytes32(_bytecodeHash),
-                new DynamicBytes(_input)),
+                new org.web3j.abi.datatypes.DynamicBytes(_input)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function, weiValue);
     }
@@ -211,7 +201,7 @@ public class IContractDeployer extends Contract {
                 FUNC_CREATE2, 
                 Arrays.<Type>asList(new Bytes32(_salt),
                 new Bytes32(_bytecodeHash),
-                new DynamicBytes(_input)),
+                new org.web3j.abi.datatypes.DynamicBytes(_input)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function, weiValue);
     }
@@ -221,43 +211,19 @@ public class IContractDeployer extends Contract {
                 FUNC_CREATE2ACCOUNT, 
                 Arrays.<Type>asList(new Bytes32(_salt),
                 new Bytes32(_bytecodeHash),
-                new DynamicBytes(_input),
+                new org.web3j.abi.datatypes.DynamicBytes(_input), 
                 new Uint8(_aaVersion)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function, weiValue);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> createAccount(byte[] param0, byte[] _bytecodeHash, byte[] _input, BigInteger _aaVersion, BigInteger weiValue) {
+    public RemoteFunctionCall<TransactionReceipt> createAccount(byte[] _salt, byte[] _bytecodeHash, byte[] _input, BigInteger _aaVersion, BigInteger weiValue) {
         final Function function = new Function(
                 FUNC_CREATEACCOUNT, 
-                Arrays.<Type>asList(new Bytes32(param0),
+                Arrays.<Type>asList(new Bytes32(_salt),
                 new Bytes32(_bytecodeHash),
-                new DynamicBytes(_input),
+                new org.web3j.abi.datatypes.DynamicBytes(_input), 
                 new Uint8(_aaVersion)),
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function, weiValue);
-    }
-
-    public RemoteFunctionCall<BigInteger> extendedAccountVersion(String _address) {
-        final Function function = new Function(FUNC_EXTENDEDACCOUNTVERSION, 
-                Arrays.<Type>asList(new Address(160, _address)),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint8>() {}));
-        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-    }
-
-    public RemoteFunctionCall<TransactionReceipt> forceDeployOnAddress(ForceDeployment _deployment, String _sender, BigInteger weiValue) {
-        final Function function = new Function(
-                FUNC_FORCEDEPLOYONADDRESS, 
-                Arrays.<Type>asList(_deployment, 
-                new Address(160, _sender)),
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function, weiValue);
-    }
-
-    public RemoteFunctionCall<TransactionReceipt> forceDeployOnAddresses(List<ForceDeployment> _deployments, BigInteger weiValue) {
-        final Function function = new Function(
-                FUNC_FORCEDEPLOYONADDRESSES, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.DynamicArray<ForceDeployment>(ForceDeployment.class, _deployments)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function, weiValue);
     }
@@ -272,7 +238,7 @@ public class IContractDeployer extends Contract {
     public RemoteFunctionCall<String> getNewAddressCreate(String _sender, BigInteger _senderNonce) {
         final Function function = new Function(FUNC_GETNEWADDRESSCREATE, 
                 Arrays.<Type>asList(new Address(160, _sender),
-                new Uint256(_senderNonce)),
+                new org.web3j.abi.datatypes.generated.Uint256(_senderNonce)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
@@ -282,7 +248,7 @@ public class IContractDeployer extends Contract {
                 Arrays.<Type>asList(new Address(160, _sender),
                 new Bytes32(_bytecodeHash),
                 new Bytes32(_salt),
-                new DynamicBytes(_input)),
+                new org.web3j.abi.datatypes.DynamicBytes(_input)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
@@ -319,40 +285,6 @@ public class IContractDeployer extends Contract {
 
     public static IContractDeployer load(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
         return new IContractDeployer(contractAddress, web3j, transactionManager, contractGasProvider);
-    }
-
-    public static class ForceDeployment extends DynamicStruct {
-        public byte[] bytecodeHash;
-
-        public String newAddress;
-
-        public Boolean callConstructor;
-
-        public BigInteger value;
-
-        public byte[] input;
-
-        public ForceDeployment(byte[] bytecodeHash, String newAddress, Boolean callConstructor, BigInteger value, byte[] input) {
-            super(new Bytes32(bytecodeHash),
-                    new Address(160, newAddress),
-                    new Bool(callConstructor),
-                    new Uint256(value),
-                    new DynamicBytes(input));
-            this.bytecodeHash = bytecodeHash;
-            this.newAddress = newAddress;
-            this.callConstructor = callConstructor;
-            this.value = value;
-            this.input = input;
-        }
-
-        public ForceDeployment(Bytes32 bytecodeHash, Address newAddress, Bool callConstructor, Uint256 value, DynamicBytes input) {
-            super(bytecodeHash, newAddress, callConstructor, value, input);
-            this.bytecodeHash = bytecodeHash.getValue();
-            this.newAddress = newAddress.getValue();
-            this.callConstructor = callConstructor.getValue();
-            this.value = value.getValue();
-            this.input = input.getValue();
-        }
     }
 
     public static class AccountInfo extends StaticStruct {

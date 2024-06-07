@@ -284,7 +284,7 @@ public class IEthToken extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public String encodeWithdraw(String _l1Receiver, BigInteger weiValue) {
+    public String encodeWithdraw(String _l1Receiver) {
         final Function function = new Function(
                 FUNC_WITHDRAW,
                 Arrays.<Type>asList(new Address(160, _l1Receiver)),

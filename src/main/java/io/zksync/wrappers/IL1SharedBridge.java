@@ -44,7 +44,9 @@ import org.web3j.tx.gas.ContractGasProvider;
 public class IL1SharedBridge extends Contract {
     public static final String BINARY = "Bin file was not provided";
 
-    public static final String FUNC_BRIDGEHUB = "bridgehub";
+    public static final String FUNC_BRIDGE_HUB = "BRIDGE_HUB";
+
+    public static final String FUNC_L1_WETH_TOKEN = "L1_WETH_TOKEN";
 
     public static final String FUNC_BRIDGEHUBCONFIRML2TRANSACTION = "bridgehubConfirmL2Transaction";
 
@@ -66,15 +68,17 @@ public class IL1SharedBridge extends Contract {
 
     public static final String FUNC_ISWITHDRAWALFINALIZED = "isWithdrawalFinalized";
 
-    public static final String FUNC_L1WETHADDRESS = "l1WethAddress";
-
     public static final String FUNC_L2BRIDGEADDRESS = "l2BridgeAddress";
 
     public static final String FUNC_LEGACYBRIDGE = "legacyBridge";
 
     public static final String FUNC_RECEIVEETH = "receiveEth";
 
-    public static final String FUNC_SETERAFIRSTPOSTUPGRADEBATCH = "setEraFirstPostUpgradeBatch";
+    public static final String FUNC_SETERALEGACYBRIDGELASTDEPOSITTIME = "setEraLegacyBridgeLastDepositTime";
+
+    public static final String FUNC_SETERAPOSTDIAMONDUPGRADEFIRSTBATCH = "setEraPostDiamondUpgradeFirstBatch";
+
+    public static final String FUNC_SETERAPOSTLEGACYBRIDGEUPGRADEFIRSTBATCH = "setEraPostLegacyBridgeUpgradeFirstBatch";
 
     public static final Event BRIDGEHUBDEPOSITBASETOKENINITIATED_EVENT = new Event("BridgehubDepositBaseTokenInitiated", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Address>(true) {}, new TypeReference<Address>() {}, new TypeReference<Uint256>() {}));
@@ -340,8 +344,15 @@ public class IL1SharedBridge extends Contract {
         return withdrawalFinalizedSharedBridgeEventFlowable(filter);
     }
 
-    public RemoteFunctionCall<String> bridgehub() {
-        final Function function = new Function(FUNC_BRIDGEHUB, 
+    public RemoteFunctionCall<String> BRIDGE_HUB() {
+        final Function function = new Function(FUNC_BRIDGE_HUB, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+        return executeRemoteCallSingleValueReturn(function, String.class);
+    }
+
+    public RemoteFunctionCall<String> L1_WETH_TOKEN() {
+        final Function function = new Function(FUNC_L1_WETH_TOKEN, 
                 Arrays.<Type>asList(), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
         return executeRemoteCallSingleValueReturn(function, String.class);
@@ -474,13 +485,6 @@ public class IL1SharedBridge extends Contract {
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
-    public RemoteFunctionCall<String> l1WethAddress() {
-        final Function function = new Function(FUNC_L1WETHADDRESS, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-        return executeRemoteCallSingleValueReturn(function, String.class);
-    }
-
     public RemoteFunctionCall<String> l2BridgeAddress(BigInteger _chainId) {
         final Function function = new Function(FUNC_L2BRIDGEADDRESS, 
                 Arrays.<Type>asList(new Uint256(_chainId)),
@@ -503,10 +507,27 @@ public class IL1SharedBridge extends Contract {
         return executeRemoteCallTransaction(function, weiValue);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> setEraFirstPostUpgradeBatch(BigInteger _eraFirstPostUpgradeBatch) {
+    public RemoteFunctionCall<TransactionReceipt> setEraLegacyBridgeLastDepositTime(BigInteger _eraLegacyBridgeLastDepositBatch, BigInteger _eraLegacyBridgeLastDepositTxNumber) {
         final Function function = new Function(
-                FUNC_SETERAFIRSTPOSTUPGRADEBATCH, 
-                Arrays.<Type>asList(new Uint256(_eraFirstPostUpgradeBatch)),
+                FUNC_SETERALEGACYBRIDGELASTDEPOSITTIME, 
+                Arrays.<Type>asList(new Uint256(_eraLegacyBridgeLastDepositBatch),
+                new Uint256(_eraLegacyBridgeLastDepositTxNumber)),
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> setEraPostDiamondUpgradeFirstBatch(BigInteger _eraPostDiamondUpgradeFirstBatch) {
+        final Function function = new Function(
+                FUNC_SETERAPOSTDIAMONDUPGRADEFIRSTBATCH, 
+                Arrays.<Type>asList(new Uint256(_eraPostDiamondUpgradeFirstBatch)),
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> setEraPostLegacyBridgeUpgradeFirstBatch(BigInteger _eraPostLegacyBridgeUpgradeFirstBatch) {
+        final Function function = new Function(
+                FUNC_SETERAPOSTLEGACYBRIDGEUPGRADEFIRSTBATCH, 
+                Arrays.<Type>asList(new Uint256(_eraPostLegacyBridgeUpgradeFirstBatch)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
