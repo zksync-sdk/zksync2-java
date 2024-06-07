@@ -40,6 +40,7 @@ import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.BaseEventResponse;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.tuples.generated.Tuple3;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
@@ -54,7 +55,7 @@ import org.web3j.tx.gas.ContractGasProvider;
  * <p>Generated with web3j version 1.5.0.
  */
 @SuppressWarnings("rawtypes")
-public class IZkSyncStateTransition extends Contract {
+public class IZkSyncHyperchain extends Contract {
     public static final String BINARY = "Bin file was not provided";
 
     public static final String FUNC_ACCEPTADMIN = "acceptAdmin";
@@ -119,6 +120,8 @@ public class IZkSyncStateTransition extends Contract {
 
     public static final String FUNC_GETPUBDATAPRICINGMODE = "getPubdataPricingMode";
 
+    public static final String FUNC_GETSEMVERPROTOCOLVERSION = "getSemverProtocolVersion";
+
     public static final String FUNC_GETSTATETRANSITIONMANAGER = "getStateTransitionManager";
 
     public static final String FUNC_GETTOTALBATCHESCOMMITTED = "getTotalBatchesCommitted";
@@ -171,13 +174,13 @@ public class IZkSyncStateTransition extends Contract {
 
     public static final String FUNC_SETPRIORITYTXMAXGASLIMIT = "setPriorityTxMaxGasLimit";
 
+    public static final String FUNC_SETPUBDATAPRICINGMODE = "setPubdataPricingMode";
+
     public static final String FUNC_SETTOKENMULTIPLIER = "setTokenMultiplier";
 
     public static final String FUNC_SETTRANSACTIONFILTERER = "setTransactionFilterer";
 
     public static final String FUNC_SETVALIDATOR = "setValidator";
-
-    public static final String FUNC_SETVALIDIUMMODE = "setValidiumMode";
 
     public static final String FUNC_STOREDBATCHHASH = "storedBatchHash";
 
@@ -201,10 +204,6 @@ public class IZkSyncStateTransition extends Contract {
 
     public static final Event BLOCKSVERIFICATION_EVENT = new Event("BlocksVerification", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Uint256>(true) {}));
-    ;
-
-    public static final Event ETHWITHDRAWALFINALIZED_EVENT = new Event("EthWithdrawalFinalized", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}));
     ;
 
     public static final Event EXECUTEUPGRADE_EVENT = new Event("ExecuteUpgrade", 
@@ -264,27 +263,27 @@ public class IZkSyncStateTransition extends Contract {
     ;
 
     @Deprecated
-    protected IZkSyncStateTransition(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+    protected IZkSyncHyperchain(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, credentials, gasPrice, gasLimit);
     }
 
-    protected IZkSyncStateTransition(String contractAddress, Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
+    protected IZkSyncHyperchain(String contractAddress, Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
         super(BINARY, contractAddress, web3j, credentials, contractGasProvider);
     }
 
     @Deprecated
-    protected IZkSyncStateTransition(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+    protected IZkSyncHyperchain(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
-    protected IZkSyncStateTransition(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
+    protected IZkSyncHyperchain(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
     public static List<BlockCommitEventResponse> getBlockCommitEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(BLOCKCOMMIT_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(BLOCKCOMMIT_EVENT, transactionReceipt);
         ArrayList<BlockCommitEventResponse> responses = new ArrayList<BlockCommitEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             BlockCommitEventResponse typedResponse = new BlockCommitEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.batchNumber = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
@@ -296,7 +295,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static BlockCommitEventResponse getBlockCommitEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BLOCKCOMMIT_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BLOCKCOMMIT_EVENT, log);
         BlockCommitEventResponse typedResponse = new BlockCommitEventResponse();
         typedResponse.log = log;
         typedResponse.batchNumber = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
@@ -316,9 +315,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<BlockExecutionEventResponse> getBlockExecutionEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(BLOCKEXECUTION_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(BLOCKEXECUTION_EVENT, transactionReceipt);
         ArrayList<BlockExecutionEventResponse> responses = new ArrayList<BlockExecutionEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             BlockExecutionEventResponse typedResponse = new BlockExecutionEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.batchNumber = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
@@ -330,7 +329,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static BlockExecutionEventResponse getBlockExecutionEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BLOCKEXECUTION_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BLOCKEXECUTION_EVENT, log);
         BlockExecutionEventResponse typedResponse = new BlockExecutionEventResponse();
         typedResponse.log = log;
         typedResponse.batchNumber = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
@@ -350,9 +349,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<BlocksRevertEventResponse> getBlocksRevertEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(BLOCKSREVERT_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(BLOCKSREVERT_EVENT, transactionReceipt);
         ArrayList<BlocksRevertEventResponse> responses = new ArrayList<BlocksRevertEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             BlocksRevertEventResponse typedResponse = new BlocksRevertEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.totalBatchesCommitted = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -364,7 +363,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static BlocksRevertEventResponse getBlocksRevertEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BLOCKSREVERT_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BLOCKSREVERT_EVENT, log);
         BlocksRevertEventResponse typedResponse = new BlocksRevertEventResponse();
         typedResponse.log = log;
         typedResponse.totalBatchesCommitted = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -384,9 +383,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<BlocksVerificationEventResponse> getBlocksVerificationEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(BLOCKSVERIFICATION_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(BLOCKSVERIFICATION_EVENT, transactionReceipt);
         ArrayList<BlocksVerificationEventResponse> responses = new ArrayList<BlocksVerificationEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             BlocksVerificationEventResponse typedResponse = new BlocksVerificationEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.previousLastVerifiedBatch = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
@@ -397,7 +396,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static BlocksVerificationEventResponse getBlocksVerificationEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BLOCKSVERIFICATION_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BLOCKSVERIFICATION_EVENT, log);
         BlocksVerificationEventResponse typedResponse = new BlocksVerificationEventResponse();
         typedResponse.log = log;
         typedResponse.previousLastVerifiedBatch = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
@@ -415,42 +414,10 @@ public class IZkSyncStateTransition extends Contract {
         return blocksVerificationEventFlowable(filter);
     }
 
-    public static List<EthWithdrawalFinalizedEventResponse> getEthWithdrawalFinalizedEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(ETHWITHDRAWALFINALIZED_EVENT, transactionReceipt);
-        ArrayList<EthWithdrawalFinalizedEventResponse> responses = new ArrayList<EthWithdrawalFinalizedEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
-            EthWithdrawalFinalizedEventResponse typedResponse = new EthWithdrawalFinalizedEventResponse();
-            typedResponse.log = eventValues.getLog();
-            typedResponse.to = (String) eventValues.getIndexedValues().get(0).getValue();
-            typedResponse.amount = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
-            responses.add(typedResponse);
-        }
-        return responses;
-    }
-
-    public static EthWithdrawalFinalizedEventResponse getEthWithdrawalFinalizedEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(ETHWITHDRAWALFINALIZED_EVENT, log);
-        EthWithdrawalFinalizedEventResponse typedResponse = new EthWithdrawalFinalizedEventResponse();
-        typedResponse.log = log;
-        typedResponse.to = (String) eventValues.getIndexedValues().get(0).getValue();
-        typedResponse.amount = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
-        return typedResponse;
-    }
-
-    public Flowable<EthWithdrawalFinalizedEventResponse> ethWithdrawalFinalizedEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(log -> getEthWithdrawalFinalizedEventFromLog(log));
-    }
-
-    public Flowable<EthWithdrawalFinalizedEventResponse> ethWithdrawalFinalizedEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
-        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(ETHWITHDRAWALFINALIZED_EVENT));
-        return ethWithdrawalFinalizedEventFlowable(filter);
-    }
-
     public static List<ExecuteUpgradeEventResponse> getExecuteUpgradeEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(EXECUTEUPGRADE_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(EXECUTEUPGRADE_EVENT, transactionReceipt);
         ArrayList<ExecuteUpgradeEventResponse> responses = new ArrayList<ExecuteUpgradeEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             ExecuteUpgradeEventResponse typedResponse = new ExecuteUpgradeEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.diamondCut = (DiamondCutData) eventValues.getNonIndexedValues().get(0);
@@ -460,7 +427,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static ExecuteUpgradeEventResponse getExecuteUpgradeEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(EXECUTEUPGRADE_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(EXECUTEUPGRADE_EVENT, log);
         ExecuteUpgradeEventResponse typedResponse = new ExecuteUpgradeEventResponse();
         typedResponse.log = log;
         typedResponse.diamondCut = (DiamondCutData) eventValues.getNonIndexedValues().get(0);
@@ -478,9 +445,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<FreezeEventResponse> getFreezeEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(FREEZE_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(FREEZE_EVENT, transactionReceipt);
         ArrayList<FreezeEventResponse> responses = new ArrayList<FreezeEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             FreezeEventResponse typedResponse = new FreezeEventResponse();
             typedResponse.log = eventValues.getLog();
             responses.add(typedResponse);
@@ -489,7 +456,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static FreezeEventResponse getFreezeEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(FREEZE_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(FREEZE_EVENT, log);
         FreezeEventResponse typedResponse = new FreezeEventResponse();
         typedResponse.log = log;
         return typedResponse;
@@ -506,9 +473,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<IsPorterAvailableStatusUpdateEventResponse> getIsPorterAvailableStatusUpdateEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(ISPORTERAVAILABLESTATUSUPDATE_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(ISPORTERAVAILABLESTATUSUPDATE_EVENT, transactionReceipt);
         ArrayList<IsPorterAvailableStatusUpdateEventResponse> responses = new ArrayList<IsPorterAvailableStatusUpdateEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             IsPorterAvailableStatusUpdateEventResponse typedResponse = new IsPorterAvailableStatusUpdateEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.isPorterAvailable = (Boolean) eventValues.getNonIndexedValues().get(0).getValue();
@@ -518,7 +485,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static IsPorterAvailableStatusUpdateEventResponse getIsPorterAvailableStatusUpdateEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(ISPORTERAVAILABLESTATUSUPDATE_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(ISPORTERAVAILABLESTATUSUPDATE_EVENT, log);
         IsPorterAvailableStatusUpdateEventResponse typedResponse = new IsPorterAvailableStatusUpdateEventResponse();
         typedResponse.log = log;
         typedResponse.isPorterAvailable = (Boolean) eventValues.getNonIndexedValues().get(0).getValue();
@@ -536,9 +503,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<NewAdminEventResponse> getNewAdminEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWADMIN_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWADMIN_EVENT, transactionReceipt);
         ArrayList<NewAdminEventResponse> responses = new ArrayList<NewAdminEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             NewAdminEventResponse typedResponse = new NewAdminEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.oldAdmin = (String) eventValues.getIndexedValues().get(0).getValue();
@@ -549,7 +516,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static NewAdminEventResponse getNewAdminEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWADMIN_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWADMIN_EVENT, log);
         NewAdminEventResponse typedResponse = new NewAdminEventResponse();
         typedResponse.log = log;
         typedResponse.oldAdmin = (String) eventValues.getIndexedValues().get(0).getValue();
@@ -568,9 +535,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<NewBaseTokenMultiplierEventResponse> getNewBaseTokenMultiplierEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWBASETOKENMULTIPLIER_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWBASETOKENMULTIPLIER_EVENT, transactionReceipt);
         ArrayList<NewBaseTokenMultiplierEventResponse> responses = new ArrayList<NewBaseTokenMultiplierEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             NewBaseTokenMultiplierEventResponse typedResponse = new NewBaseTokenMultiplierEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.oldNominator = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -583,7 +550,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static NewBaseTokenMultiplierEventResponse getNewBaseTokenMultiplierEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWBASETOKENMULTIPLIER_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWBASETOKENMULTIPLIER_EVENT, log);
         NewBaseTokenMultiplierEventResponse typedResponse = new NewBaseTokenMultiplierEventResponse();
         typedResponse.log = log;
         typedResponse.oldNominator = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -604,9 +571,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<NewFeeParamsEventResponse> getNewFeeParamsEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWFEEPARAMS_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWFEEPARAMS_EVENT, transactionReceipt);
         ArrayList<NewFeeParamsEventResponse> responses = new ArrayList<NewFeeParamsEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             NewFeeParamsEventResponse typedResponse = new NewFeeParamsEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.oldFeeParams = (FeeParams) eventValues.getNonIndexedValues().get(0);
@@ -617,7 +584,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static NewFeeParamsEventResponse getNewFeeParamsEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWFEEPARAMS_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWFEEPARAMS_EVENT, log);
         NewFeeParamsEventResponse typedResponse = new NewFeeParamsEventResponse();
         typedResponse.log = log;
         typedResponse.oldFeeParams = (FeeParams) eventValues.getNonIndexedValues().get(0);
@@ -636,9 +603,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<NewPendingAdminEventResponse> getNewPendingAdminEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWPENDINGADMIN_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWPENDINGADMIN_EVENT, transactionReceipt);
         ArrayList<NewPendingAdminEventResponse> responses = new ArrayList<NewPendingAdminEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             NewPendingAdminEventResponse typedResponse = new NewPendingAdminEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.oldPendingAdmin = (String) eventValues.getIndexedValues().get(0).getValue();
@@ -649,7 +616,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static NewPendingAdminEventResponse getNewPendingAdminEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWPENDINGADMIN_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWPENDINGADMIN_EVENT, log);
         NewPendingAdminEventResponse typedResponse = new NewPendingAdminEventResponse();
         typedResponse.log = log;
         typedResponse.oldPendingAdmin = (String) eventValues.getIndexedValues().get(0).getValue();
@@ -668,9 +635,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<NewPriorityRequestEventResponse> getNewPriorityRequestEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWPRIORITYREQUEST_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWPRIORITYREQUEST_EVENT, transactionReceipt);
         ArrayList<NewPriorityRequestEventResponse> responses = new ArrayList<NewPriorityRequestEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             NewPriorityRequestEventResponse typedResponse = new NewPriorityRequestEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.txId = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -684,7 +651,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static NewPriorityRequestEventResponse getNewPriorityRequestEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWPRIORITYREQUEST_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWPRIORITYREQUEST_EVENT, log);
         NewPriorityRequestEventResponse typedResponse = new NewPriorityRequestEventResponse();
         typedResponse.log = log;
         typedResponse.txId = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -706,9 +673,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<NewPriorityTxMaxGasLimitEventResponse> getNewPriorityTxMaxGasLimitEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWPRIORITYTXMAXGASLIMIT_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWPRIORITYTXMAXGASLIMIT_EVENT, transactionReceipt);
         ArrayList<NewPriorityTxMaxGasLimitEventResponse> responses = new ArrayList<NewPriorityTxMaxGasLimitEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             NewPriorityTxMaxGasLimitEventResponse typedResponse = new NewPriorityTxMaxGasLimitEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.oldPriorityTxMaxGasLimit = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -719,7 +686,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static NewPriorityTxMaxGasLimitEventResponse getNewPriorityTxMaxGasLimitEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWPRIORITYTXMAXGASLIMIT_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWPRIORITYTXMAXGASLIMIT_EVENT, log);
         NewPriorityTxMaxGasLimitEventResponse typedResponse = new NewPriorityTxMaxGasLimitEventResponse();
         typedResponse.log = log;
         typedResponse.oldPriorityTxMaxGasLimit = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -738,9 +705,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<NewTransactionFiltererEventResponse> getNewTransactionFiltererEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWTRANSACTIONFILTERER_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(NEWTRANSACTIONFILTERER_EVENT, transactionReceipt);
         ArrayList<NewTransactionFiltererEventResponse> responses = new ArrayList<NewTransactionFiltererEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             NewTransactionFiltererEventResponse typedResponse = new NewTransactionFiltererEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.oldTransactionFilterer = (String) eventValues.getNonIndexedValues().get(0).getValue();
@@ -751,7 +718,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static NewTransactionFiltererEventResponse getNewTransactionFiltererEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWTRANSACTIONFILTERER_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(NEWTRANSACTIONFILTERER_EVENT, log);
         NewTransactionFiltererEventResponse typedResponse = new NewTransactionFiltererEventResponse();
         typedResponse.log = log;
         typedResponse.oldTransactionFilterer = (String) eventValues.getNonIndexedValues().get(0).getValue();
@@ -770,9 +737,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<ProposeTransparentUpgradeEventResponse> getProposeTransparentUpgradeEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(PROPOSETRANSPARENTUPGRADE_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(PROPOSETRANSPARENTUPGRADE_EVENT, transactionReceipt);
         ArrayList<ProposeTransparentUpgradeEventResponse> responses = new ArrayList<ProposeTransparentUpgradeEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             ProposeTransparentUpgradeEventResponse typedResponse = new ProposeTransparentUpgradeEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.proposalId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
@@ -784,7 +751,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static ProposeTransparentUpgradeEventResponse getProposeTransparentUpgradeEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(PROPOSETRANSPARENTUPGRADE_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(PROPOSETRANSPARENTUPGRADE_EVENT, log);
         ProposeTransparentUpgradeEventResponse typedResponse = new ProposeTransparentUpgradeEventResponse();
         typedResponse.log = log;
         typedResponse.proposalId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
@@ -804,9 +771,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<UnfreezeEventResponse> getUnfreezeEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(UNFREEZE_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(UNFREEZE_EVENT, transactionReceipt);
         ArrayList<UnfreezeEventResponse> responses = new ArrayList<UnfreezeEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             UnfreezeEventResponse typedResponse = new UnfreezeEventResponse();
             typedResponse.log = eventValues.getLog();
             responses.add(typedResponse);
@@ -815,7 +782,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static UnfreezeEventResponse getUnfreezeEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(UNFREEZE_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(UNFREEZE_EVENT, log);
         UnfreezeEventResponse typedResponse = new UnfreezeEventResponse();
         typedResponse.log = log;
         return typedResponse;
@@ -832,9 +799,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<ValidatorStatusUpdateEventResponse> getValidatorStatusUpdateEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(VALIDATORSTATUSUPDATE_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(VALIDATORSTATUSUPDATE_EVENT, transactionReceipt);
         ArrayList<ValidatorStatusUpdateEventResponse> responses = new ArrayList<ValidatorStatusUpdateEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             ValidatorStatusUpdateEventResponse typedResponse = new ValidatorStatusUpdateEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.validatorAddress = (String) eventValues.getIndexedValues().get(0).getValue();
@@ -845,7 +812,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static ValidatorStatusUpdateEventResponse getValidatorStatusUpdateEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(VALIDATORSTATUSUPDATE_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(VALIDATORSTATUSUPDATE_EVENT, log);
         ValidatorStatusUpdateEventResponse typedResponse = new ValidatorStatusUpdateEventResponse();
         typedResponse.log = log;
         typedResponse.validatorAddress = (String) eventValues.getIndexedValues().get(0).getValue();
@@ -864,9 +831,9 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static List<ValidiumModeStatusUpdateEventResponse> getValidiumModeStatusUpdateEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = staticExtractEventParametersWithLog(VALIDIUMMODESTATUSUPDATE_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(VALIDIUMMODESTATUSUPDATE_EVENT, transactionReceipt);
         ArrayList<ValidiumModeStatusUpdateEventResponse> responses = new ArrayList<ValidiumModeStatusUpdateEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             ValidiumModeStatusUpdateEventResponse typedResponse = new ValidiumModeStatusUpdateEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.validiumMode = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -876,7 +843,7 @@ public class IZkSyncStateTransition extends Contract {
     }
 
     public static ValidiumModeStatusUpdateEventResponse getValidiumModeStatusUpdateEventFromLog(Log log) {
-        EventValuesWithLog eventValues = staticExtractEventParametersWithLog(VALIDIUMMODESTATUSUPDATE_EVENT, log);
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(VALIDIUMMODESTATUSUPDATE_EVENT, log);
         ValidiumModeStatusUpdateEventResponse typedResponse = new ValidiumModeStatusUpdateEventResponse();
         typedResponse.log = log;
         typedResponse.validiumMode = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -915,12 +882,12 @@ public class IZkSyncStateTransition extends Contract {
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> bridgehubRequestL2Transaction(BridgehubL2TransactionRequest _request, BigInteger weiValue) {
+    public RemoteFunctionCall<TransactionReceipt> bridgehubRequestL2Transaction(BridgehubL2TransactionRequest _request) {
         final Function function = new Function(
                 FUNC_BRIDGEHUBREQUESTL2TRANSACTION, 
                 Arrays.<Type>asList(_request), 
                 Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function, weiValue);
+        return executeRemoteCallTransaction(function);
     }
 
     public RemoteFunctionCall<TransactionReceipt> changeFeeParams(FeeParams _newFeeParams) {
@@ -935,7 +902,7 @@ public class IZkSyncStateTransition extends Contract {
         final Function function = new Function(
                 FUNC_COMMITBATCHES, 
                 Arrays.<Type>asList(_lastCommittedBatchData, 
-                new DynamicArray<CommitBatchInfo>(CommitBatchInfo.class, _newBatchesData)),
+                new org.web3j.abi.datatypes.DynamicArray<CommitBatchInfo>(CommitBatchInfo.class, _newBatchesData)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -943,9 +910,9 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> commitBatchesSharedBridge(BigInteger _chainId, StoredBatchInfo _lastCommittedBatchData, List<CommitBatchInfo> _newBatchesData) {
         final Function function = new Function(
                 FUNC_COMMITBATCHESSHAREDBRIDGE, 
-                Arrays.<Type>asList(new Uint256(_chainId),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_chainId), 
                 _lastCommittedBatchData, 
-                new DynamicArray<CommitBatchInfo>(CommitBatchInfo.class, _newBatchesData)),
+                new org.web3j.abi.datatypes.DynamicArray<CommitBatchInfo>(CommitBatchInfo.class, _newBatchesData)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -953,7 +920,7 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> executeBatches(List<StoredBatchInfo> _batchesData) {
         final Function function = new Function(
                 FUNC_EXECUTEBATCHES, 
-                Arrays.<Type>asList(new DynamicArray<StoredBatchInfo>(StoredBatchInfo.class, _batchesData)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.DynamicArray<StoredBatchInfo>(StoredBatchInfo.class, _batchesData)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -961,8 +928,8 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> executeBatchesSharedBridge(BigInteger _chainId, List<StoredBatchInfo> _batchesData) {
         final Function function = new Function(
                 FUNC_EXECUTEBATCHESSHAREDBRIDGE, 
-                Arrays.<Type>asList(new Uint256(_chainId),
-                new DynamicArray<StoredBatchInfo>(StoredBatchInfo.class, _batchesData)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_chainId), 
+                new org.web3j.abi.datatypes.DynamicArray<StoredBatchInfo>(StoredBatchInfo.class, _batchesData)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -977,7 +944,7 @@ public class IZkSyncStateTransition extends Contract {
 
     public RemoteFunctionCall<String> facetAddress(byte[] _selector) {
         final Function function = new Function(FUNC_FACETADDRESS, 
-                Arrays.<Type>asList(new Bytes4(_selector)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes4(_selector)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
@@ -999,7 +966,7 @@ public class IZkSyncStateTransition extends Contract {
 
     public RemoteFunctionCall<List> facetFunctionSelectors(String _facet) {
         final Function function = new Function(FUNC_FACETFUNCTIONSELECTORS, 
-                Arrays.<Type>asList(new Address(160, _facet)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _facet)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Bytes4>>() {}));
         return new RemoteFunctionCall<List>(function,
                 new Callable<List>() {
@@ -1030,13 +997,13 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> finalizeEthWithdrawal(BigInteger _l2BatchNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBatch, byte[] _message, List<byte[]> _merkleProof) {
         final Function function = new Function(
                 FUNC_FINALIZEETHWITHDRAWAL, 
-                Arrays.<Type>asList(new Uint256(_l2BatchNumber),
-                new Uint256(_l2MessageIndex),
-                new Uint16(_l2TxNumberInBatch),
-                new DynamicBytes(_message),
-                new DynamicArray<Bytes32>(
-                        Bytes32.class,
-                        org.web3j.abi.Utils.typeMap(_merkleProof, Bytes32.class))),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_l2BatchNumber), 
+                new org.web3j.abi.datatypes.generated.Uint256(_l2MessageIndex), 
+                new org.web3j.abi.datatypes.generated.Uint16(_l2TxNumberInBatch), 
+                new org.web3j.abi.datatypes.DynamicBytes(_message), 
+                new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Bytes32>(
+                        org.web3j.abi.datatypes.generated.Bytes32.class,
+                        org.web3j.abi.Utils.typeMap(_merkleProof, org.web3j.abi.datatypes.generated.Bytes32.class))), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -1154,6 +1121,23 @@ public class IZkSyncStateTransition extends Contract {
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
+    public RemoteFunctionCall<Tuple3<BigInteger, BigInteger, BigInteger>> getSemverProtocolVersion() {
+        final Function function = new Function(FUNC_GETSEMVERPROTOCOLVERSION, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint32>() {}, new TypeReference<Uint32>() {}, new TypeReference<Uint32>() {}));
+        return new RemoteFunctionCall<Tuple3<BigInteger, BigInteger, BigInteger>>(function,
+                new Callable<Tuple3<BigInteger, BigInteger, BigInteger>>() {
+                    @Override
+                    public Tuple3<BigInteger, BigInteger, BigInteger> call() throws Exception {
+                        List<Type> results = executeCallMultipleValueReturn(function);
+                        return new Tuple3<BigInteger, BigInteger, BigInteger>(
+                                (BigInteger) results.get(0).getValue(), 
+                                (BigInteger) results.get(1).getValue(), 
+                                (BigInteger) results.get(2).getValue());
+                    }
+                });
+    }
+
     public RemoteFunctionCall<String> getStateTransitionManager() {
         final Function function = new Function(FUNC_GETSTATETRANSITIONMANAGER, 
                 Arrays.<Type>asList(), 
@@ -1212,45 +1196,45 @@ public class IZkSyncStateTransition extends Contract {
 
     public RemoteFunctionCall<Boolean> isEthWithdrawalFinalized(BigInteger _l2BatchNumber, BigInteger _l2MessageIndex) {
         final Function function = new Function(FUNC_ISETHWITHDRAWALFINALIZED, 
-                Arrays.<Type>asList(new Uint256(_l2BatchNumber),
-                new Uint256(_l2MessageIndex)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_l2BatchNumber), 
+                new org.web3j.abi.datatypes.generated.Uint256(_l2MessageIndex)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
     public RemoteFunctionCall<Boolean> isFacetFreezable(String _facet) {
         final Function function = new Function(FUNC_ISFACETFREEZABLE, 
-                Arrays.<Type>asList(new Address(160, _facet)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _facet)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
     public RemoteFunctionCall<Boolean> isFunctionFreezable(byte[] _selector) {
         final Function function = new Function(FUNC_ISFUNCTIONFREEZABLE, 
-                Arrays.<Type>asList(new Bytes4(_selector)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes4(_selector)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
     public RemoteFunctionCall<Boolean> isValidator(String _address) {
         final Function function = new Function(FUNC_ISVALIDATOR, 
-                Arrays.<Type>asList(new Address(160, _address)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _address)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
     public RemoteFunctionCall<byte[]> l2LogsRootHash(BigInteger _batchNumber) {
         final Function function = new Function(FUNC_L2LOGSROOTHASH, 
-                Arrays.<Type>asList(new Uint256(_batchNumber)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_batchNumber)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bytes32>() {}));
         return executeRemoteCallSingleValueReturn(function, byte[].class);
     }
 
     public RemoteFunctionCall<BigInteger> l2TransactionBaseCost(BigInteger _gasPrice, BigInteger _l2GasLimit, BigInteger _l2GasPerPubdataByteLimit) {
         final Function function = new Function(FUNC_L2TRANSACTIONBASECOST, 
-                Arrays.<Type>asList(new Uint256(_gasPrice),
-                new Uint256(_l2GasLimit),
-                new Uint256(_l2GasPerPubdataByteLimit)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_gasPrice), 
+                new org.web3j.abi.datatypes.generated.Uint256(_l2GasLimit), 
+                new org.web3j.abi.datatypes.generated.Uint256(_l2GasPerPubdataByteLimit)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
@@ -1266,7 +1250,7 @@ public class IZkSyncStateTransition extends Contract {
         final Function function = new Function(
                 FUNC_PROVEBATCHES, 
                 Arrays.<Type>asList(_prevBatch, 
-                new DynamicArray<StoredBatchInfo>(StoredBatchInfo.class, _committedBatches),
+                new org.web3j.abi.datatypes.DynamicArray<StoredBatchInfo>(StoredBatchInfo.class, _committedBatches), 
                 _proof), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -1275,9 +1259,9 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> proveBatchesSharedBridge(BigInteger _chainId, StoredBatchInfo _prevBatch, List<StoredBatchInfo> _committedBatches, ProofInput _proof) {
         final Function function = new Function(
                 FUNC_PROVEBATCHESSHAREDBRIDGE, 
-                Arrays.<Type>asList(new Uint256(_chainId),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_chainId), 
                 _prevBatch, 
-                new DynamicArray<StoredBatchInfo>(StoredBatchInfo.class, _committedBatches),
+                new org.web3j.abi.datatypes.DynamicArray<StoredBatchInfo>(StoredBatchInfo.class, _committedBatches), 
                 _proof), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -1285,38 +1269,38 @@ public class IZkSyncStateTransition extends Contract {
 
     public RemoteFunctionCall<Boolean> proveL1ToL2TransactionStatus(byte[] _l2TxHash, BigInteger _l2BatchNumber, BigInteger _l2MessageIndex, BigInteger _l2TxNumberInBatch, List<byte[]> _merkleProof, BigInteger _status) {
         final Function function = new Function(FUNC_PROVEL1TOL2TRANSACTIONSTATUS, 
-                Arrays.<Type>asList(new Bytes32(_l2TxHash),
-                new Uint256(_l2BatchNumber),
-                new Uint256(_l2MessageIndex),
-                new Uint16(_l2TxNumberInBatch),
-                new DynamicArray<Bytes32>(
-                        Bytes32.class,
-                        org.web3j.abi.Utils.typeMap(_merkleProof, Bytes32.class)),
-                new Uint8(_status)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes32(_l2TxHash), 
+                new org.web3j.abi.datatypes.generated.Uint256(_l2BatchNumber), 
+                new org.web3j.abi.datatypes.generated.Uint256(_l2MessageIndex), 
+                new org.web3j.abi.datatypes.generated.Uint16(_l2TxNumberInBatch), 
+                new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Bytes32>(
+                        org.web3j.abi.datatypes.generated.Bytes32.class,
+                        org.web3j.abi.Utils.typeMap(_merkleProof, org.web3j.abi.datatypes.generated.Bytes32.class)), 
+                new org.web3j.abi.datatypes.generated.Uint8(_status)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
     public RemoteFunctionCall<Boolean> proveL2LogInclusion(BigInteger _batchNumber, BigInteger _index, L2Log _log, List<byte[]> _proof) {
         final Function function = new Function(FUNC_PROVEL2LOGINCLUSION, 
-                Arrays.<Type>asList(new Uint256(_batchNumber),
-                new Uint256(_index),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_batchNumber), 
+                new org.web3j.abi.datatypes.generated.Uint256(_index), 
                 _log, 
-                new DynamicArray<Bytes32>(
-                        Bytes32.class,
-                        org.web3j.abi.Utils.typeMap(_proof, Bytes32.class))),
+                new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Bytes32>(
+                        org.web3j.abi.datatypes.generated.Bytes32.class,
+                        org.web3j.abi.Utils.typeMap(_proof, org.web3j.abi.datatypes.generated.Bytes32.class))), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
     public RemoteFunctionCall<Boolean> proveL2MessageInclusion(BigInteger _batchNumber, BigInteger _index, L2Message _message, List<byte[]> _proof) {
         final Function function = new Function(FUNC_PROVEL2MESSAGEINCLUSION, 
-                Arrays.<Type>asList(new Uint256(_batchNumber),
-                new Uint256(_index),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_batchNumber), 
+                new org.web3j.abi.datatypes.generated.Uint256(_index), 
                 _message, 
-                new DynamicArray<Bytes32>(
-                        Bytes32.class,
-                        org.web3j.abi.Utils.typeMap(_proof, Bytes32.class))),
+                new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Bytes32>(
+                        org.web3j.abi.datatypes.generated.Bytes32.class,
+                        org.web3j.abi.Utils.typeMap(_proof, org.web3j.abi.datatypes.generated.Bytes32.class))), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
@@ -1324,15 +1308,15 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> requestL2Transaction(String _contractL2, BigInteger _l2Value, byte[] _calldata, BigInteger _l2GasLimit, BigInteger _l2GasPerPubdataByteLimit, List<byte[]> _factoryDeps, String _refundRecipient, BigInteger weiValue) {
         final Function function = new Function(
                 FUNC_REQUESTL2TRANSACTION, 
-                Arrays.<Type>asList(new Address(160, _contractL2),
-                new Uint256(_l2Value),
-                new DynamicBytes(_calldata),
-                new Uint256(_l2GasLimit),
-                new Uint256(_l2GasPerPubdataByteLimit),
-                new DynamicArray<DynamicBytes>(
-                        DynamicBytes.class,
-                        org.web3j.abi.Utils.typeMap(_factoryDeps, DynamicBytes.class)),
-                new Address(160, _refundRecipient)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _contractL2), 
+                new org.web3j.abi.datatypes.generated.Uint256(_l2Value), 
+                new org.web3j.abi.datatypes.DynamicBytes(_calldata), 
+                new org.web3j.abi.datatypes.generated.Uint256(_l2GasLimit), 
+                new org.web3j.abi.datatypes.generated.Uint256(_l2GasPerPubdataByteLimit), 
+                new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.DynamicBytes>(
+                        org.web3j.abi.datatypes.DynamicBytes.class,
+                        org.web3j.abi.Utils.typeMap(_factoryDeps, org.web3j.abi.datatypes.DynamicBytes.class)), 
+                new org.web3j.abi.datatypes.Address(160, _refundRecipient)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function, weiValue);
     }
@@ -1340,7 +1324,7 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> revertBatches(BigInteger _newLastBatch) {
         final Function function = new Function(
                 FUNC_REVERTBATCHES, 
-                Arrays.<Type>asList(new Uint256(_newLastBatch)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_newLastBatch)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -1348,8 +1332,8 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> revertBatchesSharedBridge(BigInteger _chainId, BigInteger _newLastBatch) {
         final Function function = new Function(
                 FUNC_REVERTBATCHESSHAREDBRIDGE, 
-                Arrays.<Type>asList(new Uint256(_chainId),
-                new Uint256(_newLastBatch)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_chainId), 
+                new org.web3j.abi.datatypes.generated.Uint256(_newLastBatch)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -1357,7 +1341,7 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> setPendingAdmin(String _newPendingAdmin) {
         final Function function = new Function(
                 FUNC_SETPENDINGADMIN, 
-                Arrays.<Type>asList(new Address(160, _newPendingAdmin)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _newPendingAdmin)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -1365,7 +1349,7 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> setPorterAvailability(Boolean _zkPorterIsAvailable) {
         final Function function = new Function(
                 FUNC_SETPORTERAVAILABILITY, 
-                Arrays.<Type>asList(new Bool(_zkPorterIsAvailable)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Bool(_zkPorterIsAvailable)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -1373,7 +1357,15 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> setPriorityTxMaxGasLimit(BigInteger _newPriorityTxMaxGasLimit) {
         final Function function = new Function(
                 FUNC_SETPRIORITYTXMAXGASLIMIT, 
-                Arrays.<Type>asList(new Uint256(_newPriorityTxMaxGasLimit)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_newPriorityTxMaxGasLimit)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> setPubdataPricingMode(BigInteger _pricingMode) {
+        final Function function = new Function(
+                FUNC_SETPUBDATAPRICINGMODE, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint8(_pricingMode)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -1381,8 +1373,8 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> setTokenMultiplier(BigInteger _nominator, BigInteger _denominator) {
         final Function function = new Function(
                 FUNC_SETTOKENMULTIPLIER, 
-                Arrays.<Type>asList(new Uint128(_nominator),
-                new Uint128(_denominator)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint128(_nominator), 
+                new org.web3j.abi.datatypes.generated.Uint128(_denominator)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -1390,7 +1382,7 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> setTransactionFilterer(String _transactionFilterer) {
         final Function function = new Function(
                 FUNC_SETTRANSACTIONFILTERER, 
-                Arrays.<Type>asList(new Address(160, _transactionFilterer)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _transactionFilterer)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -1398,23 +1390,15 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> setValidator(String _validator, Boolean _active) {
         final Function function = new Function(
                 FUNC_SETVALIDATOR, 
-                Arrays.<Type>asList(new Address(160, _validator),
-                new Bool(_active)),
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
-    }
-
-    public RemoteFunctionCall<TransactionReceipt> setValidiumMode(BigInteger _validiumMode) {
-        final Function function = new Function(
-                FUNC_SETVALIDIUMMODE, 
-                Arrays.<Type>asList(new Uint8(_validiumMode)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(160, _validator), 
+                new org.web3j.abi.datatypes.Bool(_active)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
     public RemoteFunctionCall<byte[]> storedBatchHash(BigInteger _batchNumber) {
         final Function function = new Function(FUNC_STOREDBATCHHASH, 
-                Arrays.<Type>asList(new Uint256(_batchNumber)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_batchNumber)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bytes32>() {}));
         return executeRemoteCallSingleValueReturn(function, byte[].class);
     }
@@ -1438,28 +1422,28 @@ public class IZkSyncStateTransition extends Contract {
     public RemoteFunctionCall<TransactionReceipt> upgradeChainFromVersion(BigInteger _protocolVersion, DiamondCutData _cutData) {
         final Function function = new Function(
                 FUNC_UPGRADECHAINFROMVERSION, 
-                Arrays.<Type>asList(new Uint256(_protocolVersion),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_protocolVersion), 
                 _cutData), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
     @Deprecated
-    public static IZkSyncStateTransition load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
-        return new IZkSyncStateTransition(contractAddress, web3j, credentials, gasPrice, gasLimit);
+    public static IZkSyncHyperchain load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+        return new IZkSyncHyperchain(contractAddress, web3j, credentials, gasPrice, gasLimit);
     }
 
     @Deprecated
-    public static IZkSyncStateTransition load(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
-        return new IZkSyncStateTransition(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
+    public static IZkSyncHyperchain load(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+        return new IZkSyncHyperchain(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
-    public static IZkSyncStateTransition load(String contractAddress, Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
-        return new IZkSyncStateTransition(contractAddress, web3j, credentials, contractGasProvider);
+    public static IZkSyncHyperchain load(String contractAddress, Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
+        return new IZkSyncHyperchain(contractAddress, web3j, credentials, contractGasProvider);
     }
 
-    public static IZkSyncStateTransition load(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
-        return new IZkSyncStateTransition(contractAddress, web3j, transactionManager, contractGasProvider);
+    public static IZkSyncHyperchain load(String contractAddress, Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
+        return new IZkSyncHyperchain(contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
     public static class FacetCut extends DynamicStruct {
@@ -1472,12 +1456,12 @@ public class IZkSyncStateTransition extends Contract {
         public List<byte[]> selectors;
 
         public FacetCut(String facet, BigInteger action, Boolean isFreezable, List<byte[]> selectors) {
-            super(new Address(160, facet),
-                    new Uint8(action),
-                    new Bool(isFreezable),
-                    new DynamicArray<Bytes4>(
-                            Bytes4.class,
-                            org.web3j.abi.Utils.typeMap(selectors, Bytes4.class)));
+            super(new org.web3j.abi.datatypes.Address(160, facet), 
+                    new org.web3j.abi.datatypes.generated.Uint8(action), 
+                    new org.web3j.abi.datatypes.Bool(isFreezable), 
+                    new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Bytes4>(
+                            org.web3j.abi.datatypes.generated.Bytes4.class,
+                            org.web3j.abi.Utils.typeMap(selectors, org.web3j.abi.datatypes.generated.Bytes4.class)));
             this.facet = facet;
             this.action = action;
             this.isFreezable = isFreezable;
@@ -1507,12 +1491,12 @@ public class IZkSyncStateTransition extends Contract {
         public BigInteger minimalL2GasPrice;
 
         public FeeParams(BigInteger pubdataPricingMode, BigInteger batchOverheadL1Gas, BigInteger maxPubdataPerBatch, BigInteger maxL2GasPerBatch, BigInteger priorityTxMaxPubdata, BigInteger minimalL2GasPrice) {
-            super(new Uint8(pubdataPricingMode),
-                    new Uint32(batchOverheadL1Gas),
-                    new Uint32(maxPubdataPerBatch),
-                    new Uint32(maxL2GasPerBatch),
-                    new Uint32(priorityTxMaxPubdata),
-                    new Uint64(minimalL2GasPrice));
+            super(new org.web3j.abi.datatypes.generated.Uint8(pubdataPricingMode), 
+                    new org.web3j.abi.datatypes.generated.Uint32(batchOverheadL1Gas), 
+                    new org.web3j.abi.datatypes.generated.Uint32(maxPubdataPerBatch), 
+                    new org.web3j.abi.datatypes.generated.Uint32(maxL2GasPerBatch), 
+                    new org.web3j.abi.datatypes.generated.Uint32(priorityTxMaxPubdata), 
+                    new org.web3j.abi.datatypes.generated.Uint64(minimalL2GasPrice));
             this.pubdataPricingMode = pubdataPricingMode;
             this.batchOverheadL1Gas = batchOverheadL1Gas;
             this.maxPubdataPerBatch = maxPubdataPerBatch;
@@ -1566,26 +1550,26 @@ public class IZkSyncStateTransition extends Contract {
         public byte[] reservedDynamic;
 
         public L2CanonicalTransaction(BigInteger txType, BigInteger from, BigInteger to, BigInteger gasLimit, BigInteger gasPerPubdataByteLimit, BigInteger maxFeePerGas, BigInteger maxPriorityFeePerGas, BigInteger paymaster, BigInteger nonce, BigInteger value, List<BigInteger> reserved, byte[] data, byte[] signature, List<BigInteger> factoryDeps, byte[] paymasterInput, byte[] reservedDynamic) {
-            super(new Uint256(txType),
-                    new Uint256(from),
-                    new Uint256(to),
-                    new Uint256(gasLimit),
-                    new Uint256(gasPerPubdataByteLimit),
-                    new Uint256(maxFeePerGas),
-                    new Uint256(maxPriorityFeePerGas),
-                    new Uint256(paymaster),
-                    new Uint256(nonce),
-                    new Uint256(value),
-                    new StaticArray4<Uint256>(
-                            Uint256.class,
-                            org.web3j.abi.Utils.typeMap(reserved, Uint256.class)),
-                    new DynamicBytes(data),
-                    new DynamicBytes(signature),
-                    new DynamicArray<Uint256>(
-                            Uint256.class,
-                            org.web3j.abi.Utils.typeMap(factoryDeps, Uint256.class)),
-                    new DynamicBytes(paymasterInput),
-                    new DynamicBytes(reservedDynamic));
+            super(new org.web3j.abi.datatypes.generated.Uint256(txType), 
+                    new org.web3j.abi.datatypes.generated.Uint256(from), 
+                    new org.web3j.abi.datatypes.generated.Uint256(to), 
+                    new org.web3j.abi.datatypes.generated.Uint256(gasLimit), 
+                    new org.web3j.abi.datatypes.generated.Uint256(gasPerPubdataByteLimit), 
+                    new org.web3j.abi.datatypes.generated.Uint256(maxFeePerGas), 
+                    new org.web3j.abi.datatypes.generated.Uint256(maxPriorityFeePerGas), 
+                    new org.web3j.abi.datatypes.generated.Uint256(paymaster), 
+                    new org.web3j.abi.datatypes.generated.Uint256(nonce), 
+                    new org.web3j.abi.datatypes.generated.Uint256(value), 
+                    new org.web3j.abi.datatypes.generated.StaticArray4<org.web3j.abi.datatypes.generated.Uint256>(
+                            org.web3j.abi.datatypes.generated.Uint256.class,
+                            org.web3j.abi.Utils.typeMap(reserved, org.web3j.abi.datatypes.generated.Uint256.class)), 
+                    new org.web3j.abi.datatypes.DynamicBytes(data), 
+                    new org.web3j.abi.datatypes.DynamicBytes(signature), 
+                    new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Uint256>(
+                            org.web3j.abi.datatypes.generated.Uint256.class,
+                            org.web3j.abi.Utils.typeMap(factoryDeps, org.web3j.abi.datatypes.generated.Uint256.class)), 
+                    new org.web3j.abi.datatypes.DynamicBytes(paymasterInput), 
+                    new org.web3j.abi.datatypes.DynamicBytes(reservedDynamic));
             this.txType = txType;
             this.from = from;
             this.to = to;
@@ -1645,17 +1629,17 @@ public class IZkSyncStateTransition extends Contract {
         public String refundRecipient;
 
         public BridgehubL2TransactionRequest(String sender, String contractL2, BigInteger mintValue, BigInteger l2Value, byte[] l2Calldata, BigInteger l2GasLimit, BigInteger l2GasPerPubdataByteLimit, List<byte[]> factoryDeps, String refundRecipient) {
-            super(new Address(160, sender),
-                    new Address(160, contractL2),
-                    new Uint256(mintValue),
-                    new Uint256(l2Value),
-                    new DynamicBytes(l2Calldata),
-                    new Uint256(l2GasLimit),
-                    new Uint256(l2GasPerPubdataByteLimit),
-                    new DynamicArray<DynamicBytes>(
-                            DynamicBytes.class,
-                            org.web3j.abi.Utils.typeMap(factoryDeps, DynamicBytes.class)),
-                    new Address(160, refundRecipient));
+            super(new org.web3j.abi.datatypes.Address(160, sender), 
+                    new org.web3j.abi.datatypes.Address(160, contractL2), 
+                    new org.web3j.abi.datatypes.generated.Uint256(mintValue), 
+                    new org.web3j.abi.datatypes.generated.Uint256(l2Value), 
+                    new org.web3j.abi.datatypes.DynamicBytes(l2Calldata), 
+                    new org.web3j.abi.datatypes.generated.Uint256(l2GasLimit), 
+                    new org.web3j.abi.datatypes.generated.Uint256(l2GasPerPubdataByteLimit), 
+                    new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.DynamicBytes>(
+                            org.web3j.abi.datatypes.DynamicBytes.class,
+                            org.web3j.abi.Utils.typeMap(factoryDeps, org.web3j.abi.datatypes.DynamicBytes.class)), 
+                    new org.web3j.abi.datatypes.Address(160, refundRecipient));
             this.sender = sender;
             this.contractL2 = contractL2;
             this.mintValue = mintValue;
@@ -1699,14 +1683,14 @@ public class IZkSyncStateTransition extends Contract {
         public byte[] commitment;
 
         public StoredBatchInfo(BigInteger batchNumber, byte[] batchHash, BigInteger indexRepeatedStorageChanges, BigInteger numberOfLayer1Txs, byte[] priorityOperationsHash, byte[] l2LogsTreeRoot, BigInteger timestamp, byte[] commitment) {
-            super(new Uint64(batchNumber),
-                    new Bytes32(batchHash),
-                    new Uint64(indexRepeatedStorageChanges),
-                    new Uint256(numberOfLayer1Txs),
-                    new Bytes32(priorityOperationsHash),
-                    new Bytes32(l2LogsTreeRoot),
-                    new Uint256(timestamp),
-                    new Bytes32(commitment));
+            super(new org.web3j.abi.datatypes.generated.Uint64(batchNumber), 
+                    new org.web3j.abi.datatypes.generated.Bytes32(batchHash), 
+                    new org.web3j.abi.datatypes.generated.Uint64(indexRepeatedStorageChanges), 
+                    new org.web3j.abi.datatypes.generated.Uint256(numberOfLayer1Txs), 
+                    new org.web3j.abi.datatypes.generated.Bytes32(priorityOperationsHash), 
+                    new org.web3j.abi.datatypes.generated.Bytes32(l2LogsTreeRoot), 
+                    new org.web3j.abi.datatypes.generated.Uint256(timestamp), 
+                    new org.web3j.abi.datatypes.generated.Bytes32(commitment));
             this.batchNumber = batchNumber;
             this.batchHash = batchHash;
             this.indexRepeatedStorageChanges = indexRepeatedStorageChanges;
@@ -1752,16 +1736,16 @@ public class IZkSyncStateTransition extends Contract {
         public byte[] pubdataCommitments;
 
         public CommitBatchInfo(BigInteger batchNumber, BigInteger timestamp, BigInteger indexRepeatedStorageChanges, byte[] newStateRoot, BigInteger numberOfLayer1Txs, byte[] priorityOperationsHash, byte[] bootloaderHeapInitialContentsHash, byte[] eventsQueueStateHash, byte[] systemLogs, byte[] pubdataCommitments) {
-            super(new Uint64(batchNumber),
-                    new Uint64(timestamp),
-                    new Uint64(indexRepeatedStorageChanges),
-                    new Bytes32(newStateRoot),
-                    new Uint256(numberOfLayer1Txs),
-                    new Bytes32(priorityOperationsHash),
-                    new Bytes32(bootloaderHeapInitialContentsHash),
-                    new Bytes32(eventsQueueStateHash),
-                    new DynamicBytes(systemLogs),
-                    new DynamicBytes(pubdataCommitments));
+            super(new org.web3j.abi.datatypes.generated.Uint64(batchNumber), 
+                    new org.web3j.abi.datatypes.generated.Uint64(timestamp), 
+                    new org.web3j.abi.datatypes.generated.Uint64(indexRepeatedStorageChanges), 
+                    new org.web3j.abi.datatypes.generated.Bytes32(newStateRoot), 
+                    new org.web3j.abi.datatypes.generated.Uint256(numberOfLayer1Txs), 
+                    new org.web3j.abi.datatypes.generated.Bytes32(priorityOperationsHash), 
+                    new org.web3j.abi.datatypes.generated.Bytes32(bootloaderHeapInitialContentsHash), 
+                    new org.web3j.abi.datatypes.generated.Bytes32(eventsQueueStateHash), 
+                    new org.web3j.abi.datatypes.DynamicBytes(systemLogs), 
+                    new org.web3j.abi.datatypes.DynamicBytes(pubdataCommitments));
             this.batchNumber = batchNumber;
             this.timestamp = timestamp;
             this.indexRepeatedStorageChanges = indexRepeatedStorageChanges;
@@ -1795,10 +1779,10 @@ public class IZkSyncStateTransition extends Contract {
         public List<byte[]> selectors;
 
         public Facet(String addr, List<byte[]> selectors) {
-            super(new Address(160, addr),
-                    new DynamicArray<Bytes4>(
-                            Bytes4.class,
-                            org.web3j.abi.Utils.typeMap(selectors, Bytes4.class)));
+            super(new org.web3j.abi.datatypes.Address(160, addr), 
+                    new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Bytes4>(
+                            org.web3j.abi.datatypes.generated.Bytes4.class,
+                            org.web3j.abi.Utils.typeMap(selectors, org.web3j.abi.datatypes.generated.Bytes4.class)));
             this.addr = addr;
             this.selectors = selectors;
         }
@@ -1818,9 +1802,9 @@ public class IZkSyncStateTransition extends Contract {
         public byte[] recursionCircuitsSetVksHash;
 
         public VerifierParams(byte[] recursionNodeLevelVkHash, byte[] recursionLeafLevelVkHash, byte[] recursionCircuitsSetVksHash) {
-            super(new Bytes32(recursionNodeLevelVkHash),
-                    new Bytes32(recursionLeafLevelVkHash),
-                    new Bytes32(recursionCircuitsSetVksHash));
+            super(new org.web3j.abi.datatypes.generated.Bytes32(recursionNodeLevelVkHash), 
+                    new org.web3j.abi.datatypes.generated.Bytes32(recursionLeafLevelVkHash), 
+                    new org.web3j.abi.datatypes.generated.Bytes32(recursionCircuitsSetVksHash));
             this.recursionNodeLevelVkHash = recursionNodeLevelVkHash;
             this.recursionLeafLevelVkHash = recursionLeafLevelVkHash;
             this.recursionCircuitsSetVksHash = recursionCircuitsSetVksHash;
@@ -1842,9 +1826,9 @@ public class IZkSyncStateTransition extends Contract {
         public BigInteger layer2Tip;
 
         public PriorityOperation(byte[] canonicalTxHash, BigInteger expirationTimestamp, BigInteger layer2Tip) {
-            super(new Bytes32(canonicalTxHash),
-                    new Uint64(expirationTimestamp),
-                    new Uint192(layer2Tip));
+            super(new org.web3j.abi.datatypes.generated.Bytes32(canonicalTxHash), 
+                    new org.web3j.abi.datatypes.generated.Uint64(expirationTimestamp), 
+                    new org.web3j.abi.datatypes.generated.Uint192(layer2Tip));
             this.canonicalTxHash = canonicalTxHash;
             this.expirationTimestamp = expirationTimestamp;
             this.layer2Tip = layer2Tip;
@@ -1864,12 +1848,12 @@ public class IZkSyncStateTransition extends Contract {
         public List<BigInteger> serializedProof;
 
         public ProofInput(List<BigInteger> recursiveAggregationInput, List<BigInteger> serializedProof) {
-            super(new DynamicArray<Uint256>(
-                            Uint256.class,
-                            org.web3j.abi.Utils.typeMap(recursiveAggregationInput, Uint256.class)),
-                    new DynamicArray<Uint256>(
-                            Uint256.class,
-                            org.web3j.abi.Utils.typeMap(serializedProof, Uint256.class)));
+            super(new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Uint256>(
+                            org.web3j.abi.datatypes.generated.Uint256.class,
+                            org.web3j.abi.Utils.typeMap(recursiveAggregationInput, org.web3j.abi.datatypes.generated.Uint256.class)), 
+                    new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Uint256>(
+                            org.web3j.abi.datatypes.generated.Uint256.class,
+                            org.web3j.abi.Utils.typeMap(serializedProof, org.web3j.abi.datatypes.generated.Uint256.class)));
             this.recursiveAggregationInput = recursiveAggregationInput;
             this.serializedProof = serializedProof;
         }
@@ -1895,12 +1879,12 @@ public class IZkSyncStateTransition extends Contract {
         public byte[] value;
 
         public L2Log(BigInteger l2ShardId, Boolean isService, BigInteger txNumberInBatch, String sender, byte[] key, byte[] value) {
-            super(new Uint8(l2ShardId),
-                    new Bool(isService),
-                    new Uint16(txNumberInBatch),
-                    new Address(160, sender),
-                    new Bytes32(key),
-                    new Bytes32(value));
+            super(new org.web3j.abi.datatypes.generated.Uint8(l2ShardId), 
+                    new org.web3j.abi.datatypes.Bool(isService), 
+                    new org.web3j.abi.datatypes.generated.Uint16(txNumberInBatch), 
+                    new org.web3j.abi.datatypes.Address(160, sender), 
+                    new org.web3j.abi.datatypes.generated.Bytes32(key), 
+                    new org.web3j.abi.datatypes.generated.Bytes32(value));
             this.l2ShardId = l2ShardId;
             this.isService = isService;
             this.txNumberInBatch = txNumberInBatch;
@@ -1928,9 +1912,9 @@ public class IZkSyncStateTransition extends Contract {
         public byte[] data;
 
         public L2Message(BigInteger txNumberInBatch, String sender, byte[] data) {
-            super(new Uint16(txNumberInBatch),
-                    new Address(160, sender),
-                    new DynamicBytes(data));
+            super(new org.web3j.abi.datatypes.generated.Uint16(txNumberInBatch), 
+                    new org.web3j.abi.datatypes.Address(160, sender), 
+                    new org.web3j.abi.datatypes.DynamicBytes(data));
             this.txNumberInBatch = txNumberInBatch;
             this.sender = sender;
             this.data = data;
@@ -1952,9 +1936,9 @@ public class IZkSyncStateTransition extends Contract {
         public byte[] initCalldata;
 
         public DiamondCutData(List<FacetCut> facetCuts, String initAddress, byte[] initCalldata) {
-            super(new DynamicArray<FacetCut>(FacetCut.class, facetCuts),
-                    new Address(160, initAddress),
-                    new DynamicBytes(initCalldata));
+            super(new org.web3j.abi.datatypes.DynamicArray<FacetCut>(FacetCut.class, facetCuts), 
+                    new org.web3j.abi.datatypes.Address(160, initAddress), 
+                    new org.web3j.abi.datatypes.DynamicBytes(initCalldata));
             this.facetCuts = facetCuts;
             this.initAddress = initAddress;
             this.initCalldata = initCalldata;
@@ -1996,12 +1980,6 @@ public class IZkSyncStateTransition extends Contract {
         public BigInteger previousLastVerifiedBatch;
 
         public BigInteger currentLastVerifiedBatch;
-    }
-
-    public static class EthWithdrawalFinalizedEventResponse extends BaseEventResponse {
-        public String to;
-
-        public BigInteger amount;
     }
 
     public static class ExecuteUpgradeEventResponse extends BaseEventResponse {

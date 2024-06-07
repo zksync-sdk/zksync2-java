@@ -218,22 +218,11 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     }
 
     public Transaction getWithdrawTransaction(WithdrawTransaction tx, ContractGasProvider gasProvider, TransactionManager transactionManager) throws Exception {
-        boolean isEthBasedChain = isEthBasedChain();
-
-        if (tx.tokenAddress != null &&
-                !tx.tokenAddress.isEmpty() &&
-                tx.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS) &&
-                !isEthBasedChain){
+        tx.tokenAddress = tx.tokenAddress == null ? ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS : tx.tokenAddress;
+        if (tx.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS) || tx.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)){
             tx.tokenAddress = l2TokenAddress(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS);
-        } else if (tx.tokenAddress == null ||
-                tx.tokenAddress.isEmpty() ||
-                isBaseToken(tx.tokenAddress)){
-            tx.tokenAddress = ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS;
         }
 
-        if (tx.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS)){
-            tx.tokenAddress = ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS;
-        }
         if (tx.from == null && tx.to == null){
             throw new Error("Withdrawal target address is undefined!");
         }
@@ -241,7 +230,7 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
         tx.to = tx.to == null ? tx.from : tx.to;
         tx.options = tx.options == null ? new TransactionOptions() : tx.options;
 
-        if (ZkSyncAddresses.isEth(tx.tokenAddress)){
+        if (tx.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS)){
             if (tx.options.getValue() == null){
                 tx.options.setValue(tx.amount);
             }
@@ -253,7 +242,7 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
             }
 
             IEthToken ethL2Token = IEthToken.load(ZkSyncAddresses.L2_ETH_TOKEN_ADDRESS, this, transactionManager, gasProvider);
-            String data = ethL2Token.encodeWithdraw(tx.to, passedValue);
+            String data = ethL2Token.encodeWithdraw(tx.to);
             Eip712Meta meta = new Eip712Meta(BigInteger.valueOf(50000), null, null, tx.paymasterParams);
 
             return new Transaction(tx.from, ZkSyncAddresses.L2_ETH_TOKEN_ADDRESS, BigInteger.ZERO, BigInteger.ZERO, tx.amount, data, meta);
@@ -275,17 +264,9 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     }
 
     public Transaction getTransferTransaction(TransferTransaction tx, TransactionManager transactionManager, ContractGasProvider gasProvider){
-        boolean isEthBasedChain = isEthBasedChain();
-
-        if (tx.tokenAddress != null &&
-                !tx.tokenAddress.isEmpty() &&
-                tx.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS) &&
-                !isEthBasedChain){
+        tx.tokenAddress = tx.tokenAddress == null ? ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS : tx.tokenAddress;
+        if (tx.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS) || tx.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)){
             tx.tokenAddress = l2TokenAddress(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS);
-        } else if (tx.tokenAddress == null ||
-                tx.tokenAddress.isEmpty() ||
-                isBaseToken(tx.tokenAddress)){
-            tx.tokenAddress = ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS;
         }
 
         tx.to = tx.to == null ? tx.from : tx.to;
@@ -299,7 +280,7 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
         }
         Eip712Meta meta = new Eip712Meta(tx.gasPerPubData, null, null, tx.paymasterParams);
 
-        if (tx.tokenAddress == null || tx.tokenAddress == ZkSyncAddresses.LEGACY_ETH_ADDRESS || isBaseToken(tx.tokenAddress)){
+        if (tx.tokenAddress.equalsIgnoreCase(ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS)){
             return new Transaction(tx.from, tx.to, BigInteger.ZERO, gasPrice, tx.amount, "0x", meta);
         }
         ERC20 token = ERC20.load(tx.tokenAddress, this, transactionManager, gasProvider);
