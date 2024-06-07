@@ -5,6 +5,7 @@ import io.zksync.crypto.signer.PrivateKeyEthSigner;
 import io.zksync.methods.response.FullDepositFee;
 import io.zksync.methods.response.L2toL1Log;
 import io.zksync.methods.response.ZkTransactionReceipt;
+import io.zksync.methods.response.ZksMessageProof;
 import io.zksync.protocol.ZkSync;
 import io.zksync.protocol.core.BridgeAddresses;
 import io.zksync.protocol.core.L2ToL1MessageProof;
@@ -30,10 +31,7 @@ import org.web3j.crypto.TransactionEncoder;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.*;
 import org.web3j.protocol.core.methods.request.Transaction;
-import org.web3j.protocol.core.methods.response.EthEstimateGas;
-import org.web3j.protocol.core.methods.response.EthSendTransaction;
-import org.web3j.protocol.core.methods.response.Log;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.core.methods.response.*;
 import org.web3j.tx.Contract;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
@@ -451,7 +449,7 @@ public class WalletL1 {
         IBridgehub bridgehub = getBridgehubContract();
         BigInteger chainId = providerL2.ethChainId().sendAsync().join().getChainId();
         String baseTokenAddress = getBaseToken().sendAsync().join();
-        IL1Bridge sharedL1Bridge = getL1BridgeContracts().sharedL1Bridge;
+        IL1SharedBridge sharedL1Bridge = getL1BridgeContracts().sharedL1Bridge;
 
         GetDepositTransaction depositTransaction = _getDepositBaseTokenOnNonETHBasedChainTx(transaction);
         RequestExecuteTransaction tx = depositTransaction.requestExecuteTransaction;
@@ -476,7 +474,7 @@ public class WalletL1 {
 
     private Request<?, EthSendTransaction> _depositETHToNonETHBasedChain(DepositTransaction transaction) throws Exception {
         String baseTokenAddress = getBaseToken().sendAsync().join();
-        IL1Bridge sharedL1Bridge = getL1BridgeContracts().sharedL1Bridge;
+        IL1SharedBridge sharedL1Bridge = getL1BridgeContracts().sharedL1Bridge;
 
         GetDepositTransaction depositTransaction = _getDepositETHOnNonETHBasedChainTx(transaction);
         Transaction tx = depositTransaction.tx;
@@ -644,7 +642,7 @@ public class WalletL1 {
     private GetDepositTransaction _getDepositETHOnNonETHBasedChainTx(DepositTransaction transaction) throws Exception {
         IBridgehub bridgehub = getBridgehubContract();
         BigInteger chainId = providerL2.ethChainId().sendAsync().join().getChainId();
-        IL1Bridge sharedBridge = getL1BridgeContracts().sharedL1Bridge;
+        IL1SharedBridge sharedBridge = getL1BridgeContracts().sharedL1Bridge;
 
         _getDepositTxWithDefaults(transaction);
 
@@ -913,9 +911,36 @@ public class WalletL1 {
             return fullFee;
         });
     }
+    public CompletableFuture<Boolean> isWithdrawalFinalized(String txHash){
+        return isWithdrawalFinalized(txHash, 0);
+    }
 
-    public void getPriorityOpConfirmation(String txHash, int index){
+    public CompletableFuture<Boolean> isWithdrawalFinalized(String txHash, int index){
+        ZkTransactionReceipt receipt = providerL2.zksGetTransactionReceipt(txHash).sendAsync().join().getResult();
+        int logIndex = getWithdrawalLogIndex(receipt.getLogs(), index);
+        Log log = receipt.getLogs().get(logIndex);
 
+        int l2ToL1LogIndex = getWithdrawalL2ToL1LogIndex(receipt.getl2ToL1Logs(), index);
+        String sender = Numeric.prependHexPrefix(log.getTopics().get(1).substring(26));
+
+        CompletableFuture<ZksMessageProof> proof = providerL2.zksGetL2ToL1LogProof(txHash, l2ToL1LogIndex).sendAsync();
+        CompletableFuture<EthChainId> chainId = providerL2.ethChainId().sendAsync();
+
+        IL1SharedBridge sharedBridge;
+        if (providerL2.isBaseToken(sender)){
+            sharedBridge = getL1BridgeContracts().sharedL1Bridge;
+        }else{
+            IL2SharedBridge sharedBridgeL2 = IL2SharedBridge.load(sender, providerL2, credentials, gasProvider);
+            String l1BridgeAddress = sharedBridgeL2.l1SharedBridge().sendAsync().join();
+
+            sharedBridge = IL1SharedBridge.load(l1BridgeAddress, providerL1, credentials, gasProvider);
+        }
+
+        if (proof.join() == null){
+            throw new Error("Log proof not found!");
+        }
+
+        return sharedBridge.isWithdrawalFinalized(chainId.join().getChainId(), receipt.getL1BatchNumber(), BigInteger.valueOf(proof.join().getId())).sendAsync();
     }
 
     public RemoteFunctionCall<TransactionReceipt> finalizeWithdraw(String txHash, int index) throws Exception {
