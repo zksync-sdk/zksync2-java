@@ -19,7 +19,7 @@ like account abstraction, requires providing additional fields to those that Eth
 The library is made in such a way that after replacing `web3j` with `zksync2-java` most client apps will work out of
 box.
 
-🔗 For a detailed walkthrough, refer to the [official documentation](https://era.zksync.io/docs/api/java).
+🔗 For a detailed walkthrough, refer to the [official documentation](https://docs.zksync.io/sdk/java/getting-started).
 
 
 ## Dependency
