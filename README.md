@@ -2,18 +2,22 @@
 
 # 🚀 zksync2-java Java SDK 🚀
 
+
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE-MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-orange)](LICENSE-APACHE)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](https://www.contributor-covenant.org/)
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-orange)](.github/CONTRIBUTING.md)
+[![X (formerly Twitter) Follow](https://badgen.net/badge/twitter/@zksyncDevs/1DA1F2?icon&label)](https://x.com/zksyncDevs)
 ![downloads](https://img.shields.io/github/downloads/atom/atom/total.svg)
-![build](https://img.shields.io/appveyor/ci/:user/:repo.svg)
-![chat](https://img.shields.io/discord/:serverId.svg)
 
 ![Era Logo](https://github.com/matter-labs/era-contracts/raw/main/eraLogo.svg)
 
-In order to provide easy access to all the features of zkSync Era, the `zksync2-java` Java SDK was created,
+In order to provide easy access to all the features of ZKsync Era, the `zksync2-java` Java SDK was created,
 which is made in a way that has an interface very similar to those of [web3j](https://web3py.readthedocs.io/en/v6.6.1/). In
 fact, `web3j` is a peer dependency of our library and most of the objects exported by `zksync2-java` inherit from the corresponding `web3j` objects and override only the fields that need
 to be changed.
 
-While most of the existing SDKs functionalities should work out of the box, deploying smart contracts or using unique zkSync features,
+While most of the existing SDKs functionalities should work out of the box, deploying smart contracts or using unique ZKsync Era features,
 like account abstraction, requires providing additional fields to those that Ethereum transactions have by default.
 
 The library is made in such a way that after replacing `web3j` with `zksync2-java` most client apps will work out of
@@ -24,7 +28,7 @@ box.
 
 ## Dependency
 
-For connecting ZkSync2 library just add the following dependency to your build file.
+For connecting `zksync2` library just add the following dependency to your build file.
 
 Maven `pom.xml`
 
@@ -53,7 +57,7 @@ dependencies {
 
 The complete examples with various use cases are available [here](https://github.com/zksync-sdk/zksync2-examples/tree/main/java).
 
-### Connect to the zkSync Era network:
+### Connect to the ZKsync Era network:
 
 ```java
 import io.zksync.protocol.ZkSync;
@@ -89,7 +93,7 @@ public class Main {
 ### Check account balances
 
 ```ts
-BigInteger ethBalance = wallet.getBalance().send(); // balance on zkSync Era network
+BigInteger ethBalance = wallet.getBalance().send(); // balance on ZKsync Era network
 
 BigInteger ethBalanceL1 = wallet.getBalanceL1().send(); // balance on Sepolia network
 ```
