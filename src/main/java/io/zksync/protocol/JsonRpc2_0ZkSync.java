@@ -214,15 +214,8 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
      * Calls the {@link <a href="https://docs.zksync.io/build/api.html#zks_getprotocolversion">...</a> zks_getProtocolVersion} JSON-RPC method.
      *
      * @param id Specific version ID.
-     *
-     * @example
-     *
-     * import { Provider, types } from "zksync-ethers";
-     *
-     * const provider = Provider.getDefaultProvider(types.Network.Sepolia);
-     * console.log(`Protocol version: ${await provider.getProtocolVersion()}`);
      */
-    public Request<?, ZksProtocolVersion>  getProtocolVersion(int id){
+    public Request<?, ZksProtocolVersion> getProtocolVersion(int id){
         return new Request<>(
                 "zks_getProtocolVersion",
                 Collections.singletonList(id),
@@ -247,6 +240,18 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
             }
         });
     }
+
+    /**
+     * Returns the current fee parameters.
+     *
+     * Calls the {@link <a href="https://docs.zksync.io/build/api.html#zks_getFeeParams">zks_getFeeParams</a>} JSON-RPC method.
+     */
+    public Request<?, ZksFeeParams> getFeeParams() {
+        return new Request<>(
+                "zks_getFeeParams",
+                Collections.emptyList(),
+                web3jService,
+                ZksFeeParams.class);    }
 
     public Request<?, EthEstimateGas> estimateL1ToL2Execute(String contractAddress, byte[] calldata, String caller, @Nullable BigInteger l2GasLimit, @Nullable BigInteger l2Value, @Nullable byte[][] factoryDeps, @Nullable BigInteger operatorTip, @Nullable BigInteger gasPerPubDataByte, @Nullable String refoundRecepient) {
         if (gasPerPubDataByte == null){

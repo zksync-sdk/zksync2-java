@@ -209,7 +209,28 @@ public interface ZkSync extends Web3j {
      */
     String l2TokenAddress(String tokenAddress, @Nullable String customBridge);
 
-    public RemoteCall<Boolean> isL2BridgeLegacy(String address);
+    /**
+     * Returns the current fee parameters.
+     *
+     * Calls the {@link <a href="https://docs.zksync.io/build/api.html#zks_getFeeParams">zks_getFeeParams</a>} JSON-RPC method.
+     */
+    Request<?, ZksFeeParams> getFeeParams();
+
+    /**
+     * Return the protocol version
+     *
+     * Calls the {@link <a href="https://docs.zksync.io/build/api.html#zks_getprotocolversion">...</a> zks_getProtocolVersion} JSON-RPC method.
+     *
+     * @param id Specific version ID.
+     */
+    Request<?, ZksProtocolVersion> getProtocolVersion(int id);
+
+    /**
+     * Returns true if passed bridge address is legacy and false if its shared bridge.
+     **
+     * @param address The bridge address.
+     */
+    RemoteCall<Boolean> isL2BridgeLegacy(String address);
 
     Request<?, EthEstimateGas> estimateL1ToL2Execute(String contractAddress, byte[] calldata, String caller, @Nullable BigInteger l2GasLimit, @Nullable BigInteger l2Value, @Nullable byte[][] factoryDeps, @Nullable BigInteger operatorTip, @Nullable BigInteger gasPerPubDataByte, @Nullable String refoundRecepient);
 
