@@ -226,6 +226,23 @@ public interface ZkSync extends Web3j {
     Request<?, ZksProtocolVersion> getProtocolVersion(int id);
 
     /**
+     * Executes a transaction and returns its hash, storage logs, and events that would have been generated if the
+     * transaction had already been included in the block. The API has a similar behaviour to `eth_sendRawTransaction`
+     * but with some extra data returned from it.
+     *
+     * With this API Consumer apps can apply "optimistic" events in their applications instantly without having to
+     * wait for ZKsync block confirmation time.
+     *
+     * It’s expected that the optimistic logs of two uncommitted transactions that modify the same state will not
+     * have causal relationships between each other.
+     *
+     * Calls the {@link <a href="https://docs.zksync.io/build/api.html#zks_sendRawTransactionWithDetailedOutput">zks_sendRawTransactionWithDetailedOutput</a>} JSON-RPC method.
+     *
+     * @param signedTx The signed transaction that needs to be broadcasted.
+     */
+    Request<?, ZksTransactionWithDetailedOutput> sendRawTransactionWithDetailedOutput(String signedTx);
+
+    /**
      * Returns true if passed bridge address is legacy and false if its shared bridge.
      **
      * @param address The bridge address.

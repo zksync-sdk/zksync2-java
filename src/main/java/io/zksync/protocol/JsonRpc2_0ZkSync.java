@@ -251,7 +251,31 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
                 "zks_getFeeParams",
                 Collections.emptyList(),
                 web3jService,
-                ZksFeeParams.class);    }
+                ZksFeeParams.class);
+    }
+
+    /**
+     * Executes a transaction and returns its hash, storage logs, and events that would have been generated if the
+     * transaction had already been included in the block. The API has a similar behaviour to `eth_sendRawTransaction`
+     * but with some extra data returned from it.
+     *
+     * With this API Consumer apps can apply "optimistic" events in their applications instantly without having to
+     * wait for ZKsync block confirmation time.
+     *
+     * It’s expected that the optimistic logs of two uncommitted transactions that modify the same state will not
+     * have causal relationships between each other.
+     *
+     * Calls the {@link <a href="https://docs.zksync.io/build/api.html#zks_sendRawTransactionWithDetailedOutput">zks_sendRawTransactionWithDetailedOutput</a>} JSON-RPC method.
+     *
+     * @param signedTx The signed transaction that needs to be broadcasted.
+     */
+    public Request<?, ZksTransactionWithDetailedOutput> sendRawTransactionWithDetailedOutput(String signedTx) {
+        return new Request<>(
+                "zks_sendRawTransactionWithDetailedOutput",
+                Collections.singletonList(signedTx),
+                web3jService,
+                ZksTransactionWithDetailedOutput.class);
+    }
 
     public Request<?, EthEstimateGas> estimateL1ToL2Execute(String contractAddress, byte[] calldata, String caller, @Nullable BigInteger l2GasLimit, @Nullable BigInteger l2Value, @Nullable byte[][] factoryDeps, @Nullable BigInteger operatorTip, @Nullable BigInteger gasPerPubDataByte, @Nullable String refoundRecepient) {
         if (gasPerPubDataByte == null){
