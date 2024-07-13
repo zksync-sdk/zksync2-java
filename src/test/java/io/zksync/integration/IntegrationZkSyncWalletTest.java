@@ -49,8 +49,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @Disabled
 public class IntegrationZkSyncWalletTest {
 
-    private static final String L1_NODE = "http://127.0.0.1:8545";
-    private static final String L2_NODE = "http://127.0.0.1:3050";
+    private static final String L1_NODE = "http://127.0.0.1:15045";
+    private static final String L2_NODE = "http://127.0.0.1:15100";
 
     private static ZkSyncWallet wallet;
     private static Credentials credentials;

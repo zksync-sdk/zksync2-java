@@ -249,7 +249,9 @@ public class WalletTest extends BaseIntegrationEnv {
             assertTrue(l1BalanceBeforeDeposit.subtract(l1BalanceAfterDeposit).compareTo(amount) >= 0);
         }else{
             BigInteger amount = new BigInteger("7000000000");
-            BigInteger l2BalanceBeforeDeposit = testWallet.getBalance().sendAsync().join();
+            String l2Eth = testWallet.l2TokenAddress(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS);
+            BigInteger l2BalanceBeforeDeposit = testWallet.getBalance(l2Eth).sendAsync().join();
+            BigInteger a = testWallet.getBalance(ZkSyncAddresses.LEGACY_ETH_ADDRESS).sendAsync().join();
             BigInteger l1BalanceBeforeDeposit = testWallet.getBalanceL1().sendAsync().join();
 
             DepositTransaction transaction = new DepositTransaction(ZkSyncAddresses.LEGACY_ETH_ADDRESS, amount, true);
@@ -258,19 +260,20 @@ public class WalletTest extends BaseIntegrationEnv {
             TransactionReceipt l1Receipt = processorL1.waitForTransactionReceipt(hash.getTransactionHash());
             String l2Hash = zksync.getL2HashFromPriorityOp(l1Receipt, zksync.zksMainContract().sendAsync().join().getResult());
             testWallet.getTransactionReceiptProcessor().waitForTransactionReceipt(l2Hash);
-            BigInteger l2BalanceAfterDeposit = testWallet.getBalance().sendAsync().join();
+            BigInteger l2BalanceAfterDeposit = testWallet.getBalance(l2Eth).sendAsync().join();
             BigInteger l1BalanceAfterDeposit = testWallet.getBalanceL1().sendAsync().join();
 
             assertNotNull(hash);
-            assertTrue(l2BalanceAfterDeposit.subtract(l2BalanceBeforeDeposit).compareTo(amount) >= 0);
-            assertTrue(l1BalanceBeforeDeposit.subtract(l1BalanceAfterDeposit).compareTo(amount) >= 0);
+            assertTrue(l2BalanceAfterDeposit.subtract(l2BalanceBeforeDeposit).compareTo(amount) == 0);
+            assertTrue(l1BalanceBeforeDeposit.subtract(l1BalanceAfterDeposit).compareTo(amount) > 0);
         }
     }
     @Test
     public void testDepositBaseToken() throws Exception {
         BigInteger amount = new BigInteger("5");
+        String baseToken = testWallet.getBaseToken().sendAsync().join();
         BigInteger l2BalanceBeforeDeposit = testWallet.getBalance().sendAsync().join();
-        BigInteger l1BalanceBeforeDeposit = testWallet.getBalanceL1().sendAsync().join();
+        BigInteger l1BalanceBeforeDeposit = testWallet.getBalanceL1(baseToken).sendAsync().join();
 
         DepositTransaction transaction = new DepositTransaction(ZkSyncAddresses.LEGACY_ETH_ADDRESS, amount, true);
         EthSendTransaction hash = testWallet.deposit(transaction).send();
@@ -279,7 +282,7 @@ public class WalletTest extends BaseIntegrationEnv {
         String l2Hash = zksync.getL2HashFromPriorityOp(l1Receipt, zksync.zksMainContract().sendAsync().join().getResult());
         testWallet.getTransactionReceiptProcessor().waitForTransactionReceipt(l2Hash);
         BigInteger l2BalanceAfterDeposit = testWallet.getBalance().sendAsync().join();
-        BigInteger l1BalanceAfterDeposit = testWallet.getBalanceL1().sendAsync().join();
+        BigInteger l1BalanceAfterDeposit = testWallet.getBalanceL1(baseToken).sendAsync().join();
 
         assertNotNull(hash);
         assertTrue(l2BalanceAfterDeposit.subtract(l2BalanceBeforeDeposit).compareTo(amount) >= 0);
@@ -355,15 +358,14 @@ public class WalletTest extends BaseIntegrationEnv {
     @Test
     public void testTransferBaseToken() throws TransactionException, IOException {
         BigInteger amount = BigInteger.valueOf(7_000_000_000L);
-        String baseToken = testWallet.getBaseToken().sendAsync().join();
 
-        BigInteger balanceBeforeTransfer = testWallet.getBalance(RECEIVER, baseToken, ZkBlockParameterName.COMMITTED).sendAsync().join();
+        BigInteger balanceBeforeTransfer = testWallet.getBalance(RECEIVER, ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS, ZkBlockParameterName.COMMITTED).sendAsync().join();
 
         TransferTransaction transaction = new TransferTransaction(RECEIVER, amount, signer.getAddress());
         TransactionReceipt receipt = testWallet.transfer(transaction).sendAsync().join();
         testWallet.getTransactionReceiptProcessor().waitForTransactionReceipt(receipt.getTransactionHash());
 
-        BigInteger balanceAfterTransfer = testWallet.getBalance(RECEIVER, baseToken, ZkBlockParameterName.COMMITTED).sendAsync().join();
+        BigInteger balanceAfterTransfer = testWallet.getBalance(RECEIVER, ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS, ZkBlockParameterName.COMMITTED).sendAsync().join();
 
         assertNotNull(receipt);
         assertEquals(balanceAfterTransfer.subtract(balanceBeforeTransfer), amount);
@@ -374,19 +376,20 @@ public class WalletTest extends BaseIntegrationEnv {
         BigInteger amount = BigInteger.valueOf(7_000_000_000L);
         PaymasterParams paymasterParams = new PaymasterParams(PAYMASTER, Numeric.hexStringToByteArray(FunctionEncoder.encode(Paymaster.encodeApprovalBased(TOKEN, BigInteger.ONE, new byte[] {}))));
 
-        BigInteger paymasterBeforeTransfer = testWallet.getBalance(PAYMASTER, ZkSyncAddresses.LEGACY_ETH_ADDRESS).sendAsync().join();
+        BigInteger paymasterBeforeTransfer = testWallet.getBalance(PAYMASTER, ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS).sendAsync().join();
         BigInteger paymasterTokenBeforeTransfer = testWallet.getBalance(PAYMASTER, TOKEN).sendAsync().join();
-        BigInteger senderBalanceBeforeTransfer = testWallet.getBalance().sendAsync().join();
+        BigInteger senderBalanceBeforeTransfer = testWallet.getBalance(ZkSyncAddresses.LEGACY_ETH_ADDRESS).sendAsync().join();
         BigInteger senderApprovalBeforeTransfer = testWallet.getBalance(TOKEN).sendAsync().join();
         BigInteger receiverBefore = testWallet.getBalance(RECEIVER, ZkSyncAddresses.LEGACY_ETH_ADDRESS).sendAsync().join();
 
         TransferTransaction transaction = new TransferTransaction(RECEIVER, amount, signer.getAddress(), paymasterParams);
+        transaction.tokenAddress = ZkSyncAddresses.LEGACY_ETH_ADDRESS;
         TransactionReceipt receipt = testWallet.transfer(transaction).sendAsync().join();
         testWallet.getTransactionReceiptProcessor().waitForTransactionReceipt(receipt.getTransactionHash());
 
-        BigInteger paymasterAfterTransfer = testWallet.getBalance(PAYMASTER, ZkSyncAddresses.LEGACY_ETH_ADDRESS).sendAsync().join();
+        BigInteger paymasterAfterTransfer = testWallet.getBalance(PAYMASTER, ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS).sendAsync().join();
         BigInteger paymasterTokenAfterTransfer = testWallet.getBalance(PAYMASTER, TOKEN).sendAsync().join();
-        BigInteger senderBalanceAfterTransfer = testWallet.getBalance().sendAsync().join();
+        BigInteger senderBalanceAfterTransfer = testWallet.getBalance(ZkSyncAddresses.LEGACY_ETH_ADDRESS).sendAsync().join();
         BigInteger senderApprovalAfterTransfer = testWallet.getBalance(TOKEN).sendAsync().join();
         BigInteger receiverAfter = testWallet.getBalance(RECEIVER, ZkSyncAddresses.LEGACY_ETH_ADDRESS).sendAsync().join();
 
@@ -450,7 +453,7 @@ public class WalletTest extends BaseIntegrationEnv {
         PaymasterParams paymasterParams = new PaymasterParams(PAYMASTER, Numeric.hexStringToByteArray(FunctionEncoder.encode(Paymaster.encodeApprovalBased(TOKEN, BigInteger.ONE, new byte[] {}))));
 
         BigInteger paymasterTokenBefore = testWallet.getBalance(PAYMASTER, TOKEN).sendAsync().join();
-        BigInteger senderBefore = testWallet.getBalance().sendAsync().join();
+        BigInteger senderBefore = testWallet.getBalance(ZkSyncAddresses.LEGACY_ETH_ADDRESS).sendAsync().join();
         BigInteger senderApprovalBefore = testWallet.getBalance(TOKEN).sendAsync().join();
 
         WithdrawTransaction transaction = new WithdrawTransaction(ZkSyncAddresses.LEGACY_ETH_ADDRESS, amount, paymasterParams);
@@ -458,7 +461,7 @@ public class WalletTest extends BaseIntegrationEnv {
         TransactionReceipt receipt = testWallet.getTransactionReceiptProcessor().waitForTransactionReceipt(result.getTransactionHash());
 
         BigInteger paymasterTokenAfter = testWallet.getBalance(PAYMASTER, TOKEN).sendAsync().join();
-        BigInteger senderAfter = testWallet.getBalance().sendAsync().join();
+        BigInteger senderAfter = testWallet.getBalance(ZkSyncAddresses.LEGACY_ETH_ADDRESS).sendAsync().join();
         BigInteger senderApprovalAfter = testWallet.getBalance(TOKEN).sendAsync().join();
 
         assertNotNull(receipt);

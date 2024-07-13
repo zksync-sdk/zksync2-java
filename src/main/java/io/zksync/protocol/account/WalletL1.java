@@ -593,7 +593,9 @@ public class WalletL1 {
                 Arrays.asList(new Address(transaction.tokenAddress), new Uint256(transaction.amount), new Address(transaction.to)),
                 Collections.emptyList());
         String secondBridgeCalldata = Numeric.prependHexPrefix(FunctionEncoder.encode(f));
-
+        String bridgeAddress = transaction.bridgeAddress == null || transaction.bridgeAddress.isEmpty() ?
+                bridgeContracts.sharedL1Bridge.getContractAddress() :
+                transaction.bridgeAddress;
         String calldata = bridgehub.encodeRequestL2TransactionTwoBridges(
                 new IBridgehub.L2TransactionRequestTwoBridgesOuter(
                         chainId,
@@ -602,7 +604,7 @@ public class WalletL1 {
                         transaction.l2GasLimit,
                         transaction.gasPerPubdataByte,
                         transaction.refoundRecepient,
-                        bridgeContracts.sharedL1Bridge.getContractAddress(),
+                        bridgeAddress,
                         BigInteger.ZERO,
                         Numeric.hexStringToByteArray(secondBridgeCalldata)));
 
@@ -662,6 +664,10 @@ public class WalletL1 {
                 Collections.emptyList());
         String secondBridgeCalldata = Numeric.prependHexPrefix(FunctionEncoder.encode(f));
 
+        String bridgeAddress = transaction.bridgeAddress == null || transaction.bridgeAddress.isEmpty() ?
+                sharedBridge.getContractAddress() :
+                transaction.bridgeAddress;
+
         String calldata = bridgehub.encodeRequestL2TransactionTwoBridges(
                 new IBridgehub.L2TransactionRequestTwoBridgesOuter(
                         chainId,
@@ -670,22 +676,9 @@ public class WalletL1 {
                         transaction.l2GasLimit,
                         transaction.gasPerPubdataByte,
                         transaction.refoundRecepient,
-                        sharedBridge.getContractAddress(),
+                        bridgeAddress,
                         transaction.amount,
                         Numeric.hexStringToByteArray(secondBridgeCalldata)));
-        BigInteger a = getBalanceL1().send();
-        String aaa = bridgehub.requestL2TransactionTwoBridges(
-                new IBridgehub.L2TransactionRequestTwoBridgesOuter(
-                        chainId,
-                        mintValue,
-                        BigInteger.ZERO,
-                        transaction.l2GasLimit,
-                        transaction.gasPerPubdataByte,
-                        transaction.refoundRecepient,
-                        sharedBridge.getContractAddress(),
-                        transaction.amount,
-                        Numeric.hexStringToByteArray(secondBridgeCalldata)), BigInteger.ZERO).encodeFunctionCall();
-        BigInteger b = getBalanceL1().send();
 
         Transaction tx =  new Transaction(
                 credentials.getAddress(),
@@ -719,18 +712,13 @@ public class WalletL1 {
         transaction.options.value = transaction.options.value != null ? transaction.options.value : mintValue;
         checkBaseCost(baseCost, mintValue);
 
-        String secondBridgeAddress;
-        String secondBridgeCalldata;
-        if (transaction.bridgeAddress != null){
-            secondBridgeAddress = transaction.bridgeAddress;
-            secondBridgeCalldata = getERC20DefaultBridgeData(transaction.tokenAddress, providerL1, credentials, gasProvider);
-        }else{
-            secondBridgeAddress = getL1BridgeContracts().sharedL1Bridge.getContractAddress();
-            Function f = new Function(null,
-                    Arrays.asList(new Address(transaction.tokenAddress), new Uint256(transaction.amount), new Address(transaction.to)),
-                    Collections.emptyList());
-            secondBridgeCalldata = Numeric.prependHexPrefix(FunctionEncoder.encode(f));
-        }
+        String secondBridgeAddress = transaction.bridgeAddress == null || transaction.bridgeAddress.isEmpty() ?
+                getL1BridgeContracts().sharedL1Bridge.getContractAddress() :
+                transaction.bridgeAddress;;
+        Function f = new Function(null,
+                Arrays.asList(new Address(transaction.tokenAddress), new Uint256(transaction.amount), new Address(transaction.to)),
+                Collections.emptyList());
+        String secondBridgeCalldata = Numeric.prependHexPrefix(FunctionEncoder.encode(f));
 
         String calldata = bridgehub.encodeRequestL2TransactionTwoBridges(
                 new IBridgehub.L2TransactionRequestTwoBridgesOuter(
