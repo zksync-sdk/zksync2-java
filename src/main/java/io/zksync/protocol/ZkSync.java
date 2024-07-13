@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.RemoteCall;
 import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.EthFilter;
@@ -196,6 +197,19 @@ public interface ZkSync extends Web3j {
      * @param tokenAddress The address of the token on L1.
      */
     String l2TokenAddress(String tokenAddress);
+
+    /**
+     * Returns the L2 token address equivalent for a L1 token address as they are not necessarily equal.
+     * The ETH address is set to the zero address.
+     *
+     * Only works for tokens bridged on default zkSync Era bridges.
+     *
+     * @param tokenAddress The address of the token on L1.
+     * @param customBridge The address of the token on L1.
+     */
+    String l2TokenAddress(String tokenAddress, @Nullable String customBridge);
+
+    public RemoteCall<Boolean> isL2BridgeLegacy(String address);
 
     Request<?, EthEstimateGas> estimateL1ToL2Execute(String contractAddress, byte[] calldata, String caller, @Nullable BigInteger l2GasLimit, @Nullable BigInteger l2Value, @Nullable byte[][] factoryDeps, @Nullable BigInteger operatorTip, @Nullable BigInteger gasPerPubDataByte, @Nullable String refoundRecepient);
 

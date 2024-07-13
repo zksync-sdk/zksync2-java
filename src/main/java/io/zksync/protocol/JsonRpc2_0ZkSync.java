@@ -9,15 +9,14 @@ import io.zksync.methods.request.Eip712Meta;
 import io.zksync.methods.request.Transaction;
 import io.zksync.methods.response.*;
 import io.zksync.protocol.core.BridgeAddresses;
+import io.zksync.protocol.core.ProtocolVersion;
 import io.zksync.transaction.type.TransactionOptions;
 import io.zksync.transaction.type.TransferTransaction;
 import io.zksync.transaction.type.WithdrawTransaction;
 import io.zksync.utils.TransactionStatus;
 import io.zksync.utils.WalletUtils;
 import io.zksync.utils.ZkSyncAddresses;
-import io.zksync.wrappers.ERC20;
-import io.zksync.wrappers.IEthToken;
-import io.zksync.wrappers.IL2Bridge;
+import io.zksync.wrappers.*;
 import org.jetbrains.annotations.Nullable;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
@@ -188,6 +187,10 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     }
 
     public String l2TokenAddress(String tokenAddress){
+        return l2TokenAddress(tokenAddress, null);
+    }
+
+    public String l2TokenAddress(String tokenAddress, @Nullable String bridgeAddress){
         if (tokenAddress.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS)){
             tokenAddress = ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS;
         }
@@ -198,10 +201,51 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
         }
 
         BridgeAddresses bridgeAddresses = zksGetBridgeContracts().sendAsync().join().getResult();
+        bridgeAddress = bridgeAddress != null ? bridgeAddress : bridgeAddresses.getL2SharedDefaultBridge();
         BigInteger gas = ethGasPrice().sendAsync().join().getGasPrice();
-        IL2Bridge shared = IL2Bridge.load(bridgeAddresses.getL2SharedDefaultBridge(), this, WalletUtils.createRandomCredentials(), gas, gas);
+        IL2SharedBridge shared = IL2SharedBridge.load(bridgeAddress, this, WalletUtils.createRandomCredentials(), gas, gas);
 
         return shared.l2TokenAddress(tokenAddress).sendAsync().join();
+    }
+
+    /**
+     * Return the protocol version
+     *
+     * Calls the {@link <a href="https://docs.zksync.io/build/api.html#zks_getprotocolversion">...</a> zks_getProtocolVersion} JSON-RPC method.
+     *
+     * @param id Specific version ID.
+     *
+     * @example
+     *
+     * import { Provider, types } from "zksync-ethers";
+     *
+     * const provider = Provider.getDefaultProvider(types.Network.Sepolia);
+     * console.log(`Protocol version: ${await provider.getProtocolVersion()}`);
+     */
+    public Request<?, ZksProtocolVersion>  getProtocolVersion(int id){
+        return new Request<>(
+                "zks_getProtocolVersion",
+                Collections.singletonList(id),
+                web3jService,
+                ZksProtocolVersion.class);
+    }
+
+    /**
+     * Returns true if passed bridge address is legacy and false if its shared bridge.
+     **
+     * @param address The bridge address.
+     */
+    public RemoteCall<Boolean> isL2BridgeLegacy(String address) {
+        BigInteger gas = ethGasPrice().sendAsync().join().getGasPrice();
+        IL2SharedBridge shared = IL2SharedBridge.load(address, this, WalletUtils.createRandomCredentials(), gas, gas);
+        return new RemoteCall<>(() -> {
+            try {
+                shared.l1SharedBridge().send();
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        });
     }
 
     public Request<?, EthEstimateGas> estimateL1ToL2Execute(String contractAddress, byte[] calldata, String caller, @Nullable BigInteger l2GasLimit, @Nullable BigInteger l2Value, @Nullable byte[][] factoryDeps, @Nullable BigInteger operatorTip, @Nullable BigInteger gasPerPubDataByte, @Nullable String refoundRecepient) {
