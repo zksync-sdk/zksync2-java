@@ -27,6 +27,7 @@ import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.RemoteCall;
+import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
@@ -131,7 +132,7 @@ public class Wallet extends WalletL1{
     /**
      * Withdraw native coins to L1 chain
      *
-     * @param tx WithdrawTransaction class
+     * @param tx {@link WithdrawTransaction} class
      * @return Prepared remote call of transaction
      */
     public RemoteCall<TransactionReceipt> withdraw(WithdrawTransaction tx) {
@@ -235,7 +236,7 @@ public class Wallet extends WalletL1{
                     BigInteger.ZERO,
                     Numeric.toHexString(bytecode),
                     data,
-                    Collections.singletonList(Numeric.toHexString(bytecode))
+                    Collections.emptyList()
             );
 
             EthSendTransaction sent = estimateAndSend(estimate, nonceToUse).join();
@@ -330,15 +331,20 @@ public class Wallet extends WalletL1{
      */
     public RemoteCall<BigInteger> getBalance(String address, String token, DefaultBlockParameter at) {
         if (token.equalsIgnoreCase(ZkSyncAddresses.LEGACY_ETH_ADDRESS) || token.equalsIgnoreCase(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS)){
-            token = l2TokenAddress(ZkSyncAddresses.ETH_ADDRESS_IN_CONTRACTS);
+            token = l2TokenAddress(token);
         }
         if (token.equalsIgnoreCase(ZkSyncAddresses.L2_BASE_TOKEN_ADDRESS)) {
             return new RemoteCall<>(() ->
                     this.providerL2.ethGetBalance(address, at).sendAsync().join().getBalance());
         } else {
             ERC20 erc20 = ERC20.load(token, this.providerL2, new ReadonlyTransactionManager(this.providerL2, address), new DefaultGasProvider());
-
-            return erc20.balanceOf(address);
+            return new RemoteCall<>(() -> {
+                try {
+                    return erc20.balanceOf(address).send();
+                } catch (Exception e) {
+                    return BigInteger.ZERO;
+                }
+            });
         }
     }
 

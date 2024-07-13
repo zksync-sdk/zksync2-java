@@ -31,10 +31,12 @@ public class Transaction {
     private String to;
     private BigInteger gas;
     private BigInteger gasPrice;
+    private BigInteger maxFeePerGas;
+    private BigInteger maxPriorityFeePerGas;
     private BigInteger value;
     private String data;
 
-    private Long transactionType;
+    private Long type;
     private AccessListObject accessList;
     private Eip712Meta eip712Meta;
 
@@ -47,7 +49,20 @@ public class Transaction {
         this.data = data;
         this.eip712Meta = eip712Meta;
 
-        this.transactionType = (long) Transaction712.EIP_712_TX_TYPE;
+        this.type = (long) Transaction712.EIP_712_TX_TYPE;
+    }
+
+    public Transaction(String from, String to, BigInteger gas, BigInteger maxFeePerGas, BigInteger maxPriorityFeePerGas, BigInteger value, String data, Eip712Meta eip712Meta) {
+        this.from = from;
+        this.to = to;
+        this.gas = gas;
+        this.maxFeePerGas = maxFeePerGas;
+        this.maxPriorityFeePerGas = maxPriorityFeePerGas;
+        this.value = value;
+        this.data = data;
+        this.eip712Meta = eip712Meta;
+
+        this.type = (long) Transaction712.EIP_712_TX_TYPE;
     }
 
     public static Transaction createEtherTransaction(
@@ -351,6 +366,12 @@ public class Transaction {
     public String getGasPrice() {
         return convert(gasPrice);
     }
+    public BigInteger getMaxFeePerGas() {
+        return maxFeePerGas;
+    }
+    public BigInteger getMaxPriorityFeePerGas() {
+        return maxPriorityFeePerGas;
+    }
 
     public String getValue() {
         return convert(value);
@@ -375,8 +396,8 @@ public class Transaction {
         return data;
     }
 
-    public String getTransactionType() {
-        return convert(BigInteger.valueOf(transactionType));
+    public String getType() {
+        return convert(BigInteger.valueOf(type));
     }
 
     public AccessListObject getAccessList() {
