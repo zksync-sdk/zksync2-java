@@ -1,7 +1,12 @@
 package io.zksync.protocol.core;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.math.BigInteger;
 
+@AllArgsConstructor
+@Getter
 public class V2Config {
     /**
      * Settings related to transaction fee computation.

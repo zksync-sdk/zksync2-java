@@ -1,7 +1,11 @@
 package io.zksync.protocol.core;
 
-import java.math.BigInteger;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+import java.math.BigInteger;
+@AllArgsConstructor
+@Getter
 public class Config {
     /**
      * Minimal gas price on L2.

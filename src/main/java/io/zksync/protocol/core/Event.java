@@ -1,8 +1,12 @@
 package io.zksync.protocol.core;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.math.BigInteger;
 import java.util.List;
-
+@AllArgsConstructor
+@Getter
 public class Event {
     private String address;
     private List<String> topics;
