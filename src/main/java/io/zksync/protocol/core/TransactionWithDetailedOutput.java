@@ -2,10 +2,12 @@ package io.zksync.protocol.core;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigInteger;
 import java.util.List;
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 public class TransactionWithDetailedOutput {
     /** Transaction hash. */
