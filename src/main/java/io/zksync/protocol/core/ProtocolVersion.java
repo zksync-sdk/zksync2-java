@@ -2,8 +2,10 @@ package io.zksync.protocol.core;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.web3j.protocol.core.Response;
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 public class ProtocolVersion {
     /** Protocol version ID. */
