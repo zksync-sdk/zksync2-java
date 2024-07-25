@@ -10,7 +10,7 @@
 [![X (formerly Twitter) Follow](https://badgen.net/badge/twitter/@zksyncDevs/1DA1F2?icon&label)](https://x.com/zksyncDevs)
 ![downloads](https://img.shields.io/github/downloads/atom/atom/total.svg)
 
-![Era Logo](https://github.com/matter-labs/era-contracts/raw/main/eraLogo.svg)
+[![ZKsync Era Logo](logo.svg)](https://zksync.io/)
 
 In order to provide easy access to all the features of ZKsync Era, the `zksync2-java` Java SDK was created,
 which is made in a way that has an interface very similar to those of [web3j](https://web3py.readthedocs.io/en/v6.6.1/). In
