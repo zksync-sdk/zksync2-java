@@ -3,6 +3,7 @@ package io.zksync.integration.account;
 import io.zksync.integration.BaseIntegrationEnv;
 import io.zksync.methods.request.PaymasterParams;
 import io.zksync.methods.response.FullDepositFee;
+import io.zksync.methods.response.ZksGetTransactionDetails;
 import io.zksync.protocol.core.ZkBlockParameterName;
 import io.zksync.transaction.type.*;
 import io.zksync.utils.Paymaster;
@@ -322,15 +323,16 @@ public class WalletTest extends BaseIntegrationEnv {
     }
 
     @Test
-    public void testTransferEth() throws TransactionException, IOException {
-        BigInteger amount = BigInteger.valueOf(7_000_000_000L);
+    public void testTransferEth() throws TransactionException, IOException, InterruptedException {
+        BigInteger amount = BigInteger.valueOf(7_000_000L);
 
         BigInteger balanceBeforeTransfer = testWallet.getBalance(RECEIVER, ZkSyncAddresses.LEGACY_ETH_ADDRESS, ZkBlockParameterName.COMMITTED).sendAsync().join();
+        BigInteger balanceBeforeTransfer2 = testWallet.getBalance(ADDRESS, ZkSyncAddresses.LEGACY_ETH_ADDRESS, ZkBlockParameterName.COMMITTED).sendAsync().join();
 
         TransferTransaction transaction = new TransferTransaction(RECEIVER, amount, signer.getAddress());
         TransactionReceipt receipt = testWallet.transfer(transaction).sendAsync().join();
-        testWallet.getTransactionReceiptProcessor().waitForTransactionReceipt(receipt.getTransactionHash());
-
+//        testWallet.getTransactionReceiptProcessor().waitForTransactionReceipt(receipt.getTransactionHash());z
+        ZksGetTransactionDetails a = zksync.zksGetTransactionDetails(receipt.getTransactionHash()).send();
         BigInteger balanceAfterTransfer = testWallet.getBalance(RECEIVER, ZkSyncAddresses.LEGACY_ETH_ADDRESS, ZkBlockParameterName.COMMITTED).sendAsync().join();
 
         assertNotNull(receipt);

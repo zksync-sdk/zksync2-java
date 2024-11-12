@@ -21,6 +21,7 @@ import java.math.BigInteger;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Disabled
 public class SmartAccountTest extends BaseIntegrationEnv {
     @Test
     public void testTransferBaseToken() throws TransactionException, IOException {

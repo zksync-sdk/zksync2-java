@@ -98,7 +98,13 @@ public class Wallet extends WalletL1{
      */
     public L2BridgeContracts getL2BridgeContracts(){
         BridgeAddresses bridgeAddresses = providerL2.zksGetBridgeContracts().sendAsync().join().getResult();
-        return new L2BridgeContracts(bridgeAddresses.l2Erc20DefaultBridge, bridgeAddresses.l2WethBridge, bridgeAddresses.l2SharedDefaultBridge, providerL2, transactionManager, feeProviderL2);
+        return new L2BridgeContracts(
+                bridgeAddresses.l2Erc20DefaultBridge,
+                bridgeAddresses.getL2WethBridge() == null || bridgeAddresses.getL2WethBridge().isEmpty() ? bridgeAddresses.getL2Erc20DefaultBridge() : bridgeAddresses.getL2WethBridge(),
+                bridgeAddresses.l2SharedDefaultBridge,
+                providerL2,
+                transactionManager,
+                feeProviderL2);
     }
 
     public CompletableFuture<BigInteger> getDeploymentNonce(){
