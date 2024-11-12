@@ -15,7 +15,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class PopulateTransactionECDS implements IPopulateTransaction {
+public class PopulateTransactionECDSA implements IPopulateTransaction {
     @Override
     public CompletableFuture<Transaction712> populateTransaction(Transaction transaction, List<String> secrets, ZkSync provider, @Nullable BigInteger nonce) {
         Credentials credentials = Credentials.create(secrets.get(0));
