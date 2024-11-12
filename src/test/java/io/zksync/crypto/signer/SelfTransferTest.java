@@ -50,14 +50,14 @@ public class SelfTransferTest {
     @BeforeAll
     public static void setUp() throws IOException {
 
-        final String privateKey = "PRIVATE_KEY";
-        zksync = ZkSync.build(new HttpService("https://zksync2-testnet.zksync.dev"));
+        final String privateKey = "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
+        zksync = ZkSync.build(new HttpService("http://localhost:15100"));
         credentials = Credentials.create(privateKey);
-        key = new PrivateKeyEthSigner(credentials, 280L);
+        key = new PrivateKeyEthSigner(credentials, 270L);
         wallet = new ZkSyncWallet(zksync, key, Token.ETH);
-        web3j = Web3j.build(new HttpService("https://goerli.infura.io/v3/API_KEY"));
+        web3j = Web3j.build(new HttpService("http://localhost:15045"));
         chainId = web3j.ethChainId().send().getChainId();
-        domain = Eip712Domain.defaultDomain(280L);
+        domain = Eip712Domain.defaultDomain(270L);
     }
 
     @Test

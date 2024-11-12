@@ -91,7 +91,7 @@ public class BaseIntegrationEnv {
         String env = System.getenv("BASE_URL");
         IS_ETH_ENV = env == null || env.equalsIgnoreCase("true");
         L1_NODE = "http://127.0.0.1:15045";
-        L2_NODE = IS_ETH_ENV ? "http://127.0.0.1:15200" : "http://127.0.0.1:15200";
+        L2_NODE = IS_ETH_ENV ? "http://127.0.0.1:15100" : "http://127.0.0.1:15200";
         SALT = Numeric.hexStringToByteArray("0x293328ad84b118194c65a0dc0defdb6483740d3163fd99b260907e15f2e2f642");
         ADDRESS = "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049";
         RECEIVER = "0xa61464658AfeAf65CccaaFD3a512b69A83B77618";

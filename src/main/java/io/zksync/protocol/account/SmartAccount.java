@@ -19,7 +19,7 @@ import io.zksync.transaction.type.WithdrawTransaction;
 import io.zksync.utils.ZkSyncAddresses;
 import io.zksync.utils.smart.account.IPopulateTransaction;
 import io.zksync.utils.smart.account.ISignPayload;
-import io.zksync.utils.smart.account.PopulateTransactionECDS;
+import io.zksync.utils.smart.account.PopulateTransactionECDSA;
 import io.zksync.utils.smart.account.SignPayloadWithECDSA;
 import io.zksync.wrappers.ERC20;
 import io.zksync.wrappers.INonceHolder;
@@ -66,7 +66,7 @@ public class SmartAccount {
         this.transactionReceiptProcessor = transactionReceiptProcessor;
         this.feeProviderL2 = feeProviderL2;
         this.payloadSigner = payloadSigner == null ? new SignPayloadWithECDSA() : payloadSigner;
-        this.transactionBuilder = transactionBuilder == null ? new PopulateTransactionECDS() : transactionBuilder;
+        this.transactionBuilder = transactionBuilder == null ? new PopulateTransactionECDSA() : transactionBuilder;
     }
     public SmartAccount(ZkSync providerL2, List<String> secrets, String address, @Nullable ISignPayload payloadSigner, @Nullable IPopulateTransaction transactionBuilder ) {
         this(

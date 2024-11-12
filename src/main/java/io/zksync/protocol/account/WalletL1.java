@@ -242,7 +242,13 @@ public class WalletL1 {
      */
     public L1BridgeContracts getL1BridgeContracts(){
         BridgeAddresses bridgeAddresses = providerL2.zksGetBridgeContracts().sendAsync().join().getResult();
-        return new L1BridgeContracts(bridgeAddresses.getL1Erc20DefaultBridge(),bridgeAddresses.getL1SharedDefaultBridge(), bridgeAddresses.getL1SharedDefaultBridge(), providerL1, transactionManager, gasProvider);
+        return new L1BridgeContracts(
+                bridgeAddresses.getL1Erc20DefaultBridge(),
+                bridgeAddresses.getL1WethBridge() == null || bridgeAddresses.getL1WethBridge().isEmpty() ? bridgeAddresses.getL1Erc20DefaultBridge() : bridgeAddresses.getL1WethBridge(),
+                bridgeAddresses.getL1SharedDefaultBridge(),
+                providerL1,
+                transactionManager,
+                gasProvider);
     }
 
     /**
