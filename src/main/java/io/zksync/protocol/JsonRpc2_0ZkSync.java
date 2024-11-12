@@ -413,7 +413,7 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     @Override
     public Request<?, ZksStorageProof> getProof(String address, String[] keys, BigInteger l1BatchNumber) {
         return new Request<>(
-                "zks_L1BatchNumber", Arrays.asList(address, keys, l1BatchNumber), web3jService, ZksStorageProof.class);
+                "zks_getProof", Arrays.asList(address, keys, l1BatchNumber), web3jService, ZksStorageProof.class);
     }
 
     @Override
