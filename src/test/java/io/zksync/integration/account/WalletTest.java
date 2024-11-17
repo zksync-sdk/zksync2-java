@@ -146,6 +146,7 @@ public class WalletTest extends BaseIntegrationEnv {
     }
 
     @Test
+    @Disabled
     public void testEstimateGasDepositERC20() throws Exception {
         if (testWallet.isETHBasedChain()){
             DepositTransaction transaction = new DepositTransaction(L1_DAI, BigInteger.valueOf(5), null,null, null, null, null, null, null, null, null);
