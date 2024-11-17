@@ -1,3 +1,18 @@
+# [0.4.0](https://github.com/zksync-sdk/zksync2-java/compare/v0.3.0...v0.4.0) (2024-11-17)
+
+
+### Bug Fixes
+
+* **provider:** fix `getProof` to call correct method ID ([9f4addc](https://github.com/zksync-sdk/zksync2-java/commit/9f4addc3e705ecc1a3f24d9e068ea924498ef1d6))
+
+
+### Features
+
+* add `getFeeParams` RPC method ([52b9aae](https://github.com/zksync-sdk/zksync2-java/commit/52b9aaef6abecfb12804c1bb25e7abc58b7eac1e))
+* add `getProtocolVersion` RPC method ([24f6892](https://github.com/zksync-sdk/zksync2-java/commit/24f68920af1a69ce822f0754e8f023eaa22b3aa6))
+* add `sendRawTransactionWithDetailedOutput` RPC method ([b385eff](https://github.com/zksync-sdk/zksync2-java/commit/b385effaeef24ee0223a53faa1ac2486c1b52200))
+* implement `SmartAccount` class ([c6bfd9d](https://github.com/zksync-sdk/zksync2-java/commit/c6bfd9d76abfc36a37a05caf6ae57ed79a92d595))
+
 # [0.3.0](https://github.com/zksync-sdk/zksync2-java/compare/v0.2.1...v0.3.0) (2024-06-07)
 
 
