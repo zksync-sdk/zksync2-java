@@ -211,7 +211,7 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     /**
      * Return the protocol version
      *
-     * Calls the {@link <a href="https://docs.zksync.io/build/api.html#zks_getprotocolversion">...</a> zks_getProtocolVersion} JSON-RPC method.
+     * Calls the zks_getProtocolVersion JSON-RPC method.
      *
      * @param id Specific version ID.
      */
@@ -244,7 +244,7 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
     /**
      * Returns the current fee parameters.
      *
-     * Calls the {@link <a href="https://docs.zksync.io/build/api.html#zks_getFeeParams">zks_getFeeParams</a>} JSON-RPC method.
+     * Calls the zks_getFeeParams JSON-RPC method.
      */
     public Request<?, ZksFeeParams> getFeeParams() {
         return new Request<>(
@@ -265,7 +265,7 @@ public class JsonRpc2_0ZkSync extends JsonRpc2_0Web3j implements ZkSync {
      * It’s expected that the optimistic logs of two uncommitted transactions that modify the same state will not
      * have causal relationships between each other.
      *
-     * Calls the {@link <a href="https://docs.zksync.io/build/api.html#zks_sendRawTransactionWithDetailedOutput">zks_sendRawTransactionWithDetailedOutput</a>} JSON-RPC method.
+     * Calls the zks_sendRawTransactionWithDetailedOutput JSON-RPC method.
      *
      * @param signedTx The signed transaction that needs to be broadcasted.
      */
