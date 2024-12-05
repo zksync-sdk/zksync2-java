@@ -12,6 +12,9 @@
 
 [![ZKsync Era Logo](logo.svg)](https://zksync.io/)
 
+> [!WARNING]  
+> Development of this SDK has been put on the community support. There is no active development of the repository, but the pull requests will be reviewed and merged.
+
 In order to provide easy access to all the features of ZKsync Era, the `zksync2-java` Java SDK was created,
 which is made in a way that has an interface very similar to those of [web3j](https://web3py.readthedocs.io/en/v6.6.1/). In
 fact, `web3j` is a peer dependency of our library and most of the objects exported by `zksync2-java` inherit from the corresponding `web3j` objects and override only the fields that need
