@@ -1,7 +1,11 @@
+> [!WARNING]  
+> This project is no longer maintained, the usage of a general-purpose web3 SDK is recommended instead.
+
+---
+---
 
 
 # 🚀 zksync2-java Java SDK 🚀
-
 
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE-MIT)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-orange)](LICENSE-APACHE)
@@ -11,9 +15,6 @@
 ![downloads](https://img.shields.io/github/downloads/atom/atom/total.svg)
 
 [![ZKsync Era Logo](logo.svg)](https://zksync.io/)
-
-> [!WARNING]  
-> Development of this SDK has been put on the community support. There is no active development of the repository, but the pull requests will be reviewed and merged.
 
 In order to provide easy access to all the features of ZKsync Era, the `zksync2-java` Java SDK was created,
 which is made in a way that has an interface very similar to those of [web3j](https://web3py.readthedocs.io/en/v6.6.1/). In
